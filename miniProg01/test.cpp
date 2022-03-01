@@ -25,11 +25,11 @@ void findWord ( const string & request, vector<string> & lines,
   for ( string & line : lines ) {
     stringstream ssLine(line);
 
-    getline ( ssLine, word, '\t' );
-    cout << "word: " << word << endl;
-    if ( word == request ) {
-      cout << line << endl;
-      out << line << endl;
+    while ( getline ( ssLine, word, '\t' ) ) {
+      if ( word == request ) {
+        cout << line << endl;
+        out << line << endl;
+      }
     }
   }
 }
