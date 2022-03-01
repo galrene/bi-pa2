@@ -12,55 +12,96 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-/**
- * ked je rovnake slovo dva krat v riadku, vypise ho dva krat
- *
- * 
-*/
-void findWord ( const string & request, vector<string> & lines,
-                ostream & out ) {
+bool isPhoneNum ( string & phoneNum ) {
+  if ( phoneNum.size() != 9 )
+    return false;
+  if ( phoneNum[0] == '0' )
+    return false;
+  for ( char c : phoneNum ) {
+    if ( c < '0' || c > '9' )
+      return false;
+  }
+  return true;
+}
+
+bool isEntry ( string & line ) {
+  stringstream ss(line);
   string word;
-  cout << "request: " << request << endl;
+  int cnt = 0;
+  while ( ss >> word )
+    ++cnt;
+  if ( cnt != 3 )
+    return false;
+  if ( !isPhoneNum ( word ) )
+    return false;
+  return true;
+}
 
-  for ( string & line : lines ) {
-    stringstream ssLine(line);
+bool loadEntries ( ifstream & ifs, vector<string> & entries ) {
+  string line;
+  while ( getline( ifs, line ) && line != "" ) {
+    if ( ! isEntry(line) ) {
+      return false;
+    }
+    entries.push_back(line);
+  }
+  return true;
+}
 
-    while ( getline ( ssLine, word, '\t' ) ) {
-      if ( word == request ) {
-        cout << line << endl;
-        out << line << endl;
+void printLine ( string & line, ostream & out ) {
+  stringstream ss(line);
+  string word;
+  int cnt = 0;
+  while ( ss >> word ) {
+    ++cnt;
+    out << word;
+    if ( cnt != 3 )
+      out << " ";
+  }
+  out << endl;
+}
+
+void searchEntries ( ifstream & ifs , vector<string> entries, ostream & out ) {
+  string request;
+  while ( getline( ifs, request ) ) {
+    int cnt = 0;
+    /*iterate through lines*/
+    for ( string & entry : entries ) {
+      stringstream ss(entry);
+      string word;
+      /*iterate through words in a line*/
+      while ( ss >> word ) {
+        if ( word == request ) {
+          ++cnt;
+          printLine(entry, out );
+          break;
+        }
       }
     }
+    /*the number of matched lines*/
+    out << "-> " << cnt << endl;
   }
 }
 
-bool report ( const string & fileName, ostream & out )
-{
-  ifstream is;
-  is.open( fileName );
-  
-  vector<string> lines;
-  string buff;
+bool report ( const string & fileName, ostream & out ) {
 
-  while ( getline( is, buff ) && ( buff != "" ) ) {
-    lines.push_back( buff );
-  }
+  ifstream ifs;
+  vector<string> entries;
+  ifs.open(fileName);
   
-  while ( getline( is, buff ) ) {
-    findWord( buff, lines, out );
-  }
-  
+  if ( ! loadEntries( ifs, entries ) )
+    return false;
+  searchEntries( ifs, entries, out );
+
+  ifs.close();  
   return true;
 }
 
 #ifndef __PROGTEST__
 int main ()
 {
-  
   ostringstream oss;
   oss . str ( "" );
-  report( "tests/test0_in.txt", oss );
-  /*
   assert ( report( "tests/test0_in.txt", oss ) == true );
   assert ( oss . str () ==
     "John Christescu 258452362\n"
@@ -74,7 +115,7 @@ int main ()
     "-> 1\n" );
   oss . str ( "" );
   assert ( report( "tests/test1_in.txt", oss ) == false );
-  */
+  report("tests/test03_in.txt", cout );
   return 0;
 }
 #endif /* __PROGTEST__ */
