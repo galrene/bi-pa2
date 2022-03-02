@@ -30,43 +30,36 @@ bool isPhoneNum ( string & phoneNum ) {
   return true;
 }
 
-bool isEntry ( string & line ) {
+bool isEntry ( string & line, string & output ) {
   stringstream ss(line);
   string word;
   int cnt = 0;
-  while ( ss >> word )
+  while ( ss >> word && cnt <= 4) {
+    if ( ! output.empty() ) 
+      output += ' ';
+    output += word;
     ++cnt;
+  }
   if ( cnt != 3 ) {
     cout << "40" << endl;
     return false;
   }
   if ( ! isPhoneNum ( word ) ) 
     return false;
+  
   return true;
 }
 
 bool loadEntries ( ifstream & ifs, vector<string> & entries ) {
   string line;
   while ( getline( ifs, line ) && line != "" ) {
-    if ( ! isEntry(line) ) {
+  string output = "";
+    if ( ! isEntry( line, output ) ) {
       return false;
     }
-    entries.push_back(line);
+    entries.push_back(output);
   }
   return true;
-}
-
-void printLine ( string & line, ostream & out ) {
-  stringstream ss(line);
-  string word;
-  int cnt = 0;
-  while ( ss >> word ) {
-    ++cnt;
-    out << word;
-    if ( cnt != 3 )
-      out << " ";
-  }
-  out << endl;
 }
 
 void searchEntries ( ifstream & ifs , vector<string> entries, ostream & out ) {
@@ -81,7 +74,7 @@ void searchEntries ( ifstream & ifs , vector<string> entries, ostream & out ) {
       while ( ss >> word ) {
         if ( word == request ) {
           ++cnt;
-          printLine(entry, out );
+          out << entry << endl;
           break;
         }
       }
@@ -95,6 +88,8 @@ bool report ( const string & fileName, ostream & out ) {
 
   ifstream ifs;
   vector<string> entries;
+
+  
   ifs.open(fileName);
   if ( ! ifs.is_open() || ! ifs.good() ) {
     cout << "100" << endl;
@@ -112,7 +107,21 @@ bool report ( const string & fileName, ostream & out ) {
 #ifndef __PROGTEST__
 int main ()
 {
-  cout << report("tests/test03_in.txt", cout ) << endl;
+  ostringstream oss;
+  oss . str ( "" );
+  assert ( report( "tests/test0_in.txt", oss ) == true );
+  assert ( oss . str () ==
+    "John Christescu 258452362\n"
+    "John Harmson 861647702\n"
+    "-> 2\n"
+    "-> 0\n"
+    "Josh Dakhov 264112084\n"
+    "Dakhov Speechley 865216101\n"
+    "-> 2\n"
+    "John Harmson 861647702\n"
+    "-> 1\n" );
+  oss . str ( "" );
+  assert ( report( "tests/test1_in.txt", oss ) == false );
   return 0;
 }
 #endif /* __PROGTEST__ */
