@@ -87,7 +87,7 @@ int main ()
     "John Harmson 861647702\n"
     "-> 1\n" );
   oss . str ( "" );
-  assert ( report( "tests/test1_in.txt", oss ) == false );
+  assert ( report( "tests/test3_in.txt", oss ) == false );
   return 0;
 }
 #endif /* __PROGTEST__ */

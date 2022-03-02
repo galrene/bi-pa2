@@ -13,13 +13,19 @@ using namespace std;
 #endif /* __PROGTEST__ */
 
 bool isPhoneNum ( string & phoneNum ) {
-  if ( phoneNum.size() != 9 )
+  if ( phoneNum.size() != 9 ) {
+    cout << "17" << endl;
     return false;
-  if ( phoneNum[0] == '0' )
+  }
+  if ( phoneNum[0] == '0' ) {
+    cout << "21" << endl;
     return false;
+  }
   for ( char c : phoneNum ) {
-    if ( c < '0' || c > '9' )
+    if ( c < '0' || c > '9' ) {
+      cout << "26" << endl;
       return false;
+    }
   }
   return true;
 }
@@ -30,9 +36,11 @@ bool isEntry ( string & line ) {
   int cnt = 0;
   while ( ss >> word )
     ++cnt;
-  if ( cnt != 3 )
+  if ( cnt != 3 ) {
+    cout << "40" << endl;
     return false;
-  if ( !isPhoneNum ( word ) )
+  }
+  if ( ! isPhoneNum ( word ) ) 
     return false;
   return true;
 }
@@ -88,7 +96,11 @@ bool report ( const string & fileName, ostream & out ) {
   ifstream ifs;
   vector<string> entries;
   ifs.open(fileName);
-  
+  if ( ! ifs.is_open() || ! ifs.good() ) {
+    cout << "100" << endl;
+    return false;
+  }
+
   if ( ! loadEntries( ifs, entries ) )
     return false;
   searchEntries( ifs, entries, out );
@@ -100,22 +112,7 @@ bool report ( const string & fileName, ostream & out ) {
 #ifndef __PROGTEST__
 int main ()
 {
-  ostringstream oss;
-  oss . str ( "" );
-  assert ( report( "tests/test0_in.txt", oss ) == true );
-  assert ( oss . str () ==
-    "John Christescu 258452362\n"
-    "John Harmson 861647702\n"
-    "-> 2\n"
-    "-> 0\n"
-    "Josh Dakhov 264112084\n"
-    "Dakhov Speechley 865216101\n"
-    "-> 2\n"
-    "John Harmson 861647702\n"
-    "-> 1\n" );
-  oss . str ( "" );
-  assert ( report( "tests/test1_in.txt", oss ) == false );
-  report("tests/test03_in.txt", cout );
+  cout << report("tests/test03_in.txt", cout ) << endl;
   return 0;
 }
 #endif /* __PROGTEST__ */
