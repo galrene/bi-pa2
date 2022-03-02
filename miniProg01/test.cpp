@@ -30,65 +30,77 @@ bool isPhoneNum ( string & phoneNum ) {
   return true;
 }
 
-bool isEntry ( string & line, string & output ) {
+struct TEntry {
+  string m_Name;
+  string m_Surname;
+  string m_phoneNum;
+};
+
+bool isEntry ( string & line, TEntry & entry ) {
   stringstream ss(line);
   string word;
+
   int cnt = 0;
   while ( ss >> word && cnt <= 4) {
-    if ( ! output.empty() ) 
-      output += ' ';
-    output += word;
-    ++cnt;
+
+    switch (++cnt) {
+      case (1):
+        entry.m_Name = word;
+        break;
+      case (2):
+        entry.m_Surname = word;
+        break;
+      case (3):
+        entry.m_phoneNum = word;
+        break;
+      default:
+        break;
+    }
   }
   if ( cnt != 3 ) {
     cout << "40" << endl;
     return false;
   }
-  if ( ! isPhoneNum ( word ) ) 
+  if ( ! isPhoneNum ( entry.m_phoneNum ) ) 
     return false;
   
   return true;
 }
 
-bool loadEntries ( ifstream & ifs, vector<string> & entries ) {
+bool loadEntries ( ifstream & ifs, vector<TEntry> & entries ) {
   string line;
   while ( getline( ifs, line ) && line != "" ) {
-  string output = "";
-    if ( ! isEntry( line, output ) ) {
+    TEntry entry = {};
+    if ( ! isEntry( line, entry ) ) {
       return false;
     }
-    entries.push_back(output);
+    entries.push_back(entry);
   }
   return true;
 }
 
-void searchEntries ( ifstream & ifs , vector<string> entries, ostream & out ) {
+
+void searchEntries ( ifstream & ifs , vector<TEntry> entries, ostream & out ) {
   string request;
   while ( getline( ifs, request ) ) {
     int cnt = 0;
     /*iterate through lines*/
-    for ( string & entry : entries ) {
-      stringstream ss(entry);
-      string word;
+    for ( TEntry & entry : entries ) {
       /*iterate through words in a line*/
-      while ( ss >> word ) {
-        if ( word == request ) {
+        if ( entry.m_Name == request || entry.m_Surname == request ) {
           ++cnt;
-          out << entry << endl;
-          break;
+          out << entry.m_Name << " " << entry.m_Surname << " " << entry.m_phoneNum << endl;
         }
       }
-    }
     /*the number of matched lines*/
     out << "-> " << cnt << endl;
-  }
+    }
 }
 
 bool report ( const string & fileName, ostream & out ) {
 
   ifstream ifs;
-  vector<string> entries;
-
+  vector<TEntry> entries;
   
   ifs.open(fileName);
   if ( ! ifs.is_open() || ! ifs.good() ) {
@@ -110,6 +122,7 @@ int main ()
   ostringstream oss;
   oss . str ( "" );
   assert ( report( "tests/test0_in.txt", oss ) == true );
+  report( "tests/test0_in.txt", cout );
   assert ( oss . str () ==
     "John Christescu 258452362\n"
     "John Harmson 861647702\n"
