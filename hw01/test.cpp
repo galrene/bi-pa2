@@ -82,7 +82,7 @@ void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
   }
   else {
     node->m_Val = b.readByte(ifs);
-    cout << node->m_Val << endl;
+    //cout << node->m_Val << endl;
     return;
   }
   return;
@@ -117,11 +117,12 @@ void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node,
   }
 }
 
-void freeTree ( TNode *& root ) {
-  if ( !root )
-    return
+void freeTree ( TNode * root ) {
+  if ( root == nullptr )
+    return;
   freeTree(root->m_Left);
   freeTree(root->m_Right);
+  //cout << "Deleting node: " << root->m_Val << endl;
   delete root;
 }
 
@@ -131,15 +132,25 @@ bool decompressFile ( const char * inFileName, const char * outFileName )
   ofstream ofs(outFileName);
   static bitReader a;
   TNode * root = nullptr;
+  int tmpBit = 69;
 
   createTree( root, a.readBit(ifs), a, ifs );
   /*musi sa resetovat g_readCnt*/
-  while ( a.readBit(ifs) != 0 ) {
+  /*
+  while ( tmpBit != -1 ) {
+    tmpBit = a.readBit(ifs);
+    cout << tmpBit << endl;
+  }
+  */
+  while ( (tmpBit = a.readBit(ifs)) != 0 ) {
     traverseTree(ifs, ofs, a, root, 4096);
     g_ReadChars = 0;
   }
   traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ) );
-  //freeTree(root);
+
+  if ( ! ifs.good() )
+    return false;
+  freeTree(root);
   return true;
 }
 
@@ -164,23 +175,29 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 
 int main ( void )
 {
-  /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
+  
+  cout << "Success" << endl;
   assert ( decompressFile ( "tests/test1.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test1.orig", "tempfile" ) );
+
+  cout << "Success" << endl;
+  /*
   assert ( decompressFile ( "tests/test2.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test2.orig", "tempfile" ) );
 
+  cout << "Success" << endl;
   assert ( decompressFile ( "tests/test3.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test3.orig", "tempfile" ) );
 
-  */
+  cout << "Success" << endl;
   assert ( decompressFile ( "tests/test4.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test4.orig", "tempfile" ) );
 
+  cout << "Success" << endl;
   assert ( ! decompressFile ( "tests/test5.huf", "tempfile" ) );
-
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra0.orig", "tempfile" ) );
@@ -211,6 +228,7 @@ int main ( void )
 
   assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
+  */
   return 0;
 }
 #endif /* __PROGTEST__ */
