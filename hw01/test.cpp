@@ -21,14 +21,9 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-bool g_FoundLeaf = false;
-int g_TreeDepth = 0;
-int g_ReadChars = 0;
-
 class bitReader {
 public:
   bitReader ( int pos, bool start, char c ) {
-    cout << "Constructor called" << endl;
     m_Pos = pos;
     m_Start = start;
     m_C = c;
@@ -37,7 +32,6 @@ public:
       m_Pos = 7;
       m_Start = false;
       m_C = 0;
-      cout << "Destructor called" << endl;
     }
   /*return -1 on eof*/
   int readBit ( ifstream& ifs ) {
@@ -99,7 +93,7 @@ void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
   return;
 }
 
-void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node, int charCnt ) {
+void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node, int charCnt, int & g_ReadChars, bool & g_FoundLeaf, int & g_TreeDepth ) {
   int bit;
   if ( ! node->m_Right && ! node->m_Left ) {
     //cout << node->m_Val << endl;
@@ -112,11 +106,11 @@ void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node,
     //cout << bit << endl;
     if ( bit == 0 ) {
       g_TreeDepth++;
-      traverseTree(ifs, ofs, b, node->m_Left, charCnt);
+      traverseTree(ifs, ofs, b, node->m_Left, charCnt, g_ReadChars, g_FoundLeaf, g_TreeDepth );
     }
     else {
       g_TreeDepth++;
-      traverseTree ( ifs, ofs, b, node->m_Right, charCnt);
+      traverseTree ( ifs, ofs, b, node->m_Right, charCnt, g_ReadChars, g_FoundLeaf, g_TreeDepth );
     }
     if ( g_FoundLeaf && (g_TreeDepth--) != 1 ) {
       return;
@@ -141,11 +135,14 @@ void freeTree ( TNode * root ) {
 
 bool decompressFile ( const char * inFileName, const char * outFileName )
 {
-  g_FoundLeaf = false;
-  g_TreeDepth = 0;
-  g_ReadChars = 0;
+  bool FoundLeaf = false;
+  int TreeDepth = 0;
+  int ReadChars = 0;
+
   ifstream ifs( inFileName, ios::binary | ios::in );
   ofstream ofs(outFileName);
+  if ( ! ifs.is_open() )
+    return false;
 
   static bitReader a(7, false, 0);
   a.m_Start = false;
@@ -153,11 +150,14 @@ bool decompressFile ( const char * inFileName, const char * outFileName )
   a.m_C = 0;
 
   TNode * root = nullptr;
-
-  createTree( root, a.readBit(ifs), a, ifs );
+  int firstBit = a.readBit(ifs);
+  //empty file
+  if ( firstBit == -1 )
+    return false;
+  createTree( root, firstBit, a, ifs );
   while ( a.readBit(ifs) != 0 )
-    traverseTree(ifs, ofs, a, root, 4096);
-  traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ) );
+    traverseTree(ifs, ofs, a, root, 4096, ReadChars, FoundLeaf, TreeDepth );
+  traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ), ReadChars, FoundLeaf, TreeDepth );
 
   if ( ! ifs.good() )
     return false;
@@ -209,6 +209,13 @@ int main ( void )
   assert ( ! decompressFile ( "tests/test5.huf", "tempfile" ) );
   cout << "Success" << endl;
 
+  assert ( ! decompressFile( "vojtaConka", "tempfile") );
+  assert ( ! decompressFile( "tests/noPermissions", "tempfile") );
+  assert ( ! decompressFile( "tests/emptyFile", "tempfile") );
+  cout << "All successful" << endl;
+  decompressFile("tests/input.bin", "allAsciiCharsIguess.txt");
+
+  /*
   assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra0.orig", "tempfile" ) );
 
@@ -238,6 +245,7 @@ int main ( void )
 
   assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
+  */
   return 0;
 }
 #endif /* __PROGTEST__ */
