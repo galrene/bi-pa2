@@ -26,33 +26,41 @@ int g_TreeDepth = 0;
 int g_ReadChars = 0;
 
 class bitReader {
-private:
-  char c; //nemoze byt inicializovane na nulu, potom to ignoruje nulovy byte
-  int pos = 7;
-  bool start = false;
 public:
+  bitReader ( int pos, bool start, char c ) {
+    cout << "Constructor called" << endl;
+    m_Pos = pos;
+    m_Start = start;
+    m_C = c;
+  }
+  ~bitReader ( ) { 
+      m_Pos = 7;
+      m_Start = false;
+      m_C = 0;
+      cout << "Destructor called" << endl;
+    }
   /*return -1 on eof*/
   int readBit ( ifstream& ifs ) {
-    if ( ! start ) {
-      ifs.get(c);
-      start = true;
+    if ( ! m_Start ) {
+      ifs.get(m_C);
+      m_Start = true;
     }
-    if ( pos == -1 ) {
-      ifs.get(c);
-      pos = 7;
+    if ( m_Pos == -1 ) {
+      ifs.get(m_C);
+      m_Pos = 7;
     }
     if ( ifs.eof() ) return -1;
-    return (c >> pos--) & 1;
+    return (m_C >> m_Pos--) & 1;
   }
   char readByte ( ifstream& ifs ) {
     int read = 0;
     string binString = "";
     while ( read != 8  ) {
-      if ( pos == -1 ) {
-        ifs.get(c);
-        pos = 7;
+      if ( m_Pos == -1 ) {
+        ifs.get(m_C);
+        m_Pos = 7;
       }
-      binString += to_string( (c >> pos--) & 1 );
+      binString += to_string( (m_C >> m_Pos--) & 1 );
       read++;
     }
     return stoi(binString, 0, 2);
@@ -63,6 +71,9 @@ public:
       cnt += to_string( readBit(ifs) );
     return stoi(cnt, 0, 2);
   }
+  int m_Pos;
+  bool m_Start;
+  char m_C;
 };
 
 struct TNode { 
@@ -112,8 +123,10 @@ void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node,
     }
     if ( g_TreeDepth == 0 )
       g_FoundLeaf = false;
-    if ( g_ReadChars == charCnt )
+    if ( g_ReadChars == charCnt ) {
+      g_ReadChars = 0;
       return;
+    }
   }
 }
 
@@ -128,24 +141,22 @@ void freeTree ( TNode * root ) {
 
 bool decompressFile ( const char * inFileName, const char * outFileName )
 {
+  g_FoundLeaf = false;
+  g_TreeDepth = 0;
+  g_ReadChars = 0;
   ifstream ifs( inFileName, ios::binary | ios::in );
   ofstream ofs(outFileName);
-  static bitReader a;
+
+  static bitReader a(7, false, 0);
+  a.m_Start = false;
+  a.m_Pos = 7;
+  a.m_C = 0;
+
   TNode * root = nullptr;
-  int tmpBit = 69;
 
   createTree( root, a.readBit(ifs), a, ifs );
-  /*musi sa resetovat g_readCnt*/
-  /*
-  while ( tmpBit != -1 ) {
-    tmpBit = a.readBit(ifs);
-    cout << tmpBit << endl;
-  }
-  */
-  while ( (tmpBit = a.readBit(ifs)) != 0 ) {
+  while ( a.readBit(ifs) != 0 )
     traverseTree(ifs, ofs, a, root, 4096);
-    g_ReadChars = 0;
-  }
   traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ) );
 
   if ( ! ifs.good() )
@@ -177,13 +188,12 @@ int main ( void )
 {
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
-  
   cout << "Success" << endl;
+
   assert ( decompressFile ( "tests/test1.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test1.orig", "tempfile" ) );
 
   cout << "Success" << endl;
-  /*
   assert ( decompressFile ( "tests/test2.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test2.orig", "tempfile" ) );
 
@@ -228,7 +238,6 @@ int main ( void )
 
   assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
-  */
   return 0;
 }
 #endif /* __PROGTEST__ */
