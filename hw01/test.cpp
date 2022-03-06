@@ -31,6 +31,7 @@ private:
   int pos = 7;
   bool start = false;
 public:
+  /*return -1 on eof*/
   int readBit ( ifstream& ifs ) {
     if ( ! start ) {
       ifs.get(c);
@@ -57,7 +58,7 @@ public:
     return stoi(binString, 0, 2);
   }
   int getCnt ( ifstream & ifs ) {
-    string cnt;
+    string cnt = "";
     for ( int i = 0; i < 12; i ++ ) 
       cnt += to_string( readBit(ifs) );
     return stoi(cnt, 0, 2);
@@ -90,6 +91,7 @@ void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
 void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node, int charCnt ) {
   int bit;
   if ( ! node->m_Right && ! node->m_Left ) {
+    //cout << node->m_Val << endl;
     ofs << node->m_Val;
     g_ReadChars++;
     g_FoundLeaf = true;
@@ -115,6 +117,14 @@ void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node,
   }
 }
 
+void freeTree ( TNode *& root ) {
+  if ( !root )
+    return
+  freeTree(root->m_Left);
+  freeTree(root->m_Right);
+  delete root;
+}
+
 bool decompressFile ( const char * inFileName, const char * outFileName )
 {
   ifstream ifs( inFileName, ios::binary | ios::in );
@@ -123,12 +133,13 @@ bool decompressFile ( const char * inFileName, const char * outFileName )
   TNode * root = nullptr;
 
   createTree( root, a.readBit(ifs), a, ifs );
-
-  int ongoingChunk = a.readBit(ifs); //0 if yes
-  if ( ! ongoingChunk ) //found last chunk
-    traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ) );
-  traverseTree(ifs, ofs, a, root, 4096);
-
+  /*musi sa resetovat g_readCnt*/
+  while ( a.readBit(ifs) != 0 ) {
+    traverseTree(ifs, ofs, a, root, 4096);
+    g_ReadChars = 0;
+  }
+  traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ) );
+  //freeTree(root);
   return true;
 }
 
@@ -156,16 +167,15 @@ int main ( void )
   /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
-
   assert ( decompressFile ( "tests/test1.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test1.orig", "tempfile" ) );
-  */
   assert ( decompressFile ( "tests/test2.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test2.orig", "tempfile" ) );
-  /*
+
   assert ( decompressFile ( "tests/test3.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test3.orig", "tempfile" ) );
 
+  */
   assert ( decompressFile ( "tests/test4.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test4.orig", "tempfile" ) );
 
@@ -201,7 +211,6 @@ int main ( void )
 
   assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
-  */
   return 0;
 }
 #endif /* __PROGTEST__ */
