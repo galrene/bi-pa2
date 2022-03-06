@@ -95,6 +95,7 @@ void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
 
 void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node, int charCnt, int & g_ReadChars, bool & g_FoundLeaf, int & g_TreeDepth ) {
   int bit;
+  if ( charCnt == 0 ) return;
   if ( ! node->m_Right && ! node->m_Left ) {
     //cout << node->m_Val << endl;
     ofs << node->m_Val;
@@ -214,6 +215,7 @@ int main ( void )
   assert ( ! decompressFile( "tests/emptyFile", "tempfile") );
   cout << "All successful" << endl;
   decompressFile("tests/input.bin", "allAsciiCharsIguess.txt");
+  decompressFile("tests/in_napoveda.bin", "tempfile");
 
   /*
   assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
