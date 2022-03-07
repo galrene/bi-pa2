@@ -59,6 +59,7 @@ public:
     }
     return stoi(binString, 0, 2);
   }
+  /*read a 12 bit sequence and return its decimal value*/
   int getCnt ( ifstream & ifs ) {
     string cnt = "";
     for ( int i = 0; i < 12; i ++ ) 
@@ -76,57 +77,74 @@ struct TNode {
   TNode * m_Right = nullptr;
   TNode( int x, TNode * l, TNode * r) : m_Val(x), m_Left(l), m_Right(r) {}
 };
-/*este tu ked int bit je napicu tak sa chces vratit*/
-void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
-  //cout << bit << endl;
-  node = new TNode (0, nullptr, nullptr);
-  //??
-  if ( bit == 0 ) {
-    createTree( node->m_Left, b.readBit(ifs), b, ifs );
-    createTree( node->m_Right, b.readBit(ifs), b, ifs );
-  }
-  else if ( bit == 1 ) {
-    node->m_Val = b.readByte(ifs);
-    cout << node->m_Val << endl;
-    return;
-  }
-  return;
-}
-void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node, int charCnt, int & g_ReadChars, bool & g_FoundLeaf, int & g_TreeDepth ) {
-  int bit;
-  if ( charCnt == 0 ) return;
-  if ( ! node->m_Right && ! node->m_Left ) {
-    //cout << node->m_Val << endl;
-    ofs << node->m_Val;
-    g_ReadChars++;
-    g_FoundLeaf = true;
-    return;
-  }
-  while ( (bit = b.readBit(ifs)) != -1 ) {
-    if ( ! ifs.good() ) {
-      g_FoundLeaf = true;
+
+class huffmanUtils {
+public:
+  void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & bitReader, TNode * node, int charCnt ) {
+    int bit;
+    if ( charCnt == 0 ) return;
+    if ( ! node->m_Right && ! node->m_Left ) {
+      //cout << node->m_Val << endl;
+      ofs << node->m_Val;
+      ReadChars++;
+      FoundLeaf = true;
       return;
     }
+    while ( (bit = bitReader.readBit(ifs)) != -1 ) {
+      if ( ! ifs.good() ) {
+        FoundLeaf = true;
+        return;
+      }
+      //cout << bit << endl;
+      if ( bit == 0 ) {
+        TreeDepth++;
+        traverseTree(ifs, ofs, bitReader, node->m_Left, charCnt );
+      }
+      else {
+        TreeDepth++;
+        traverseTree ( ifs, ofs, bitReader, node->m_Right, charCnt );
+      }
+      if ( FoundLeaf && (TreeDepth--) != 1 ) {
+        return;
+      }
+      if ( TreeDepth == 0 )
+        FoundLeaf = false;
+      if ( ReadChars == charCnt ) {
+        ReadChars = 0;
+        return;
+      }
+    }
+  }
+  /*este tu ked int bit je napicu tak sa chces vratit*/
+  void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
     //cout << bit << endl;
+    node = new TNode (0, nullptr, nullptr);
+    //??
     if ( bit == 0 ) {
-      g_TreeDepth++;
-      traverseTree(ifs, ofs, b, node->m_Left, charCnt, g_ReadChars, g_FoundLeaf, g_TreeDepth );
+      createTree( node->m_Left, b.readBit(ifs), b, ifs );
+      createTree( node->m_Right, b.readBit(ifs), b, ifs );
     }
-    else {
-      g_TreeDepth++;
-      traverseTree ( ifs, ofs, b, node->m_Right, charCnt, g_ReadChars, g_FoundLeaf, g_TreeDepth );
-    }
-    if ( g_FoundLeaf && (g_TreeDepth--) != 1 ) {
+    else if ( bit == 1 ) {
+      node->m_Val = b.readByte(ifs);
+      //cout << node->m_Val << endl;
       return;
     }
-    if ( g_TreeDepth == 0 )
-      g_FoundLeaf = false;
-    if ( g_ReadChars == charCnt ) {
-      g_ReadChars = 0;
-      return;
-    }
+    return;
   }
-}
+
+  bool createTreeWrapper ( TNode *& node, bitReader & bitReader, ifstream& ifs ) {
+    int firstBit = bitReader.readBit(ifs);
+    //empty file
+    if ( firstBit == -1 || ! ifs.good() )
+      return false;
+    createTree( node, firstBit, bitReader, ifs );
+    return true;
+  }
+private:
+  bool FoundLeaf = false;
+  int TreeDepth = 0;
+  int ReadChars = 0;
+};
 
 void freeTree ( TNode * root ) {
   if ( root == nullptr )
@@ -139,29 +157,23 @@ void freeTree ( TNode * root ) {
 
 bool decompressFile ( const char * inFileName, const char * outFileName )
 {
-  bool FoundLeaf = false;
-  int TreeDepth = 0;
-  int ReadChars = 0;
-
   ifstream ifs( inFileName, ios::binary | ios::in );
   ofstream ofs(outFileName);
   if ( ! ifs.is_open() )
     return false;
 
   static bitReader a(7, false, 0);
+  huffmanUtils b;
   a.m_Start = false;
   a.m_Pos = 7;
   a.m_C = 0;
-
   TNode * root = nullptr;
-  int firstBit = a.readBit(ifs);
-  //empty file
-  if ( firstBit == -1 || ! ifs.good() )
+
+  if ( ! b.createTreeWrapper(root, a, ifs ) )
     return false;
-  createTree( root, firstBit, a, ifs );
   while ( a.readBit(ifs) != 0 && ifs.good() )
-    traverseTree(ifs, ofs, a, root, 4096, ReadChars, FoundLeaf, TreeDepth );
-  traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ), ReadChars, FoundLeaf, TreeDepth );
+    b.traverseTree(ifs, ofs, a, root, 4096 );
+  b.traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ) );
 
   if ( ! ifs.good() || ! ofs.good() )
     return false;
@@ -190,18 +202,14 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 
 int main ( void )
 {
-  /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
   cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/test1.huf", "tempfile" ) );
-  assert ( identicalFiles ( "tests/test1.orig", "tempfile" ) );
-  */
   cout << "Success" << endl;
   assert ( decompressFile ( "tests/test2.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test2.orig", "tempfile" ) );
-  /*
   cout << "Success" << endl;
   assert ( decompressFile ( "tests/test3.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test3.orig", "tempfile" ) );
@@ -222,7 +230,7 @@ int main ( void )
   
   assert ( decompressFile("tests/in_napoveda.bin", "tempfile") );
   
-  cout << "All successful" << endl;
+  cout << "ASCII successful" << endl;
 
   /*
   assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
