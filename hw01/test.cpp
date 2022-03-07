@@ -76,7 +76,7 @@ struct TNode {
   TNode * m_Right = nullptr;
   TNode( int x, TNode * l, TNode * r) : m_Val(x), m_Left(l), m_Right(r) {}
 };
-
+/*este tu ked int bit je napicu tak sa chces vratit*/
 void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
   //cout << bit << endl;
   node = new TNode (0, nullptr, nullptr);
@@ -85,14 +85,14 @@ void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
     createTree( node->m_Left, b.readBit(ifs), b, ifs );
     createTree( node->m_Right, b.readBit(ifs), b, ifs );
   }
-  else {
+  else if ( bit == 1 ) {
     node->m_Val = b.readByte(ifs);
     //cout << node->m_Val << endl;
     return;
   }
   return;
 }
-
+//osetrit ofs.good() a mby este bit ked je eof
 void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node, int charCnt, int & g_ReadChars, bool & g_FoundLeaf, int & g_TreeDepth ) {
   int bit;
   if ( charCnt == 0 ) return;
@@ -104,6 +104,10 @@ void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node,
     return;
   }
   while ( (bit = b.readBit(ifs)) != -1 ) {
+    if ( ! ifs.good() ) {
+      g_FoundLeaf = true;
+      return;
+    }
     //cout << bit << endl;
     if ( bit == 0 ) {
       g_TreeDepth++;
@@ -153,10 +157,10 @@ bool decompressFile ( const char * inFileName, const char * outFileName )
   TNode * root = nullptr;
   int firstBit = a.readBit(ifs);
   //empty file
-  if ( firstBit == -1 )
+  if ( firstBit == -1 || ! ifs.good() )
     return false;
   createTree( root, firstBit, a, ifs );
-  while ( a.readBit(ifs) != 0 )
+  while ( a.readBit(ifs) != 0 && ifs.good() )
     traverseTree(ifs, ofs, a, root, 4096, ReadChars, FoundLeaf, TreeDepth );
   traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ), ReadChars, FoundLeaf, TreeDepth );
 
@@ -213,9 +217,12 @@ int main ( void )
   assert ( ! decompressFile( "vojtaConka", "tempfile") );
   assert ( ! decompressFile( "tests/noPermissions", "tempfile") );
   assert ( ! decompressFile( "tests/emptyFile", "tempfile") );
+  
+  assert( decompressFile("tests/input.bin", "allAsciiCharsIguess.txt") );
+  
+  assert ( decompressFile("tests/in_napoveda.bin", "tempfile") );
+  
   cout << "All successful" << endl;
-  decompressFile("tests/input.bin", "allAsciiCharsIguess.txt");
-  decompressFile("tests/in_napoveda.bin", "tempfile");
 
   /*
   assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
