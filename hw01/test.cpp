@@ -87,12 +87,11 @@ void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
   }
   else if ( bit == 1 ) {
     node->m_Val = b.readByte(ifs);
-    //cout << node->m_Val << endl;
+    cout << node->m_Val << endl;
     return;
   }
   return;
 }
-//osetrit ofs.good() a mby este bit ked je eof
 void traverseTree ( ifstream & ifs, ofstream & ofs, bitReader & b, TNode * node, int charCnt, int & g_ReadChars, bool & g_FoundLeaf, int & g_TreeDepth ) {
   int bit;
   if ( charCnt == 0 ) return;
@@ -164,7 +163,7 @@ bool decompressFile ( const char * inFileName, const char * outFileName )
     traverseTree(ifs, ofs, a, root, 4096, ReadChars, FoundLeaf, TreeDepth );
   traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ), ReadChars, FoundLeaf, TreeDepth );
 
-  if ( ! ifs.good() )
+  if ( ! ifs.good() || ! ofs.good() )
     return false;
   freeTree(root);
   return true;
@@ -191,17 +190,18 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 
 int main ( void )
 {
+  /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
   cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/test1.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test1.orig", "tempfile" ) );
-
+  */
   cout << "Success" << endl;
   assert ( decompressFile ( "tests/test2.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test2.orig", "tempfile" ) );
-
+  /*
   cout << "Success" << endl;
   assert ( decompressFile ( "tests/test3.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test3.orig", "tempfile" ) );
