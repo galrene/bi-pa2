@@ -66,6 +66,9 @@ public:
       cnt += to_string( readBit(ifs) );
     return stoi(cnt, 0, 2);
   }
+  string readUTF ( ifstream & ifs, char firstByte ) {
+    /*todo*/
+  }
   int m_Pos;
   bool m_Start;
   char m_C;
@@ -73,6 +76,7 @@ public:
 
 struct TNode { 
   char m_Val;
+  string m_Val;
   TNode * m_Left = nullptr;
   TNode * m_Right = nullptr;
   TNode( int x, TNode * l, TNode * r) : m_Val(x), m_Left(l), m_Right(r) {}
@@ -125,7 +129,11 @@ public:
       createTree( node->m_Right, b.readBit(ifs), b, ifs );
     }
     else if ( bit == 1 ) {
-      node->m_Val = b.readByte(ifs);
+      int firstByte = b.readByte(ifs);
+      if ( firstByte >= 0x007F )
+        node->m_Val = b.readUTF ( ifs, firstByte );
+      else
+        node->m_Val = firstByte;
       //cout << node->m_Val << endl;
       return;
     }
