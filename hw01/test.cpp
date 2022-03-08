@@ -48,7 +48,7 @@ public:
   }
   char readByte ( ifstream& ifs ) {
     int read = 0;
-    string binString = "";
+    binString = "";
     while ( read != 8  ) {
       if ( m_Pos == -1 ) {
         ifs.get(m_C);
@@ -59,6 +59,7 @@ public:
     }
     return stoi(binString, 0, 2);
   }
+  
   /*read a 12 bit sequence and return its decimal value*/
   int getCnt ( ifstream & ifs ) {
     string cnt = "";
@@ -66,17 +67,39 @@ public:
       cnt += to_string( readBit(ifs) );
     return stoi(cnt, 0, 2);
   }
-  string readUTF ( ifstream & ifs, char firstByte ) {
-    /*todo*/
+
+  int getUTFSize ( ifstream & ifs, uint8_t firstByte ) {
+      if ( firstByte <= 0x07FF )
+        return 2;
+      else if ( firstByte <= 0xFFFF )
+        return 3;
+      else if ( firstByte <= 0x10FFFF )
+        return 4;
+      else
+        ifs.setstate(ios::iostate::_S_failbit);
+  }
+//uint32_t je nespravny datovy typ!!
+  uint32_t readUTF ( ifstream & ifs, uint8_t firstByte ) {
+    int size = getUTFSize ( ifs, firstByte );
+    uint32_t ostring = 0;
+    ostring += firstByte;
+    for ( int i = 0; i < size-1; i++ ) {
+      uint8_t readB = readByte(ifs);
+      if ( readB < 128 ) //10000000 || 0x80
+        ifs.setstate(ios::iostate::_S_failbit);
+      ostring += readB;
+    }
+    return ostring;
   }
   int m_Pos;
   bool m_Start;
   char m_C;
+  string binString;
 };
 
 struct TNode { 
   char m_Val;
-  string m_Val;
+  uint8_t m_UTFVal = 0;
   TNode * m_Left = nullptr;
   TNode * m_Right = nullptr;
   TNode( int x, TNode * l, TNode * r) : m_Val(x), m_Left(l), m_Right(r) {}
@@ -89,7 +112,11 @@ public:
     if ( charCnt == 0 ) return;
     if ( ! node->m_Right && ! node->m_Left ) {
       //cout << node->m_Val << endl;
-      ofs << node->m_Val;
+      if ( node->m_UTFVal != 0 ) {
+        ofs << node->m_UTFVal;
+      }
+      else 
+        ofs << node->m_Val;
       ReadChars++;
       FoundLeaf = true;
       return;
@@ -129,12 +156,13 @@ public:
       createTree( node->m_Right, b.readBit(ifs), b, ifs );
     }
     else if ( bit == 1 ) {
-      int firstByte = b.readByte(ifs);
-      if ( firstByte >= 0x007F )
-        node->m_Val = b.readUTF ( ifs, firstByte );
+      uint32_t firstByte = b.readByte(ifs);
+      if ( firstByte >= 0x0080 )
+        node->m_UTFVal = b.readUTF ( ifs, firstByte );
       else
         node->m_Val = firstByte;
-      //cout << node->m_Val << endl;
+      cout << node->m_Val << endl;
+      if ( node->m_UTFVal != 0) cout << node->m_UTFVal << endl;
       return;
     }
     return;
@@ -240,7 +268,7 @@ int main ( void )
   
   cout << "ASCII successful" << endl;
 
-  /*
+  
   assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra0.orig", "tempfile" ) );
 
@@ -270,7 +298,7 @@ int main ( void )
 
   assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
-  */
+  
   return 0;
 }
 #endif /* __PROGTEST__ */
