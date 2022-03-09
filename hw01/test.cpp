@@ -20,7 +20,6 @@
 #include <stdexcept>
 using namespace std;
 #endif /* __PROGTEST__ */
-
 class bitReader {
 public:
   bitReader ( int pos, bool start, char c ) {
@@ -46,7 +45,7 @@ public:
     if ( ifs.eof() ) return -1;
     return (m_C >> m_Pos--) & 1;
   }
-  char readByte ( ifstream& ifs ) {
+  unsigned char readByte ( ifstream& ifs ) {
     int read = 0;
     binString = "";
     while ( read != 8  ) {
@@ -57,6 +56,7 @@ public:
       binString += to_string( (m_C >> m_Pos--) & 1 );
       read++;
     }
+    cout << " " << binString << endl;
     return stoi(binString, 0, 2);
   }
   
@@ -68,28 +68,32 @@ public:
     return stoi(cnt, 0, 2);
   }
 
-  int getUTFSize ( ifstream & ifs, uint8_t firstByte ) {
-      if ( firstByte <= 0x07FF )
+  int getUTFSize ( ifstream & ifs, unsigned int firstByte ) {
+      if ( firstByte < 224 )
         return 2;
-      else if ( firstByte <= 0xFFFF )
+      else if ( firstByte < 240 )
         return 3;
-      else if ( firstByte <= 0x10FFFF )
+      else if ( firstByte <= 247 )
         return 4;
-      else
-        ifs.setstate(ios::iostate::_S_failbit);
+      return -1;
   }
-//uint32_t je nespravny datovy typ!!
-  uint32_t readUTF ( ifstream & ifs, uint8_t firstByte ) {
+
+  void readUTF ( ifstream & ifs, unsigned char firstByte, vector<unsigned char> & UTF ) {
     int size = getUTFSize ( ifs, firstByte );
-    uint32_t ostring = 0;
-    ostring += firstByte;
-    for ( int i = 0; i < size-1; i++ ) {
-      uint8_t readB = readByte(ifs);
-      if ( readB < 128 ) //10000000 || 0x80
-        ifs.setstate(ios::iostate::_S_failbit);
-      ostring += readB;
+    if ( size == -1 ) {
+      ifs.setstate(ios::iostate::_S_failbit);
+      return;
     }
-    return ostring;
+    UTF.push_back(firstByte);
+    for ( int i = 0; i < size-1; i++ ) {
+      unsigned char readB = readByte(ifs);
+      if ( readB < 128 || readB > 191 ) { //byte doesnt start with 10
+        ifs.setstate(ios::iostate::_S_failbit);
+        return;
+      }
+      UTF.push_back(readB);
+      
+    }
   }
   int m_Pos;
   bool m_Start;
@@ -98,11 +102,11 @@ public:
 };
 
 struct TNode { 
-  char m_Val;
-  uint8_t m_UTFVal = 0;
+  unsigned char m_Val;
   TNode * m_Left = nullptr;
   TNode * m_Right = nullptr;
-  TNode( int x, TNode * l, TNode * r) : m_Val(x), m_Left(l), m_Right(r) {}
+  vector<unsigned char> UTF;
+  TNode( unsigned char x, TNode * l, TNode * r ) : m_Val(x), m_Left(l), m_Right(r) {}
 };
 
 class huffmanUtils {
@@ -112,8 +116,9 @@ public:
     if ( charCnt == 0 ) return;
     if ( ! node->m_Right && ! node->m_Left ) {
       //cout << node->m_Val << endl;
-      if ( node->m_UTFVal != 0 ) {
-        ofs << node->m_UTFVal;
+      if ( ! node->UTF.empty() ) {
+        for ( unsigned char c : node->UTF )
+          ofs << c;
       }
       else 
         ofs << node->m_Val;
@@ -146,23 +151,33 @@ public:
       }
     }
   }
-  /*este tu ked int bit je napicu tak sa chces vratit*/
   void createTree ( TNode *& node, int bit, bitReader & b, ifstream& ifs ) {
-    //cout << bit << endl;
-    node = new TNode (0, nullptr, nullptr);
-    //??
+    node = new TNode (0, nullptr, nullptr );
+    if ( !ifs.good() )
+      return;
+    
     if ( bit == 0 ) {
       createTree( node->m_Left, b.readBit(ifs), b, ifs );
+      if ( !ifs.good() )
+        return;
       createTree( node->m_Right, b.readBit(ifs), b, ifs );
+      if ( !ifs.good() )
+        return;
     }
     else if ( bit == 1 ) {
-      uint32_t firstByte = b.readByte(ifs);
-      if ( firstByte >= 0x0080 )
-        node->m_UTFVal = b.readUTF ( ifs, firstByte );
-      else
+      unsigned char firstByte = b.readByte(ifs);
+      if ( firstByte > 127 ) {
+        b.readUTF(ifs, firstByte, node->UTF);
+        if ( ( node->UTF[0] == 244 && (node->UTF[1] > 128 || node->UTF[2] > 131) )
+              || node->UTF[0] > 244 ) { //out of UTF-8 allowed range?
+          ifs.setstate(ios::iostate::_S_failbit);
+          return;
+        }
+      }
+      else {
         node->m_Val = firstByte;
-      cout << node->m_Val << endl;
-      if ( node->m_UTFVal != 0) cout << node->m_UTFVal << endl;
+        cout << node->m_Val;
+      }
       return;
     }
     return;
@@ -174,6 +189,8 @@ public:
     if ( firstBit == -1 || ! ifs.good() )
       return false;
     createTree( node, firstBit, bitReader, ifs );
+    if ( ! ifs.good() )
+      return false;
     return true;
   }
 private:
@@ -207,7 +224,7 @@ bool decompressFile ( const char * inFileName, const char * outFileName )
 
   if ( ! b.createTreeWrapper(root, a, ifs ) )
     return false;
-  while ( a.readBit(ifs) != 0 && ifs.good() )
+  while ( a.readBit(ifs) && ifs.good() )
     b.traverseTree(ifs, ofs, a, root, 4096 );
   b.traverseTree(ifs, ofs, a, root, a.getCnt ( ifs ) );
 
@@ -238,6 +255,7 @@ bool identicalFiles ( const char * fileName1, const char * fileName2 )
 
 int main ( void )
 {
+  /*
   assert ( decompressFile ( "tests/test0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/test0.orig", "tempfile" ) );
   cout << "Success" << endl;
@@ -266,39 +284,53 @@ int main ( void )
   
   assert ( decompressFile("tests/in_napoveda.bin", "tempfile") );
   
-  cout << "ASCII successful" << endl;
+  cout << endl << "------------------" << endl;
+  cout << endl << "|ASCII successful|" << endl;
+  cout << endl << "------------------" << endl;
 
-  
   assert ( decompressFile ( "tests/extra0.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra0.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra1.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra1.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra2.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra2.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra3.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra3.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra4.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra4.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra5.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra5.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra6.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra6.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra7.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra7.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra8.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra8.orig", "tempfile" ) );
+  cout << "Success" << endl;
 
   assert ( decompressFile ( "tests/extra9.huf", "tempfile" ) );
   assert ( identicalFiles ( "tests/extra9.orig", "tempfile" ) );
-  
+  cout << "Success" << endl;
+  */
+  assert ( ! decompressFile ( "tests/napoveda2.bin", "tempfile" ) );
+
+  cout << "All successful" << endl;
   return 0;
 }
 #endif /* __PROGTEST__ */
