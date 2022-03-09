@@ -22,6 +22,7 @@ using namespace std;
 #endif /* __PROGTEST__ */
 class bitReader {
 public:
+  unsigned int overallSize = 0;
   bitReader ( int pos, bool start, char c ) {
     m_Pos = pos;
     m_Start = start;
@@ -59,6 +60,20 @@ public:
     cout << " " << binString << endl;
     return stoi(binString, 0, 2);
   }
+  string readByteString ( ifstream& ifs ) {
+    int read = 0;
+    binString = "";
+    while ( read != 8  ) {
+      if ( m_Pos == -1 ) {
+        ifs.get(m_C);
+        m_Pos = 7;
+      }
+      binString += to_string( (m_C >> m_Pos--) & 1 );
+      read++;
+    }
+    cout << " " << binString << endl;
+    return binString;
+  }
   
   /*read a 12 bit sequence and return its decimal value*/
   int getCnt ( ifstream & ifs ) {
@@ -78,22 +93,37 @@ public:
       return -1;
   }
 
-  void readUTF ( ifstream & ifs, unsigned char firstByte, vector<unsigned char> & UTF ) {
-    int size = getUTFSize ( ifs, firstByte );
-    if ( size == -1 ) {
+  int subtractionValue ( int byteCnt ) {
+    switch ( byteCnt ) {
+      case(2):
+        return 192;
+      case(3):
+        return 224;
+      case(4):
+        return 240;
+    }
+    return 6999999;
+  }
+  
+  long readUTF ( ifstream & ifs, unsigned char firstByte, vector<unsigned char> & UTF ) {
+    int byteCnt = getUTFSize ( ifs, firstByte );
+    if ( byteCnt == -1 ) {
       ifs.setstate(ios::iostate::_S_failbit);
-      return;
+      return 0;
     }
+    string UTFString = "";
+    UTFString = binString;
     UTF.push_back(firstByte);
-    for ( int i = 0; i < size-1; i++ ) {
-      unsigned char readB = readByte(ifs);
-      if ( readB < 128 || readB > 191 ) { //byte doesnt start with 10
-        ifs.setstate(ios::iostate::_S_failbit);
-        return;
-      }
+    for ( int i = 0; i < byteCnt-1; i++ ) {
+      string readString = readByteString(ifs); //mohol som aj spravit tak ako to bolo predtym iba by som appendoval binString po kazdom volani readByte
+      unsigned char readB = stoi(readString,0,2);
+      if ( readB < 128 || readB > 191 ) //byte doesnt start with 10
+        return 0 ;
+      UTFString += readString;
       UTF.push_back(readB);
-      
     }
+    long res = stol(UTFString,0,2);
+    return res;
   }
   int m_Pos;
   bool m_Start;
@@ -167,12 +197,9 @@ public:
     else if ( bit == 1 ) {
       unsigned char firstByte = b.readByte(ifs);
       if ( firstByte > 127 ) {
-        b.readUTF(ifs, firstByte, node->UTF);
-        if ( ( node->UTF[0] == 244 && (node->UTF[1] > 128 || node->UTF[2] > 131) )
-              || node->UTF[0] > 244 ) { //out of UTF-8 allowed range?
+        long UTFSize = b.readUTF(ifs, firstByte, node->UTF);
+        if ( UTFSize >= 4103110784 || UTFSize <= 0 ) //11110100 10000000 10000011 10111111
           ifs.setstate(ios::iostate::_S_failbit);
-          return;
-        }
       }
       else {
         node->m_Val = firstByte;
@@ -329,6 +356,9 @@ int main ( void )
   cout << "Success" << endl;
   */
   assert ( ! decompressFile ( "tests/napoveda2.bin", "tempfile" ) );
+  cout << "Success" << endl;
+
+  assert ( decompressFile ( "tests/napoveda3.bin", "tempfile" ) );
 
   cout << "All successful" << endl;
   return 0;
