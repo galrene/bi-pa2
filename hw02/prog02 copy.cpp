@@ -33,14 +33,10 @@ class CVATRegister
       TInvoice ( unsigned int amount, TCompany company, TInvoice * next )
       : m_Amount(amount), m_Company(company), m_Next(next) {}
     };
-    
-                  //CVATRegister ( void );
-                  //~CVATRegister  ( void );
-    
-    void sortCompanies ( void ) { 
-      sort(companies.begin(), companies.end(), cmp );
-    }
-
+    /*
+                  CVATRegister   ( void ) 
+                  ~CVATRegister  ( void );
+    */
     bool          newCompany     ( const string    & name,
                                    const string    & addr,
                                    const string    & taxID ) {
@@ -105,9 +101,13 @@ class CVATRegister
     }
     static bool cmp ( const TCompany & c1, const TCompany & c2 ) {
       if ( c1.m_Name == c2.m_Name )
-        return c2.m_Id < c1.m_Id;
+        return c1.m_Id < c2.m_Id;
       return c1.m_Name < c2.m_Name;
     }
+    void sortCompanies ( void ) {
+      sort(companies.begin(), companies.begin(), []( const TCompany & c1, const TCompany & c2 ) { return c1.m_Name < c2.m_Name; } );
+    }
+
     bool          firstCompany   ( string          & name,
                                    string          & addr ) const {
       if ( companies.empty() )
@@ -116,22 +116,10 @@ class CVATRegister
       addr = companies[0].m_Address;
       return true;
     }
-    
     bool          nextCompany    ( string          & name,
-                                   string          & addr ) const {
-      for ( size_t i = 0; i < companies.size(); i++ ) {
-        if ( name == companies[i].m_Name && addr == companies[i].m_Address ) {
-          if ( i + 1 >= companies.size() )
-            return false;
-          name = companies[i+1].m_Name;
-          addr = companies[i+1].m_Address;
-          return true;
-        }
-      }
-      return false;
-    }
+                                   string          & addr ) const;
     unsigned int  medianInvoice  ( void ) const {
-      TInvoice * curr = m_Invoices;
+      TInvoice * curr = invoices;
       int mid = (m_InvoiceCnt % 2 ) == 1 ? (m_InvoiceCnt / 2) + 1 : m_InvoiceCnt / 2;
       for ( int i = 1; i < mid ; i++ )
         curr = curr->m_Next;
@@ -143,8 +131,8 @@ class CVATRegister
     }
   private:
     vector<TCompany> companies;
-    TInvoice * m_Invoices = nullptr;
-    size_t m_InvoiceCnt = 0;
+    TInvoice * invoices;
+    size_t m_InvoiceCnt;
     string lowerCase ( const string & str ) const {
       string newStr = "";
       for ( char c : str )
@@ -155,7 +143,7 @@ class CVATRegister
     int findCompany ( const TCompany & company ) const {
       for ( size_t i = 0; i < companies.size(); i ++ ) {
         if ( company.m_Id == companies[i].m_Id ||
-              ( ( lowerCase(company.m_Name) == lowerCase(companies[i].m_Name) ) && lowerCase(company.m_Address) == lowerCase(companies[i].m_Address) ) )
+              ( ( lowerCase(company.m_Name) == lowerCase(companies[i].m_Name) ) && company.m_Address == companies[i].m_Address ) )
           return i;
       }
       return -1;
@@ -163,14 +151,13 @@ class CVATRegister
     /*singly linked LL, sorted ascending*/
     void createInvoice ( unsigned int amount, TCompany& company ) {
       TInvoice * next = nullptr;
-      if ( ! m_Invoices ) {
-        m_Invoices = new TInvoice ( amount, company, next );
-        company.m_InvoiceSum += amount;
+      if ( ! invoices ) {
+        invoices = new TInvoice ( amount, company, next );
         return;
       }
 
-      TInvoice * curr = m_Invoices;
-      TInvoice * currNext = m_Invoices->m_Next;
+      TInvoice * curr = invoices;
+      TInvoice * currNext = invoices->m_Next;
       while ( currNext && (currNext->m_Amount < amount ) ) {
         currNext = currNext->m_Next;
         curr = curr->m_Next; 
@@ -178,7 +165,6 @@ class CVATRegister
       TInvoice * newInvoice;
       if ( curr->m_Amount > amount ) {
         newInvoice = new TInvoice( amount, company, curr );
-        m_Invoices = newInvoice;
       }
       else {
         newInvoice = new TInvoice( amount, company, currNext );
@@ -208,6 +194,7 @@ int               main           ( void )
   assert ( b1 . medianInvoice () == 4000 );
   assert ( b1 . audit ( "ACME", "Kolejni", sumIncome ) && sumIncome == 8000 );
   assert ( b1 . audit ( "123456", sumIncome ) && sumIncome == 4000 );
+  /*
   assert ( b1 . firstCompany ( name, addr ) && name == "ACME" && addr == "Kolejni" );
   assert ( b1 . nextCompany ( name, addr ) && name == "ACME" && addr == "Thakurova" );
   assert ( b1 . nextCompany ( name, addr ) && name == "Dummy" && addr == "Thakurova" );
@@ -238,7 +225,6 @@ int               main           ( void )
   assert ( ! b1 . nextCompany ( name, addr ) );
   assert ( b1 . cancelCompany ( "123456" ) );
   assert ( ! b1 . firstCompany ( name, addr ) );
-  /*
 
 
   CVATRegister b2;
