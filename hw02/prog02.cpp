@@ -34,7 +34,7 @@ class CVATRegister
                                    const string    & addr,
                                    const string    & taxID ) {
                                      TCompany company(name, addr, taxID);
-                                     if ( ! findCompany(company) ) {
+                                     if ( findCompany(company) == -1 ) {
                                       companies.push_back(company);
                                       return true;
                                      }
@@ -42,7 +42,13 @@ class CVATRegister
                                    }
     bool          cancelCompany  ( const string    & name,
                                    const string    & addr );
-    bool          cancelCompany  ( const string    & taxID );
+    bool          cancelCompany  ( const string    & taxID ) {
+      int found = findCompany( TCompany("","",taxID) );
+      if ( found == -1 )
+        return false;
+      companies.erase(companies.begin()+found);
+      return true;
+    }
     bool          invoice        ( const string    & taxID,
                                    unsigned int      amount );
     bool          invoice        ( const string    & name,
@@ -60,12 +66,12 @@ class CVATRegister
     unsigned int  medianInvoice  ( void ) const;
   private:
     vector<TCompany> companies;
-    bool findCompany ( TCompany company ) {
-      for ( TCompany c : companies ) {
-        if ( company.m_Id == c.m_Id )
-          return true;
+    int findCompany ( const TCompany & company ) {
+      for ( size_t i = 0; i < companies.size(); i ++ ) {
+        if ( company.m_Id == companies[i].m_Id )
+          return i;
       }
-      return false;
+      return -1;
     }
 };
 
@@ -79,6 +85,8 @@ int               main           ( void )
   assert ( b1 . newCompany ( "ACME", "Thakurova", "666/666" ) );
   assert ( b1 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
   assert ( b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
+  assert ( b1 . cancelCompany ( "123456" ) );
+  assert ( ! b1 . cancelCompany (  "1123456" ) );
   /*
   assert ( b1 . invoice ( "666/666", 2000 ) );
   assert ( b1 . medianInvoice () == 2000 );
