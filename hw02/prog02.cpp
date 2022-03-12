@@ -40,14 +40,14 @@ class CVATRegister
                     freeInvoices();
                   }
     
-    void sortCompanies ( void ) { 
+    void          sortCompanies ( void ) { 
       sort(companies.begin(), companies.end(), cmp );
     }
 
-    void freeInvoices ( void ) {
+    void          freeInvoices ( void ) {
       while ( m_Invoices ) {
         TInvoice * next = m_Invoices->m_Next;
-        free(m_Invoices);
+        delete m_Invoices;
         m_Invoices = next;
       }
       m_InvoiceCnt = 0;
@@ -143,7 +143,7 @@ class CVATRegister
       return false;
     }
     unsigned int  medianInvoice  ( void ) const {
-      if ( ! m_Invoices)
+      if ( ! m_Invoices )
         return 0;
       TInvoice * curr = m_Invoices;
       int mid = (m_InvoiceCnt % 2 ) == 1 ? (m_InvoiceCnt / 2) + 1 : m_InvoiceCnt / 2;
@@ -281,6 +281,7 @@ int               main           ( void )
   assert ( b2 . newCompany ( "ACME", "Kolejni", "abcdef" ) );
   assert ( b2 . cancelCompany ( "ACME", "Kolejni" ) );
   assert ( ! b2 . cancelCompany ( "ACME", "Kolejni" ) );
+
   return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
