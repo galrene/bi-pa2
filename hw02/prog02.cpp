@@ -23,7 +23,7 @@ class CVATRegister
       string m_Address;
       string m_Id;
       int    m_InvoiceSum;
-      TCompany ( string name, string address, string id, int sum = 0 )
+      TCompany ( const string name, const string address, const string id = "", int sum = 0 )
       : m_Name(name), m_Address(address), m_Id(id), m_InvoiceSum(sum) {}
     };
     /*
@@ -41,7 +41,13 @@ class CVATRegister
                                      return false;
                                    }
     bool          cancelCompany  ( const string    & name,
-                                   const string    & addr );
+                                   const string    & addr ) {
+      int found = findCompany( TCompany(name,addr) );
+      if ( found == -1 )
+        return false;
+      companies.erase(companies.begin()+found);
+      return true;
+    }
     bool          cancelCompany  ( const string    & taxID ) {
       int found = findCompany( TCompany("","",taxID) );
       if ( found == -1 )
@@ -68,7 +74,8 @@ class CVATRegister
     vector<TCompany> companies;
     int findCompany ( const TCompany & company ) {
       for ( size_t i = 0; i < companies.size(); i ++ ) {
-        if ( company.m_Id == companies[i].m_Id )
+        if ( company.m_Id == companies[i].m_Id ||
+              ( (company.m_Name == companies[i].m_Name) && company.m_Address == companies[i].m_Address) )
           return i;
       }
       return -1;
@@ -87,6 +94,8 @@ int               main           ( void )
   assert ( b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
   assert ( b1 . cancelCompany ( "123456" ) );
   assert ( ! b1 . cancelCompany (  "1123456" ) );
+  assert ( b1 . cancelCompany (  "ACME", "Thakurova" ) );
+  assert ( ! b1 . cancelCompany (  "ACME1", "Thakurova" ) );
   /*
   assert ( b1 . invoice ( "666/666", 2000 ) );
   assert ( b1 . medianInvoice () == 2000 );
