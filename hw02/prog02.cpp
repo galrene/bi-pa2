@@ -23,8 +23,15 @@ class CVATRegister
       string m_Address;
       string m_Id;
       int    m_InvoiceSum;
-      TCompany ( const string name, const string address, const string id = "", int sum = 0 )
+      TCompany ( string name, string address, string id = "", int sum = 0 )
       : m_Name(name), m_Address(address), m_Id(id), m_InvoiceSum(sum) {}
+    };
+    struct TInvoice {
+      unsigned int m_Amount;
+      TCompany m_Company;
+      TInvoice * m_Next;
+      TInvoice ( unsigned int amount, TCompany company, TInvoice * next )
+      : m_Amount(amount), m_Company(company), m_Next(next) {}
     };
     /*
                   CVATRegister   ( void );
@@ -56,10 +63,22 @@ class CVATRegister
       return true;
     }
     bool          invoice        ( const string    & taxID,
-                                   unsigned int      amount );
+                                   unsigned int      amount ) {
+      int found = findCompany( TCompany("","",taxID) );
+      if ( found == -1 )
+        return false;
+      createInvoice ( amount, companies[found] );
+      return true;
+    }
     bool          invoice        ( const string    & name,
                                    const string    & addr,
-                                   unsigned int      amount );
+                                   unsigned int      amount ) {
+      int found = findCompany( TCompany(name,addr,"") );
+      if ( found == -1 )
+        return false;
+      createInvoice ( amount, companies[found] );
+      return true;
+    }
     bool          audit          ( const string    & name,
                                    const string    & addr,
                                    unsigned int    & sumIncome ) const;
@@ -72,13 +91,37 @@ class CVATRegister
     unsigned int  medianInvoice  ( void ) const;
   private:
     vector<TCompany> companies;
-    int findCompany ( const TCompany & company ) {
+    TInvoice * invoices = nullptr;
+    int findCompany ( const TCompany & company ) const {
       for ( size_t i = 0; i < companies.size(); i ++ ) {
         if ( company.m_Id == companies[i].m_Id ||
               ( (company.m_Name == companies[i].m_Name) && company.m_Address == companies[i].m_Address) )
           return i;
       }
       return -1;
+    }
+    /*singly linked LL, sorted ascending*/
+    void createInvoice ( unsigned int amount, TCompany& company ) {
+      TInvoice * next = nullptr;
+      if ( ! invoices ) {
+        invoices = new TInvoice ( amount, company, next );
+        return;
+      }
+
+      TInvoice * curr = invoices;
+      TInvoice * currNext = invoices->m_Next;
+      while ( currNext && (currNext->m_Amount < amount ) ) {
+        currNext = currNext->m_Next;
+        curr = curr->m_Next; 
+      }
+      if ( curr->m_Amount > amount ) {
+        TInvoice * newInvoice = new TInvoice( amount, company, curr );
+      }
+      else {
+        TInvoice * newInvoice = new TInvoice( amount, company, currNext );
+        curr->m_Next = newInvoice;
+      }
+      company.m_InvoiceSum += amount;
     }
 };
 
@@ -93,11 +136,19 @@ int               main           ( void )
   assert ( b1 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
   assert ( b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
   assert ( b1 . cancelCompany ( "123456" ) );
-  assert ( ! b1 . cancelCompany (  "1123456" ) );
+  assert ( ! b1 . cancelCompany (  "123456" ) );
   assert ( b1 . cancelCompany (  "ACME", "Thakurova" ) );
-  assert ( ! b1 . cancelCompany (  "ACME1", "Thakurova" ) );
-  /*
+  assert ( ! b1 . cancelCompany (  "ACME", "Thakurova" ) );
+  
+  assert ( b1 . newCompany ( "ACME", "Thakurova", "666/666" ) );
+  assert ( b1 . newCompany ( "Dummy", "Thakurova", "123456" ) );
   assert ( b1 . invoice ( "666/666", 2000 ) );
+  assert ( b1 . invoice ( "666/666", 3000 ) );
+  assert ( ! b1 . invoice ( "666/6646", 3000 ) );
+  assert ( b1 . invoice ( "123456", 3000 ) );
+  assert ( b1 . invoice ( "123456", 8000 ) );
+  assert ( b1 . invoice ( "666/666/666", 3000 ) );
+  /*
   assert ( b1 . medianInvoice () == 2000 );
   assert ( b1 . invoice ( "666/666/666", 3000 ) );
   assert ( b1 . medianInvoice () == 3000 );
