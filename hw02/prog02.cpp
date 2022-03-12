@@ -40,7 +40,7 @@ class CVATRegister
                     freeInvoices();
                   }
     
-    void          sortCompanies ( void ) { 
+    void          sortCompanies ( void ) {
       sort(companies.begin(), companies.end(), cmp );
     }
 
@@ -56,13 +56,19 @@ class CVATRegister
     bool          newCompany     ( const string    & name,
                                    const string    & addr,
                                    const string    & taxID ) {
-      TCompany company(name, addr, taxID);
-      if ( findCompany(company) == -1 ) {
-        companies.push_back(company);
-        sortCompanies();
-        return true;
+      TCompany company = TCompany(name, addr, taxID);
+      if ( findCompany( company ) != -1 )
+        return false;
+      size_t cnt = 0;
+      while ( cnt < companies.size() && name > companies[cnt].m_Name ) {
+        cnt++;
       }
-      return false;
+      while ( ( cnt < companies.size() && name == companies[cnt].m_Name) && (taxID < companies[cnt].m_Id) ) {
+        cnt++;
+      }
+
+      companies.insert(companies.begin()+cnt, company);
+      return true;
     }
     bool          cancelCompany  ( const string    & name,
                                    const string    & addr ) {
@@ -115,6 +121,7 @@ class CVATRegister
       sumIncome = companies[found].m_InvoiceSum;
       return true;
     }
+    /*should compare names in lowercase*/
     static bool cmp ( const TCompany & c1, const TCompany & c2 ) {
       if ( c1.m_Name == c2.m_Name )
         return c2.m_Id < c1.m_Id;
@@ -128,7 +135,7 @@ class CVATRegister
       addr = companies[0].m_Address;
       return true;
     }
-    
+    /*could be faster with binary search*/
     bool          nextCompany    ( string          & name,
                                    string          & addr ) const {
       for ( size_t i = 0; i < companies.size(); i++ ) {
