@@ -34,11 +34,23 @@ class CVATRegister
       : m_Amount(amount), m_Company(company), m_Next(next) {}
     };
     
-                  //CVATRegister ( void );
-                  //~CVATRegister  ( void );
+                  CVATRegister   ( TInvoice * invoices = nullptr, size_t invoiceCnt = 0 )
+                   : m_Invoices(invoices), m_InvoiceCnt(invoiceCnt)  {}
+                  ~CVATRegister  ( void ) {
+                    freeInvoices();
+                  }
     
     void sortCompanies ( void ) { 
       sort(companies.begin(), companies.end(), cmp );
+    }
+
+    void freeInvoices ( void ) {
+      while ( m_Invoices ) {
+        TInvoice * next = m_Invoices->m_Next;
+        free(m_Invoices);
+        m_Invoices = next;
+      }
+      m_InvoiceCnt = 0;
     }
 
     bool          newCompany     ( const string    & name,
@@ -143,8 +155,8 @@ class CVATRegister
     }
   private:
     vector<TCompany> companies;
-    TInvoice * m_Invoices = nullptr;
-    size_t m_InvoiceCnt = 0;
+    TInvoice * m_Invoices;
+    size_t m_InvoiceCnt;
     string lowerCase ( const string & str ) const {
       string newStr = "";
       for ( char c : str )
