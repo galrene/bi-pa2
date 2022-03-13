@@ -28,10 +28,9 @@ class CVATRegister
     };
     struct TInvoice {
       unsigned int m_Amount;
-      TCompany m_Company;
       TInvoice * m_Next;
-      TInvoice ( unsigned int amount, TCompany company, TInvoice * next )
-      : m_Amount(amount), m_Company(company), m_Next(next) {}
+      TInvoice ( unsigned int amount, TInvoice * next )
+      : m_Amount(amount), m_Next(next) {}
     };
     
                   CVATRegister   ( TInvoice * invoices = nullptr, size_t invoiceCnt = 0 )
@@ -39,11 +38,6 @@ class CVATRegister
                   ~CVATRegister  ( void ) {
                     freeInvoices();
                   }
-    
-    void          sortCompanies ( void ) {
-      sort(companies.begin(), companies.end(), cmp );
-    }
-
     void          freeInvoices ( void ) {
       while ( m_Invoices ) {
         TInvoice * next = m_Invoices->m_Next;
@@ -51,23 +45,20 @@ class CVATRegister
         m_Invoices = next;
       }
       m_InvoiceCnt = 0;
+      m_Invoices = nullptr;
     }
 
     bool          newCompany     ( const string    & name,
                                    const string    & addr,
                                    const string    & taxID ) {
       TCompany company = TCompany(name, addr, taxID);
-      if ( findCompany( company ) != -1 )
+      if ( name.empty() || addr.empty() || taxID.empty() )
         return false;
-      size_t cnt = 0;
-      while ( cnt < companies.size() && name > companies[cnt].m_Name ) {
-        cnt++;
-      }
-      while ( ( cnt < companies.size() && name == companies[cnt].m_Name) && (taxID < companies[cnt].m_Id) ) {
-        cnt++;
-      }
+      if ( findCompany( company ) != -1 || findCompanyById( company ) != -1 )
+        return false;
 
-      companies.insert(companies.begin()+cnt, company);
+      companies.insert(upper_bound(companies.begin(), companies.end(), company), company);
+      companiesById.insert(upper_bound(companiesById.begin(), companiesById.end(), company, [] ( const TCompany & c1, const TCompany & c2 ) { return c1.m_Id < c2.m_Id; } ), company);
       return true;
     }
     bool          cancelCompany  ( const string    & name,
@@ -75,6 +66,8 @@ class CVATRegister
       int found = findCompany( TCompany(name,addr) );
       if ( found == -1 )
         return false;
+      int found2 = findCompanyById(TCompany("","",companies[found].m_Id) );
+      companiesById.erase(companiesById.begin()+found2);
       companies.erase(companies.begin()+found);
       return true;
     }
@@ -82,7 +75,9 @@ class CVATRegister
       int found = findCompany( TCompany("","",taxID) );
       if ( found == -1 )
         return false;
-      companies.erase(companies.begin()+found);
+      int found2 = findCompany(TCompany(companiesById[found].m_Name,companiesById[found].m_Address,"") );
+      companies.erase(companies.begin()+found2);
+      companiesById.erase(companiesById.begin()+found);
       return true;
     }
     bool          invoice        ( const string    & taxID,
@@ -90,7 +85,10 @@ class CVATRegister
       int found = findCompany( TCompany("","",taxID) );
       if ( found == -1 )
         return false;
-      createInvoice ( amount, companies[found] );
+      int found2 = findCompany( TCompany(companiesById[found].m_Name,companiesById[found].m_Address,"") );
+      createInvoice ( amount );
+      companies[found2].m_InvoiceSum += amount;
+      companiesById[found].m_InvoiceSum += amount;
       m_InvoiceCnt++;
       return true;
     }
@@ -100,7 +98,10 @@ class CVATRegister
       int found = findCompany( TCompany(name,addr,"") );
       if ( found == -1 )
         return false;
-      createInvoice ( amount, companies[found] );
+      int found2 = findCompany( TCompany("","",companies[found].m_Id) );
+      createInvoice ( amount );
+      companies[found].m_InvoiceSum += amount;
+      companiesById[found2].m_InvoiceSum += amount;
       m_InvoiceCnt++;
       return true;
     }
@@ -118,14 +119,8 @@ class CVATRegister
       int found = findCompany(TCompany("","",taxID) );
       if ( found == -1 )
         return false;
-      sumIncome = companies[found].m_InvoiceSum;
+      sumIncome = companiesById[found].m_InvoiceSum;
       return true;
-    }
-    /*should compare names in lowercase*/
-    static bool cmp ( const TCompany & c1, const TCompany & c2 ) {
-      if ( c1.m_Name == c2.m_Name )
-        return c2.m_Id < c1.m_Id;
-      return c1.m_Name < c2.m_Name;
     }
     bool          firstCompany   ( string          & name,
                                    string          & addr ) const {
@@ -135,19 +130,14 @@ class CVATRegister
       addr = companies[0].m_Address;
       return true;
     }
-    /*could be faster with binary search*/
     bool          nextCompany    ( string          & name,
                                    string          & addr ) const {
-      for ( size_t i = 0; i < companies.size(); i++ ) {
-        if ( name == companies[i].m_Name && addr == companies[i].m_Address ) {
-          if ( i + 1 >= companies.size() )
-            return false;
-          name = companies[i+1].m_Name;
-          addr = companies[i+1].m_Address;
-          return true;
-        }
-      }
-      return false;
+      int found =  findCompany ( TCompany (name, addr, "" ) );
+      if ( found + 1 >= static_cast<int>(companies.size()) || found == -1 )
+        return false;
+      name = companies[found+1].m_Name;
+      addr = companies[found+1].m_Address;
+      return true;
     }
     unsigned int  medianInvoice  ( void ) const {
       if ( ! m_Invoices )
@@ -162,31 +152,65 @@ class CVATRegister
       }
       return curr->m_Amount;
     }
+
+
   private:
     vector<TCompany> companies;
+    vector<TCompany> companiesById;
     TInvoice * m_Invoices;
     size_t m_InvoiceCnt;
-    string lowerCase ( const string & str ) const {
+    static string lowerCase ( const string & str ) {
       string newStr = "";
       for ( char c : str )
         newStr += tolower(c);
       return newStr;
     }
-    
+    friend bool operator == ( const TCompany& lhs, const TCompany& rhs ) { 
+      return (lhs.m_Id == rhs.m_Id) || (lowerCase(lhs.m_Address) == lowerCase(rhs.m_Address) && lowerCase(lhs.m_Name) == lowerCase(rhs.m_Name)); }
+    friend bool operator < ( const TCompany& lhs, const TCompany& rhs ) { 
+        if (lowerCase(lhs.m_Name) == lowerCase(rhs.m_Name)) return lowerCase(lhs.m_Address) < lowerCase(rhs.m_Address);
+        return lowerCase(lhs.m_Name) < lowerCase(rhs.m_Name);
+      }
+
     int findCompany ( const TCompany & company ) const {
-      for ( size_t i = 0; i < companies.size(); i ++ ) {
-        if ( company.m_Id == companies[i].m_Id ||
-              ( ( lowerCase(company.m_Name) == lowerCase(companies[i].m_Name) ) && lowerCase(company.m_Address) == lowerCase(companies[i].m_Address) ) )
-          return i;
+      if ( company.m_Id.empty() && (company.m_Name.empty() || company.m_Address.empty() ) )
+        return -1;
+      if ( company.m_Address.empty() )
+        return findCompanyById(company);
+      int lo = 0; 
+      int hi = companies.size();
+      while ( lo < hi ) {
+        int mid = (lo + hi) / 2;
+        if ( company == companies[mid] ) 
+          return mid;
+        if ( company < companies[mid] )
+          hi = mid;
+        else
+          lo = mid + 1;
+      }
+      return -1;
+    }
+    
+
+    int findCompanyById ( const TCompany & company ) const {
+      int lo = 0; 
+      int hi = companiesById.size();
+      while ( lo < hi ) {
+        int mid = (lo + hi) / 2;
+        if ( company.m_Id == companiesById[mid].m_Id ) 
+          return mid;
+        if ( company.m_Id < companiesById[mid].m_Id )
+          hi = mid;
+        else
+          lo = mid + 1;
       }
       return -1;
     }
     /*singly linked LL, sorted ascending*/
-    void createInvoice ( unsigned int amount, TCompany& company ) {
+    void createInvoice ( unsigned int amount ) {
       TInvoice * next = nullptr;
       if ( ! m_Invoices ) {
-        m_Invoices = new TInvoice ( amount, company, next );
-        company.m_InvoiceSum += amount;
+        m_Invoices = new TInvoice ( amount, next );
         return;
       }
 
@@ -198,23 +222,31 @@ class CVATRegister
       }
       TInvoice * newInvoice;
       if ( curr->m_Amount > amount ) {
-        newInvoice = new TInvoice( amount, company, curr );
+        newInvoice = new TInvoice( amount, curr );
         m_Invoices = newInvoice;
       }
       else {
-        newInvoice = new TInvoice( amount, company, currNext );
+        newInvoice = new TInvoice( amount, currNext );
         curr->m_Next = newInvoice;
       }
-      company.m_InvoiceSum += amount;
     }
 };
 
 #ifndef __PROGTEST__
+/**
+ * potrebujem vediet binarne vyhladavat aj ked dostanem spolocnost iba podla ID
+ * zoradene mam podla mena a adresy,
+ * potrebujem mat zoradene aj podla ID, aby som v tom mohol binarne vyhladavat
+ * mozem si pri kazdej spolocnosti v liste podle ID ukladat pointer na prvok v poli podla mena a adresy
+ * 
+ * ked som vyhladaval podla mena a adresy, nezohladnovali sa duplicitne ID
+ */
 int               main           ( void )
 {
   string name, addr;
   unsigned int sumIncome;
-
+  string jozo = "";
+  string vajda = "\n";
   CVATRegister b1;
   assert ( b1 . newCompany ( "ACME", "Thakurova", "666/666" ) );
   assert ( b1 . newCompany ( "ACME", "Kolejni", "666/666/666" ) );
@@ -260,6 +292,10 @@ int               main           ( void )
   assert ( b1 . cancelCompany ( "123456" ) );
   assert ( ! b1 . firstCompany ( name, addr ) );
 
+  assert (b1.newCompany ( "Tjictaqcbcscca", "Ojvkvmgmziiad", "Kfpolgznzkka" ));
+  assert (! b1.newCompany ( "Tjictaqcbcscca", "Ojvkvmgmziiad", "Kfpolgznzkka" ));
+
+
 
   CVATRegister b2;
   assert ( b2 . newCompany ( "ACME", "Kolejni", "abcdef" ) );
@@ -288,6 +324,20 @@ int               main           ( void )
   assert ( b2 . newCompany ( "ACME", "Kolejni", "abcdef" ) );
   assert ( b2 . cancelCompany ( "ACME", "Kolejni" ) );
   assert ( ! b2 . cancelCompany ( "ACME", "Kolejni" ) );
+
+  CVATRegister b3;
+  assert ( b3.newCompany( "penis", "abcde", "182" ) );
+  assert ( b3.newCompany( "penis", "abcd", "123" ) );
+  assert ( b3.newCompany( "microsoft", "bratislavska", "2" ) );
+  assert ( b3.newCompany( "comix", "bratislavska", "3" ) );
+  assert ( b3.newCompany( "vajda", "jozo", "4" ) );
+  assert ( ! b3.newCompany( "penis", "abcde", "1823" ) );
+  assert ( ! b3.newCompany( "", "jozo", "4" ) );
+  assert ( b3.invoice( "182", 43) );
+  assert ( ! b3.invoice( "1", 43) );
+  assert ( ! b3.invoice( "vajda", "jozef", 43) );
+  assert ( ! b3.invoice( "vajda", "jozef", 43) );
+
 
   return EXIT_SUCCESS;
 }
