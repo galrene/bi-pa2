@@ -26,28 +26,11 @@ class CVATRegister
       TCompany ( string name, string address, string id = "", int sum = 0 )
       : m_Name(name), m_Address(address), m_Id(id), m_InvoiceSum(sum) {}
     };
-    struct TInvoice {
-      unsigned int m_Amount;
-      TInvoice * m_Next;
-      TInvoice ( unsigned int amount, TInvoice * next )
-      : m_Amount(amount), m_Next(next) {}
-    };
     
-                  CVATRegister   ( TInvoice * invoices = nullptr, size_t invoiceCnt = 0 )
-                   : m_Invoices(invoices), m_InvoiceCnt(invoiceCnt)  {}
+                  CVATRegister   (  ) {}
                   ~CVATRegister  ( void ) {
-                    freeInvoices();
                   }
-    void          freeInvoices ( void ) {
-      while ( m_Invoices ) {
-        TInvoice * next = m_Invoices->m_Next;
-        delete m_Invoices;
-        m_Invoices = next;
-      }
-      m_InvoiceCnt = 0;
-      m_Invoices = nullptr;
-    }
-    /*O( 4log(n) + 2n ) = O (n)*/
+    /*O(n)*/
     bool          newCompany     ( const string    & name,
                                    const string    & addr,
                                    const string    & taxID ) {
@@ -61,7 +44,7 @@ class CVATRegister
       companiesById.insert(upper_bound(companiesById.begin(), companiesById.end(), company, [] ( const TCompany & c1, const TCompany & c2 ) { return c1.m_Id < c2.m_Id; } ), company);
       return true;
     }
-    /*O ( 2log(n) + 2n */
+    /*O (n) */
     bool          cancelCompany  ( const string    & name,
                                    const string    & addr ) {
       int found = findCompany( TCompany(name,addr) );
@@ -81,17 +64,16 @@ class CVATRegister
       companiesById.erase(companiesById.begin()+found);
       return true;
     }
-    /*O ( 2log(n) + n */
+    /*O(log(n)) */
     bool          invoice        ( const string    & taxID,
                                    unsigned int      amount ) {
       int found = findCompany( TCompany("","",taxID) );
       if ( found == -1 )
         return false;
       int found2 = findCompany( TCompany(companiesById[found].m_Name,companiesById[found].m_Address,"") );
-      createInvoice ( amount );
+      m_Invoices.push_back(amount);
       companies[found2].m_InvoiceSum += amount;
       companiesById[found].m_InvoiceSum += amount;
-      m_InvoiceCnt++;
       return true;
     }
     bool          invoice        ( const string    & name,
@@ -101,13 +83,12 @@ class CVATRegister
       if ( found == -1 )
         return false;
       int found2 = findCompany( TCompany("","",companies[found].m_Id) );
-      createInvoice ( amount );
+      m_Invoices.push_back(amount);
       companies[found].m_InvoiceSum += amount;
       companiesById[found2].m_InvoiceSum += amount;
-      m_InvoiceCnt++;
       return true;
     }
-    /*O ( 2log(n)*/
+    /*O ( log(n)*/
     bool          audit          ( const string    & name,
                                    const string    & addr,
                                    unsigned int    & sumIncome ) const {
@@ -134,7 +115,7 @@ class CVATRegister
       addr = companies[0].m_Address;
       return true;
     }
-    /*O ( log(n) ) */
+    /*O(log(n)) */
     bool          nextCompany    ( string          & name,
                                    string          & addr ) const {
       int found =  findCompany ( TCompany (name, addr, "" ) );
@@ -144,27 +125,27 @@ class CVATRegister
       addr = companies[found+1].m_Address;
       return true;
     }
-    /*O (n/2) = O(n) */
+    /*O(n*log(n)) */
     unsigned int  medianInvoice  ( void ) const {
-      if ( ! m_Invoices )
+      if ( m_Invoices.empty() )
         return 0;
-      TInvoice * curr = m_Invoices;
-      int mid = (m_InvoiceCnt % 2 ) == 1 ? (m_InvoiceCnt / 2) + 1 : m_InvoiceCnt / 2;
-      for ( int i = 1; i < mid ; i++ )
-        curr = curr->m_Next;
-      if ( ( m_InvoiceCnt % 2 ) == 0 ) {
-        if ( curr->m_Next && (curr->m_Next->m_Amount > curr->m_Amount) )
-          return curr->m_Next->m_Amount;
+      size_t mid = (m_Invoices.size() - 1) / 2;
+      vector<unsigned int> tempInvoices;
+      for ( size_t i = 0; i < m_Invoices.size(); i++ )
+        tempInvoices.push_back(m_Invoices[i]);
+      sort(tempInvoices.begin(),tempInvoices.end());
+      if ( ( m_Invoices.size() % 2 ) == 0 ) {
+        if ( mid+1 < m_Invoices.size() && tempInvoices[mid] < tempInvoices[mid+1] )
+          return tempInvoices[mid+1];
       }
-      return curr->m_Amount;
+      return tempInvoices[mid];
     }
 
 
   private:
     vector<TCompany> companies;
     vector<TCompany> companiesById;
-    TInvoice * m_Invoices;
-    size_t m_InvoiceCnt;
+    vector<unsigned int> m_Invoices;
     static string lowerCase ( const string & str ) {
       string newStr = "";
       for ( char c : str )
@@ -211,30 +192,6 @@ class CVATRegister
           lo = mid + 1;
       }
       return -1;
-    }
-    /*singly linked LL, sorted ascending*/
-    void createInvoice ( unsigned int amount ) {
-      TInvoice * next = nullptr;
-      if ( ! m_Invoices ) {
-        m_Invoices = new TInvoice ( amount, next );
-        return;
-      }
-
-      TInvoice * curr = m_Invoices;
-      TInvoice * currNext = m_Invoices->m_Next;
-      while ( currNext && (currNext->m_Amount < amount ) ) {
-        currNext = currNext->m_Next;
-        curr = curr->m_Next; 
-      }
-      TInvoice * newInvoice;
-      if ( curr->m_Amount > amount ) {
-        newInvoice = new TInvoice( amount, curr );
-        m_Invoices = newInvoice;
-      }
-      else {
-        newInvoice = new TInvoice( amount, currNext );
-        curr->m_Next = newInvoice;
-      }
     }
 };
 
