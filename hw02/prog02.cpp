@@ -47,7 +47,7 @@ class CVATRegister
       m_InvoiceCnt = 0;
       m_Invoices = nullptr;
     }
-
+    /*O( 4log(n) + 2n ) = O (n)*/
     bool          newCompany     ( const string    & name,
                                    const string    & addr,
                                    const string    & taxID ) {
@@ -61,6 +61,7 @@ class CVATRegister
       companiesById.insert(upper_bound(companiesById.begin(), companiesById.end(), company, [] ( const TCompany & c1, const TCompany & c2 ) { return c1.m_Id < c2.m_Id; } ), company);
       return true;
     }
+    /*O ( 2log(n) + 2n */
     bool          cancelCompany  ( const string    & name,
                                    const string    & addr ) {
       int found = findCompany( TCompany(name,addr) );
@@ -80,6 +81,7 @@ class CVATRegister
       companiesById.erase(companiesById.begin()+found);
       return true;
     }
+    /*O ( 2log(n) + n */
     bool          invoice        ( const string    & taxID,
                                    unsigned int      amount ) {
       int found = findCompany( TCompany("","",taxID) );
@@ -105,6 +107,7 @@ class CVATRegister
       m_InvoiceCnt++;
       return true;
     }
+    /*O ( 2log(n)*/
     bool          audit          ( const string    & name,
                                    const string    & addr,
                                    unsigned int    & sumIncome ) const {
@@ -122,6 +125,7 @@ class CVATRegister
       sumIncome = companiesById[found].m_InvoiceSum;
       return true;
     }
+    /*O(1) */
     bool          firstCompany   ( string          & name,
                                    string          & addr ) const {
       if ( companies.empty() )
@@ -130,6 +134,7 @@ class CVATRegister
       addr = companies[0].m_Address;
       return true;
     }
+    /*O ( log(n) ) */
     bool          nextCompany    ( string          & name,
                                    string          & addr ) const {
       int found =  findCompany ( TCompany (name, addr, "" ) );
@@ -139,6 +144,7 @@ class CVATRegister
       addr = companies[found+1].m_Address;
       return true;
     }
+    /*O (n/2) = O(n) */
     unsigned int  medianInvoice  ( void ) const {
       if ( ! m_Invoices )
         return 0;
@@ -171,7 +177,7 @@ class CVATRegister
         if (lowerCase(lhs.m_Name) == lowerCase(rhs.m_Name)) return lowerCase(lhs.m_Address) < lowerCase(rhs.m_Address);
         return lowerCase(lhs.m_Name) < lowerCase(rhs.m_Name);
       }
-
+    /*O(log(n))*/
     int findCompany ( const TCompany & company ) const {
       if ( company.m_Id.empty() && (company.m_Name.empty() || company.m_Address.empty() ) )
         return -1;
@@ -190,8 +196,8 @@ class CVATRegister
       }
       return -1;
     }
-    
 
+    /*O(log(n))*/
     int findCompanyById ( const TCompany & company ) const {
       int lo = 0; 
       int hi = companiesById.size();
@@ -234,12 +240,9 @@ class CVATRegister
 
 #ifndef __PROGTEST__
 /**
- * potrebujem vediet binarne vyhladavat aj ked dostanem spolocnost iba podla ID
- * zoradene mam podla mena a adresy,
- * potrebujem mat zoradene aj podla ID, aby som v tom mohol binarne vyhladavat
- * mozem si pri kazdej spolocnosti v liste podle ID ukladat pointer na prvok v poli podla mena a adresy
- * 
- * ked som vyhladaval podla mena a adresy, nezohladnovali sa duplicitne ID
+ * prerobit invoice na efektivnejsi
+ * newCompany spravit cez sort a pushback asi
+ *
  */
 int               main           ( void )
 {
@@ -295,8 +298,6 @@ int               main           ( void )
   assert (b1.newCompany ( "Tjictaqcbcscca", "Ojvkvmgmziiad", "Kfpolgznzkka" ));
   assert (! b1.newCompany ( "Tjictaqcbcscca", "Ojvkvmgmziiad", "Kfpolgznzkka" ));
 
-
-
   CVATRegister b2;
   assert ( b2 . newCompany ( "ACME", "Kolejni", "abcdef" ) );
   assert ( b2 . newCompany ( "Dummy", "Kolejni", "123456" ) );
@@ -336,9 +337,7 @@ int               main           ( void )
   assert ( b3.invoice( "182", 43) );
   assert ( ! b3.invoice( "1", 43) );
   assert ( ! b3.invoice( "vajda", "jozef", 43) );
-  assert ( ! b3.invoice( "vajda", "jozef", 43) );
-
-
+  assert ( ! b3.invoice( "vajda", "jozef", 43) );  
   return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
