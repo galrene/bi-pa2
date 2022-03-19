@@ -54,33 +54,45 @@ class CDate
         return true;
       return false;
     }
-  public:
-    CDate ( int y, int m, int d ) {
-      if ( ! isValid ( m, d, isLeap(y) ) )
-        throw InvalidDateException();
-      else {
-        m_Year = y;
-        m_Month = m;
-        m_Day = d;
+    int getLeapCnt ( int year ) {
+      int cnt = 0;
+      for ( int i = 2000; i < year; i++ ) {
+        if ( isLeap(i) )
+          cnt++;
       }
+      return cnt;
+    }
+    /*calculates days between 1.1.2000 and CDate, last day excluded*/
+    int reneDay ( CDate a ) {
+      int day = 0;
+      day += (a.m_Year-2000) * 365 + getLeapCnt(a.m_Year);
+      bool isCurrYearLeap = isLeap(a.m_Year);
+      for ( int i = 1; i < a.m_Month; i++ )
+        day += daysInMonth ( i, isCurrYearLeap);
+      day += a.m_Day;
+      return day-1;
+    }
+    
+    CDate reneToDate ( int day ) {
+      CDate a(2000,1,1);
+      while ( day >= 366 ) {
+        day -= isLeap(a.m_Year) ? 366 : 365;
+        a.m_Year++;
+      }
+      /*addDays is more than days left in month*/
+      while ( day > ( daysInMonth ( a.m_Month, isLeap(a.m_Year) ) - a.m_Day) ) {
+        day -= ( daysInMonth ( a.m_Month, isLeap(a.m_Year) ) - a.m_Day + 1);
+        if ( a.m_Month == 12 ) {
+          a.m_Month = 1;
+          a.m_Year++;
+        }
+        a.m_Day = 1;
+        a.m_Month++;
+      }
+      a.m_Day += day;
+      return a;
     }
 
-    friend ostream & operator << ( ostream & os, const CDate & rhs ) {
-      os << rhs.m_Year << "-";
-      if ( rhs.m_Month <= 9 )
-        os << 0;
-      os << rhs.m_Month << "-";
-      if ( rhs.m_Day <= 9 )
-        os << 0;
-      os << rhs.m_Day;
-      return os;
-    }
-    /**
-     *  24/5/2002 + 130
-     * 
-     *  
-     *  
-     */
     int daysInMonth ( int month, bool isLeap ) {
       int daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
       if ( isLeap && month == 2 )
@@ -94,11 +106,23 @@ class CDate
         m_Year++;
       }
     }
-
+  public:
+    CDate ( int y, int m, int d ) {
+      if ( ! isValid ( m, d, isLeap(y) ) )
+        throw InvalidDateException();
+      else {
+        m_Year = y;
+        m_Month = m;
+        m_Day = d;
+      }
+    }
+    CDate operator + ( const int addDays ) {
+      if 
+      return reneToDate(reneDay(*this)+addDays);
+    }
+    /*
     CDate & operator + ( int addDays ) {
-
       addYears ( addDays );
-      /*addDays is more than days left in month*/
       while ( addDays > ( daysInMonth ( m_Month, isLeap(m_Year) ) - m_Day) ) {
         addDays -= ( daysInMonth ( m_Month, isLeap(m_Year) ) - m_Day + 1);
         if ( m_Month == 12 ) {
@@ -111,7 +135,17 @@ class CDate
       m_Day += addDays;
       return *this;
     }
-
+    */
+    friend ostream & operator << ( ostream & os, const CDate & rhs ) {
+      os << rhs.m_Year << "-";
+      if ( rhs.m_Month <= 9 )
+        os << 0;
+      os << rhs.m_Month << "-";
+      if ( rhs.m_Day <= 9 )
+        os << 0;
+      os << rhs.m_Day;
+      return os;
+    }
 };
 
 #ifndef __PROGTEST__
