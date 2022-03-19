@@ -36,16 +36,15 @@ class CDate
     int m_Month;
     int m_Day;
 
-    bool isValid ( int month, int day, bool isLeap ) {
-      int months[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    static bool isValid ( int month, int day, bool isLeap ) {
       if ( month > 12 || month < 1 )
         return false;
       if ( isLeap && month == 2 && day > 29 )
         return false;
-      return day <= months[month] && day >= 1;
+      return day <= daysInMonth(month,isLeap) && day >= 1;
     }
 
-    bool isLeap ( int year ) {
+    static bool isLeap ( int year ) {
       if ( year % 400 == 0 )
         return true;
       if ( year % 100 == 0 )
@@ -93,7 +92,7 @@ class CDate
       return a;
     }
 
-    int daysInMonth ( int month, bool isLeap ) {
+    static int daysInMonth ( int month, bool isLeap ) {
       int daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
       if ( isLeap && month == 2 )
         return 29;
@@ -143,6 +142,24 @@ class CDate
     bool operator >= ( CDate rhs ) {
       return ! ( *this < rhs );
     }
+    CDate operator ++ ( void ) {
+      *this = reneToDate(reneDay(*this+1));
+      return *this;
+    }
+    CDate operator ++ ( int ) {
+      CDate tmp = *this;
+      *this =  reneToDate(reneDay(*this+1));
+      return tmp;
+    }
+    CDate operator -- ( void ) {
+      *this = reneToDate(reneDay(*this-1));
+      return *this;
+    }
+    CDate operator -- ( int ) {
+      CDate tmp = *this;
+      *this =  reneToDate(reneDay(*this-1));
+      return tmp;
+    }
     /*
     CDate & operator + ( int addDays ) {
       addYears ( addDays );
@@ -169,6 +186,31 @@ class CDate
       os << rhs.m_Day;
       return os;
     }
+    friend istream & operator >> ( istream & is, CDate & lhs) {
+      int year;
+      char dummy;
+      int month;
+      int day;
+      is >> year >> dummy;
+      if ( dummy != '-' ) {
+        is.setstate(ios::failbit);
+        return is;
+      }
+      is >> month >> dummy;
+      if ( dummy != '-') {
+        is.setstate(ios::failbit);
+        return is;
+      }
+      is >> day;
+      if ( ! isValid (month, day, isLeap(year) ) ) {
+        is.setstate(ios::failbit);
+        return is;
+      }
+      lhs.m_Year = year;
+      lhs.m_Month = month;
+      lhs.m_Day = day;
+      return is;
+    }
 };
 
 #ifndef __PROGTEST__
@@ -191,10 +233,10 @@ int main ( void )
   assert ( oss . str () == "2004-02-10" );
   a = a + 1500;
 
-  CDate d ( 2010, 2, 3 );
-  d = d + 534789;
+  CDate e ( 2010, 2, 3 );
+  e = e + 534789;
   oss . str ("");
-  oss << d;
+  oss << e;
   assert ( oss . str () == "3474-04-18" );
   oss . str ("");
   oss << a;
@@ -216,7 +258,6 @@ int main ( void )
   assert ( ( c < a ) == false );
   assert ( ( c >= a ) == true );
   assert ( ( c > a ) == false );
-  /*
   a = ++c;
   oss . str ( "" );
   oss << a << " " << c;
@@ -277,6 +318,7 @@ int main ( void )
   oss . str ("");
   oss << d;
   assert ( oss . str () == "2000-02-29" );
+  /*
 
   //-----------------------------------------------------------------------------
   // bonus test examples
