@@ -117,8 +117,31 @@ class CDate
       }
     }
     CDate operator + ( const int addDays ) {
-      if 
       return reneToDate(reneDay(*this)+addDays);
+    }
+    CDate operator - ( const int addDays ) {
+      return reneToDate(reneDay(*this)-addDays);
+    }
+    int operator - ( CDate rhs ) {
+      return reneDay(*this) - reneDay(rhs);
+    }
+    bool operator == ( CDate rhs ) {
+      return m_Day == rhs.m_Day && m_Month == rhs.m_Month && m_Year == rhs.m_Year;
+    }
+    bool operator < ( CDate rhs ) {
+      return reneDay(*this) < reneDay(rhs);
+    }
+    bool operator != ( CDate rhs ) {
+      return ! (*this == rhs);
+    }
+    bool operator > ( CDate rhs ) {
+      return reneDay(*this) > reneDay(rhs);
+    }
+    bool operator <= ( CDate rhs ) {
+      return ! ( *this > rhs );
+    }
+    bool operator >= ( CDate rhs ) {
+      return ! ( *this < rhs );
     }
     /*
     CDate & operator + ( int addDays ) {
@@ -168,11 +191,11 @@ int main ( void )
   assert ( oss . str () == "2004-02-10" );
   a = a + 1500;
 
-  b = b + 534789;
+  CDate d ( 2010, 2, 3 );
+  d = d + 534789;
   oss . str ("");
-  oss << b;
+  oss << d;
   assert ( oss . str () == "3474-04-18" );
-  /*
   oss . str ("");
   oss << a;
   assert ( oss . str () == "2004-02-10" );
@@ -193,6 +216,7 @@ int main ( void )
   assert ( ( c < a ) == false );
   assert ( ( c >= a ) == true );
   assert ( ( c > a ) == false );
+  /*
   a = ++c;
   oss . str ( "" );
   oss << a << " " << c;
