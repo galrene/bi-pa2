@@ -36,9 +36,8 @@ class CDate
     int m_Month;
     int m_Day;
 
-    static bool isValid ( int month, int day, bool isLeap, int year ) {
-      if ( month > 12 || month < 1 
-          || year < 1 )
+    static bool isValid ( int month, int day, bool isLeap ) {
+      if ( month > 12 || month < 1 )
         return false;
       if ( isLeap && month == 2 && day > 29 )
         return false;
@@ -53,24 +52,6 @@ class CDate
         return true;
       return false;
     }
-    
-    static int daysInMonth ( int month, bool isLeap ) {
-      int daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-      if ( isLeap && month == 2 )
-        return 29;
-      return daysInMonth[month-1];
-    }
-
-  public:
-    CDate ( int y, int m, int d ) {
-      if ( ! isValid ( m, d, isLeap(y), y ) )
-        throw InvalidDateException();
-      else {
-        m_Year = y;
-        m_Month = m;
-        m_Day = d;
-      }
-    }
     static int getLeapCnt ( int year ) {
       int cnt = 0;
       for ( int i = 2000; i < year; i++ ) {
@@ -78,6 +59,29 @@ class CDate
           cnt++;
       }
       return cnt;
+    }
+    static int daysInMonth ( int month, bool isLeap ) {
+      int daysInMonth[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+      if ( isLeap && month == 2 )
+        return 29;
+      return daysInMonth[month-1];
+    }
+
+    void addYears ( int &days ) {
+      while ( days >= 366 ) {
+        days -= isLeap(m_Year) ? 366 : 365;
+        m_Year++;
+      }
+    }
+  public:
+    CDate ( int y, int m, int d ) {
+      if ( ! isValid ( m, d, isLeap(y) ) )
+        throw InvalidDateException();
+      else {
+        m_Year = y;
+        m_Month = m;
+        m_Day = d;
+      }
     }
     /*calculates days between 1.1.2000 and CDate, last day excluded*/
     static int reneDay ( CDate a ) {
@@ -92,7 +96,7 @@ class CDate
     
     CDate reneToDate ( int days ) {
       CDate a(2000,1,1);
-      while ( days >= 365 ) {
+      while ( days >= 366 ) {
         days -= isLeap(a.m_Year) ? 366 : 365;
         a.m_Year++;
       }
@@ -104,7 +108,6 @@ class CDate
           a.m_Year++;
         }
         a.m_Day = 1;
-        //TU JE PROBLEM KED JE 0 DAYS LEFT
         a.m_Month++;
       }
       a.m_Day += days;
@@ -112,17 +115,14 @@ class CDate
     }
     //------------------------------------------------------------------------------------
     CDate operator + ( const int addDays ) {
-      if ( ! addDays ) return *this;
       return reneToDate(reneDay(*this)+addDays);
     }
     //------------------------------------------------------------------------------------
     CDate operator - ( const int addDays ) {
-      if ( ! addDays ) return *this;
       return reneToDate(reneDay(*this)-addDays);
     }
     //------------------------------------------------------------------------------------
     int operator - ( CDate rhs ) {
-      if ( ! reneDay(rhs) ) return reneDay(*this);
       return reneDay(*this) - reneDay(rhs);
     }
     //------------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ class CDate
         return is;
       }
       is >> day;
-      if ( ! isValid (month, day, isLeap(year), year ) ) {
+      if ( ! isValid (month, day, isLeap(year) ) ) {
         is.setstate(ios::failbit);
         return is;
       }
@@ -215,10 +215,10 @@ int main ( void )
 {
   ostringstream oss;
   istringstream iss;
+
   CDate a ( 2000, 1, 2 );
   CDate b ( 2010, 2, 3 );
   CDate c ( 2004, 2, 10 );
-  cout << a.getLeapCnt(2100) << endl;
   oss . str ("");
   oss << a;
   assert ( oss . str () == "2000-01-02" );
@@ -317,29 +317,17 @@ int main ( void )
   assert ( oss . str () == "3474-04-18" );
 
   CDate g ( 2028, 12, 31 );
+  cout << g.reneToDate(g.reneDay(g)+52349) << endl;
 
   CDate j ( 2028, 1, 31 );
   CDate p ( 2028, 1, 31 );
+  cout << "reneDay j " << j.reneDay(j) << endl;
+  cout << g - j << endl;
+  cout << "minusko " << g + (-335) << endl;
+  cout << "minusko " << g - 335 << endl;
   assert ( j <= p );
   assert ( j <= g );
-  iss . clear ();
-  iss . str ( "2001/02/29" );
-  assert ( ! ( iss >> d ) );
-  CDate q ( 2028, 1, 1 );
-  iss . clear ();
-  iss . str ( "2028-01-01" );
-  iss >> j;
-  q = q + 82;
-  q = q - 82;
-  q = q + 69;
-  q = q - 69;
-  cout << "q: " << q << endl;
-  assert( q == j );
-  q = q + 0;
-  assert( q == j );
-  q = q - 0;
-  assert( q == j );
-
+  
   /*
   //-----------------------------------------------------------------------------
   // bonus test examples
