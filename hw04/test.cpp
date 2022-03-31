@@ -67,7 +67,14 @@ class CFile
       }
       return bytes;
     }
-    void                     truncate                      ( void );
+    void                     truncate                      ( void ) {
+      uint8_t * tmp = new uint8_t [m_Pos];
+      for ( size_t i = 0; i < m_Pos; i++ )
+        tmp[i] = m_File[i];
+      m_Size = m_Pos;
+      delete [] m_File;
+      m_File = tmp;
+    }
     uint32_t                 fileSize                      ( void ) const { return m_Size; }
     void                     addVersion                    ( void );
     bool                     undoVersion                   ( void );
@@ -109,6 +116,7 @@ int main ( void )
   assert ( f0 . seek ( 1 ));
   assert ( readTest ( f0, { 20, 5, 4, 70, 80 }, 7 ));
   assert ( f0 . seek ( 3 ));
+  f0.truncate();
   /*
   f0 . addVersion();
   assert ( f0 . seek ( 6 ));
