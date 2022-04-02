@@ -19,7 +19,6 @@ class CFile
     CFile * m_Versions;
     size_t m_VerCnt;
     size_t m_VerCap;
-    size_t m_VerPos;
   public:
     CFile ( void ) {
       m_File = nullptr;
@@ -29,11 +28,10 @@ class CFile
       m_Versions = nullptr;
       m_VerCnt = 0;
       m_VerCap = 0;
-      m_VerPos = 0;
     }
 
     CFile ( const CFile & file ) {
-      m_File = new uint8_t [file.m_Size];
+      m_File = new uint8_t [file.m_Cap];
       for ( size_t i = 0; i < file.m_Size; i ++ )
         m_File[i] = file.m_File[i];
       m_Cap = file.m_Cap;
@@ -45,7 +43,6 @@ class CFile
         m_Versions[i] = file.m_Versions[i];
       m_VerCnt = file.m_VerCnt;
       m_VerCap = file.m_VerCap;
-      m_VerPos = file.m_VerPos;
     }
     ~CFile ( void ) {
       delete [] m_File;
@@ -57,41 +54,20 @@ class CFile
       m_Versions = nullptr;
       m_VerCnt = 0;
       m_VerCap = 0;;
-      m_VerPos = 0;
     }
-    void grow ( void ) {
-      m_Cap += 1;
-      uint8_t * tmp = new uint8_t [m_Cap];
-      for ( size_t i = 0; i < m_Size; i++ )
-        tmp[i] = m_File[i];
-      delete [] m_File;
-      m_File = tmp;                     
-    }
+    
     CFile & operator = ( const CFile & rhs ) {
       if ( &rhs == this ) return *this;
-      /* delete lhs versions's files, versions pointers, and main file */
-      delete [] m_Versions;
-      delete [] m_File;
-
-      /* copy rhs's file */
-      m_File = new uint8_t [rhs.m_Cap];
-      for ( size_t i = 0; i < rhs.m_Size; i++ )
-        m_File[i] = rhs.m_File[i];
+      copyBytes(*this, rhs);
       m_Cap = rhs.m_Cap;
       m_Pos = rhs.m_Pos;
       m_Size = rhs.m_Size;
 
-      
-      m_Versions = new CFile [rhs.m_VerCap];
-      for ( size_t i = 0; i < rhs.m_VerCnt; i++ )
-        m_Versions[i] = rhs.m_Versions[i];
+      copyVersions(*this, rhs);
       m_VerCap = rhs.m_VerCap;
       m_VerCnt = rhs.m_VerCnt;
-      m_VerPos = rhs.m_VerPos;
       return *this;
     }
-
-                             // copy cons, dtor, op=
     bool                     seek                          ( uint32_t          offset ) {
       if ( offset > m_Size || offset < 0 )
         return false;
@@ -100,27 +76,34 @@ class CFile
     }
     uint32_t                 read                          ( uint8_t         * dst,
                                                              uint32_t          bytes ) {
-      int i = 0;
-      int toRead = bytes;
-      while ( m_Pos < m_Size && (bytes--) ) {
+      size_t i = 0;
+      uint32_t toRead = bytes;
+      while ( m_Pos < m_Size && (bytes--) )
         dst[i++] = m_File[m_Pos++];
-      }
       if ( bytes )
         return toRead - bytes;
-      return bytes;
+      return toRead;
     }
     uint32_t                 write                         ( const uint8_t   * src,
                                                              uint32_t          bytes ) {
       for ( uint32_t i = 0; i < bytes; i++ ) {
         if ( m_Pos >= m_Cap ) {
-          grow();
-          m_Size ++;
+          m_Cap = m_Cap * 2 + 5;
+          uint8_t * tmp = new uint8_t [m_Cap];
+          for ( size_t i = 0; i < m_Pos; i++ )
+            tmp[i] = m_File[i];
+          delete [] m_File;
+          m_File = tmp;
         }
         m_File[m_Pos++] = src[i];
+        if ( m_Pos > m_Size )
+          m_Size++;
       }
       return bytes;
     }
     void                     truncate                      ( void ) {
+      if ( m_Pos == m_Size )
+        return;
       uint8_t * tmp = new uint8_t [m_Pos];
       for ( size_t i = 0; i < m_Pos; i++ )
         tmp[i] = m_File[i];
@@ -132,31 +115,24 @@ class CFile
     uint32_t                 fileSize                      ( void ) const { return m_Size; }
     void                     addVersion                    ( void ) {
       if ( m_VerCnt >= m_VerCap ) {
-        m_VerCap += 5;
+        m_VerCap = m_VerCap * 2 + 5;
         CFile * tmp = new CFile [m_VerCap];
         for ( size_t i = 0; i < m_VerCnt; i++ )
           tmp[i] = m_Versions[i];
-         delete [] m_Versions;
+        delete [] m_Versions;
         m_Versions = tmp;
       }
       m_Versions[m_VerCnt++] = *this;
-      m_VerPos++;
     }
     bool                     undoVersion                   ( void ) {
-      if ( ! m_VerPos )
+      if ( ! m_VerCnt )
         return false;
-      delete [] m_File;
-      m_File = new uint8_t [m_Versions[m_VerPos-1].m_Cap];
-      for ( size_t i = 0; i < m_Versions[m_VerPos-1].m_Size; i++ )
-        m_File[i] = m_Versions[m_VerPos-1].m_File[i];
-      m_Cap = m_Versions[m_VerPos-1].m_Cap;
-      m_Pos = m_Versions[m_VerPos-1].m_Pos;
-      m_Size = m_Versions[m_VerPos-1].m_Size;
+      copyBytes (*this, m_Versions[m_VerCnt-1]);
+      m_Cap = m_Versions[m_VerCnt-1].m_Cap;
+      m_Pos = m_Versions[m_VerCnt-1].m_Pos;
+      m_Size = m_Versions[m_VerCnt-1].m_Size;
       
-      /*free current version*/
-      //delete [] m_Versions[m_VerCnt-1].m_File; deletujem uz v destruktori
-      //delete &m_Versions[m_VerPos-1];
-      m_VerPos--;
+      m_VerCnt--;
       return true;
     }
     void printFile ( void ) {
@@ -164,7 +140,7 @@ class CFile
         cout << (int) m_File[i] << " ";
       cout << endl;
      }
-    void copyBytes ( CFile & dst, CFile & src ) {
+    void copyBytes ( CFile & dst, const CFile & src ) {
       if ( dst.m_Size == src.m_Size ) {
         for ( size_t i = 0; i < src.m_Size; i++ ) {
           dst.m_File[i] = src.m_File[i];
@@ -176,15 +152,9 @@ class CFile
       for ( size_t i = 0; i < src.m_Size; i++ )
         dst.m_File[i] = src.m_File[i];
     }
-    /* copies a dyn arr of versions*/
-    void copyVersions ( CFile & dst, CFile & src ) {
-      if ( dst.m_VerCnt == src.m_VerCnt ) {
-        for ( size_t i = 0; i < src.m_VerCnt; i++ ) {
-          dst.m_Versions[i] = src.m_Versions[i];
-          return;
-        }
-      }
-      delete [] dst.m_Versions; //hopefully rekurzivne deletne vsetko :D
+    /* copies a dyn arr of versions */
+    void copyVersions ( CFile & dst, const CFile & src ) {
+      delete [] dst.m_Versions;
       dst.m_Versions = new CFile [src.m_VerCap];
       for ( size_t i = 0; i < src.m_VerCnt; i++ )
         dst.m_Versions[i] = src.m_Versions[i];
@@ -217,10 +187,8 @@ bool               readTest                                ( CFile           & x
 }
 
 /**
- * posledna verzia vzdy ukazuje na rovnaku pamat ako m_File - undo version robis zle
- * vies fixnut kopirovanim na riadku 153 namiesto priradovania
  * TODO:
- * Sprav funkcie na kopirovanie/freeovanie suboru, verzii alebo nejak to proste sprehladni
+ * 
  */
 int main ( void ) {
 
@@ -239,15 +207,8 @@ int main ( void ) {
   f0 . addVersion();
   assert ( f0 . seek ( 6 ));
   assert ( writeTest ( f0, { 100, 101, 102, 103 }, 4 ) );
-  /*
-  assert ( f0 . undoVersion () );
-  f0.printFile();
-  assert ( readTest ( f0, { 10, 20, 5, 4, 70, 80 }, 20 ));
-  */
-  
   f0 . addVersion();
   assert ( f0 . seek ( 5 ));
-  
   CFile f1 ( f0 );
   f0 . truncate ();
   f0.printFile();
@@ -268,6 +229,24 @@ int main ( void ) {
   assert ( f1 . undoVersion () );
   assert ( readTest ( f1, { 4, 70, 80 }, 20 ));
   assert ( !f1 . undoVersion () );
+
+  CFile f2;
+
+  assert ( writeTest ( f2, { 10, 20, 30 }, 3 ) );
+  assert ( f2 . fileSize () == 3 );
+  assert ( writeTest ( f2, { 60, 70, 80 }, 3 ) );
+  assert ( f2 . fileSize () == 6 );
+  f2.truncate();
+  assert ( f2 . seek ( 0 ));
+  assert ( readTest ( f2, { 10, 20, 30, 60, 70, 80 }, 8 ));
+  assert ( readTest ( f2, { }, 0 ));
+  assert ( f2 . seek ( 5 ));
+  assert ( writeTest ( f2, { 60, 70, 80 }, 3 ) );
+  assert ( f2 . fileSize () == 8 );
+  assert ( f2 . seek ( 7 ));
+  assert ( ! readTest ( f2, { 70, 80 }, 2 ));
+
+
   return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
