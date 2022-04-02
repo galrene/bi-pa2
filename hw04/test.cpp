@@ -53,10 +53,7 @@ class CFile
       m_Size = 0;
       m_Cap = 0;
       m_Pos = 0;
-      if ( m_VerCnt ) {
-        cout << "deleting versions" << endl;
-        delete [] m_Versions;
-      }
+      delete [] m_Versions;
       m_Versions = nullptr;
       m_VerCnt = 0;
       m_VerCap = 0;;
@@ -86,10 +83,8 @@ class CFile
 
       
       m_Versions = new CFile [rhs.m_VerCap];
-      for ( size_t i = 0; i < rhs.m_VerCnt; i++ ) {
-        cout << "allocating version" << endl;
+      for ( size_t i = 0; i < rhs.m_VerCnt; i++ )
         m_Versions[i] = rhs.m_Versions[i];
-      }
       m_VerCap = rhs.m_VerCap;
       m_VerCnt = rhs.m_VerCnt;
       m_VerPos = rhs.m_VerPos;
