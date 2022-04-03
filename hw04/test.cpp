@@ -112,7 +112,16 @@ class CFile
     }
     uint32_t                 write                         ( const uint8_t   * src,
                                                              uint32_t          bytes ) {
-      /* spravit hlboku kopiu */
+      if ( m_File->m_RefCnt > 1 ) {
+        TFileWrap * tempFile = new TFileWrap;
+        size_t tmpPos = m_Pos;
+        copyBytes( *tempFile, *m_File );
+        tempFile->m_Size = m_File->m_Size;
+        tempFile->m_Cap = m_File->m_Cap;
+        detach();
+        m_File = tempFile;
+        m_Pos = tmpPos;
+      }
       for ( uint32_t i = 0; i < bytes; i++ ) {
         if ( m_Pos >= m_File->m_Cap ) {
           m_File->m_Cap = m_File->m_Cap * 2 + 5;
@@ -166,39 +175,31 @@ class CFile
     bool                     undoVersion                   ( void ) {
       if ( ! m_VerCnt )
         return false;
-      /* ZLE */
-      copyBytes (*this, m_Versions->m_Versions[m_VerCnt-1]);
+      /* !ZLE */
+      copyBytes (*this->m_File, *(m_Versions->m_Versions[m_VerCnt-1].m_File));
       m_File->m_Cap = m_Versions->m_Versions[m_VerCnt-1].m_File->m_Cap;
       m_Pos = m_Versions->m_Versions[m_VerCnt-1].m_Pos;
       m_File->m_Size = m_Versions->m_Versions[m_VerCnt-1].m_File->m_Size;
       
       m_VerCnt--;
       return true;
-      /*
-      TFileWrap * a = new TFileWrap;
-      copyBytes(*this, m_File->m_Versions[m_File->m_VerCnt-1]);
-      m_File->m_Size = m_File->m_Versions[m_File->m_VerCnt-1].m_File->m_Size;
-      m_File->m_Cap = m_File->m_Versions[m_File->m_VerCnt-1].m_File->m_Cap;
-      m_File->m_VerCnt--;
-      return true;
-      */
     }
     void printFile ( void ) {
       for ( size_t i = 0; i < m_File->m_Size; i++ )
         cout << (int) m_File->m_File[i] << " ";
       cout << endl;
      }
-    void copyBytes ( CFile & dst, const CFile & src ) {
-      if ( dst.m_File->m_Size == src.m_File->m_Size ) {
-        for ( size_t i = 0; i < src.m_File->m_Size; i++ ) {
-          dst.m_File->m_File[i] = src.m_File->m_File[i];
+    void copyBytes ( TFileWrap & dst, TFileWrap & src ) {
+      if ( dst.m_Size == src.m_Size ) {
+        for ( size_t i = 0; i < src.m_Size; i++ ) {
+          dst.m_File[i] = src.m_File[i];
           return;
         }
       }
-      delete [] dst.m_File->m_File;
-      dst.m_File->m_File = new uint8_t [src.m_File->m_Cap];
-      for ( size_t i = 0; i < src.m_File->m_Size; i++ )
-        dst.m_File->m_File[i] = src.m_File->m_File[i];
+      delete [] dst.m_File;
+      dst.m_File = new uint8_t [src.m_Cap];
+      for ( size_t i = 0; i < src.m_Size; i++ )
+        dst.m_File[i] = src.m_File[i];
     }
     /* copies a dyn arr of versions */
     /*
@@ -281,11 +282,22 @@ int main ( void ) {
   assert ( readTest ( f1, { 4, 70, 80 }, 20 ));
   assert ( !f1 . undoVersion () );
 
-  CFile f2;
-
-  assert ( writeTest ( f2, { 10, 20, 30 }, 3 ) );
-  assert ( f2 . fileSize () == 3 );
-  assert ( writeTest ( f2, { 60, 70, 80 }, 3 ) );
+  CFile * f2 = new CFile;
+  CFile f3 ( *f2 );
+  assert ( writeTest ( *f2, { 10, 20, 30 }, 3 ) );
+  assert ( (*f2) . fileSize () == 3 );
+  assert ( f3 . seek ( 0 ));
+  assert ( writeTest ( f3, { 60, 70, 80, 90 }, 4 ) );
+  assert ( (*f2) . fileSize () == 3 );
+  assert ( f3 . fileSize () == 4 );
+  delete f2;
+  assert ( f3 . fileSize () == 4 );
+  assert ( f3 . seek ( 0 ));
+  assert ( readTest ( f3, { 60, 70, 80, 90 }, 4 ) );
+  CFile f4 ( f3 );
+  f3.addVersion();
+  assert ( writeTest ( f3, { 10, 20, 30 }, 3 ) );
+  /*
   assert ( f2 . fileSize () == 6 );
   f2.truncate();
   assert ( f2 . seek ( 0 ));
@@ -296,7 +308,7 @@ int main ( void ) {
   assert ( f2 . fileSize () == 8 );
   assert ( f2 . seek ( 7 ));
   assert ( ! readTest ( f2, { 70, 80 }, 2 ));
-
+  */
 
   return EXIT_SUCCESS;
 }
