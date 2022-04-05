@@ -32,6 +32,7 @@ class CFile
   };
   TFileWrap * m_File;
   size_t m_Pos;
+
   struct TVersWrap {
     CFile * m_Versions;
     size_t m_VerCap;
@@ -48,8 +49,9 @@ class CFile
       m_RefCnt = 0;
     }
   };
-  TVersWrap * m_Versions;
+  
   size_t m_VerCnt;
+  TVersWrap * m_Versions;
   void attach ( TFileWrap * file ) {
     m_File = file;
     m_File->m_RefCnt++;
@@ -65,6 +67,44 @@ class CFile
   void attachVers ( TVersWrap * vers ) {
     m_Versions = vers;
     m_Versions->m_RefCnt++;
+  }
+  // m_Pos should be replacable by m_Size and work the same
+  void growFile ( void ) {
+    m_File->m_Cap = m_File->m_Cap * 2 + 5;
+    uint8_t * tmp = new uint8_t [m_File->m_Cap];
+    for ( size_t j = 0; j < m_Pos; j++ )
+      tmp[j] = m_File->m_File[j];
+    delete [] m_File->m_File;
+    m_File->m_File = tmp;
+  }
+  void growVersions ( void ) {
+    m_Versions->m_VerCap = m_Versions->m_VerCap * 2 + 5;
+    CFile * tmp = new CFile [m_Versions->m_VerCap];
+    for ( size_t i = 0; i < m_VerCnt; i++ )
+      tmp[i] = m_Versions->m_Versions[i];
+    delete [] m_Versions->m_Versions;
+    m_Versions->m_Versions = tmp;
+  }
+  /* detaches and makes a deep copy of TFileWrap */
+  void deepCopyTFile ( void ) {
+    TFileWrap * newFile = new TFileWrap;
+    newFile->m_File = new uint8_t [m_File->m_Cap];
+    for ( size_t i = 0; i < m_File->m_Size; i++ )
+      newFile->m_File[i] = m_File->m_File[i];
+    newFile->m_Cap = m_File->m_Cap;
+    newFile->m_Size = m_File->m_Size;
+    detach();
+    m_File = newFile;
+  }
+    /* detaches and makes shallow copies of existing versions of CFile */
+  void copyTVers ( void ) {
+    TVersWrap * newVers = new TVersWrap;
+    newVers->m_Versions = new CFile [m_Versions->m_VerCap];
+    for ( size_t i = 0; i < m_VerCnt; i++ )
+      newVers->m_Versions[i] = m_Versions->m_Versions[i];
+    newVers->m_VerCap = m_Versions->m_VerCap;
+    detachVers();
+    m_Versions = newVers;
   }
   public:
     CFile ( void ) {
@@ -83,7 +123,6 @@ class CFile
       detach();
       detachVers();
     }
-    
     CFile & operator = ( const CFile & rhs ) {
       if ( &rhs == this ) return *this;
       detach();
@@ -103,40 +142,30 @@ class CFile
     uint32_t                 read                          ( uint8_t         * dst,
                                                              uint32_t          bytes ) {
       size_t i = 0;
-      uint32_t toRead = bytes;
-      while ( m_Pos <m_File-> m_Size && (bytes--) )
+      uint32_t r = 0;
+      while ( (m_Pos < m_File -> m_Size) && (r++ < bytes) )
         dst[i++] = m_File->m_File[m_Pos++];
-      if ( bytes )
-        return toRead - bytes;
-      return toRead;
+      if ( r < bytes )
+        return r;
+      return bytes;
     }
+    /* writes bytes into m_File, if rewriting a shared cpy, makes deep copy */
     uint32_t                 write                         ( const uint8_t   * src,
                                                              uint32_t          bytes ) {
       if ( m_File->m_RefCnt > 1 ) {
-        TFileWrap * tempFile = new TFileWrap;
-        size_t tmpPos = m_Pos;
-        copyBytes( *tempFile, *m_File );
-        tempFile->m_Size = m_File->m_Size;
-        tempFile->m_Cap = m_File->m_Cap;
-        detach();
-        m_File = tempFile;
-        m_Pos = tmpPos;
+        deepCopyTFile();
+        copyTVers();
       }
       for ( uint32_t i = 0; i < bytes; i++ ) {
-        if ( m_Pos >= m_File->m_Cap ) {
-          m_File->m_Cap = m_File->m_Cap * 2 + 5;
-          uint8_t * tmp = new uint8_t [m_File->m_Cap];
-          for ( size_t j = 0; j < m_Pos; j++ )
-            tmp[j] = m_File->m_File[j];
-          delete [] m_File->m_File;
-          m_File->m_File = tmp;
-        }
+        if ( m_Pos >= m_File->m_Cap )
+          growFile();
         m_File->m_File[m_Pos++] = src[i];
         if ( m_Pos > m_File->m_Size )
           m_File->m_Size++;
       }
       return bytes;
     }
+    /* makes a deep copy of bytes on truncate */
     void                     truncate                      ( void ) {
       if ( m_Pos == m_File->m_Size )
         return;
@@ -150,66 +179,39 @@ class CFile
       temp->m_File = tmp;
       detach();
       m_File = temp;
-
     }
     uint32_t                 fileSize                      ( void ) const { return m_File->m_Size; }
     void                     addVersion                    ( void ) {
-      if ( m_VerCnt >= m_Versions->m_VerCap ) {
-        m_Versions->m_VerCap = m_Versions->m_VerCap * 2 + 5;
-        CFile * tmp = new CFile [m_Versions->m_VerCap];
-        for ( size_t i = 0; i < m_VerCnt; i++ )
-          tmp[i] = m_Versions->m_Versions[i];
-        delete [] m_Versions->m_Versions;
-        m_Versions->m_Versions = tmp;
-      }
+      if ( m_VerCnt >= m_Versions->m_VerCap )
+        growVersions();
+      //-------------DEEP-COPY-BYTES-------------------------
       CFile a;
       a.m_File->m_File = new uint8_t [m_File->m_Cap];
       for ( size_t i = 0; i < m_File->m_Size; i++ )
         a.m_File->m_File[i] = m_File->m_File[i];
       a.m_File->m_Cap = m_File->m_Cap;
       a.m_File->m_Size = m_File->m_Size;
-
       a.m_Pos = m_Pos;
+      //----------------------------------------------------
       m_Versions->m_Versions[m_VerCnt++] = a;
     }
     bool                     undoVersion                   ( void ) {
       if ( ! m_VerCnt )
         return false;
-      /* !ZLE */
-      copyBytes (*this->m_File, *(m_Versions->m_Versions[m_VerCnt-1].m_File));
-      m_File->m_Cap = m_Versions->m_Versions[m_VerCnt-1].m_File->m_Cap;
+      detach ();
+      attach ( m_Versions->m_Versions[m_VerCnt-1].m_File );
       m_Pos = m_Versions->m_Versions[m_VerCnt-1].m_Pos;
-      m_File->m_Size = m_Versions->m_Versions[m_VerCnt-1].m_File->m_Size;
-      
       m_VerCnt--;
       return true;
     }
-    void printFile ( void ) {
-      for ( size_t i = 0; i < m_File->m_Size; i++ )
-        cout << (int) m_File->m_File[i] << " ";
-      cout << endl;
-     }
-    void copyBytes ( TFileWrap & dst, TFileWrap & src ) {
-      if ( dst.m_Size == src.m_Size ) {
-        for ( size_t i = 0; i < src.m_Size; i++ ) {
-          dst.m_File[i] = src.m_File[i];
-          return;
-        }
-      }
-      delete [] dst.m_File;
-      dst.m_File = new uint8_t [src.m_Cap];
-      for ( size_t i = 0; i < src.m_Size; i++ )
-        dst.m_File[i] = src.m_File[i];
+    friend ostream & operator << ( ostream & os, const CFile & a ) {
+      cout << "[ ";
+      for ( size_t i = 0; i < a.m_File->m_Size; i++ )
+        cout <<(int) a.m_File->m_File[i] << " ";
+      cout << "]" << endl;
+      return os;
     }
-    /* copies a dyn arr of versions */
-    /*
-    void copyVersions ( CFile & dst, const CFile & src ) {
-      delete [] dst.m_File->m_Versions;
-      dst.m_File->m_Versions = new CFile [src.m_File->m_VerCap];
-      for ( size_t i = 0; i < src.m_File->m_VerCnt; i++ )
-        dst.m_File->m_Versions[i] = src.m_File->m_Versions[i];
-    }
-    */
+    CFile & getVersions ( size_t cnt ) { return m_Versions->m_Versions[cnt];}
 };
 
 #ifndef __PROGTEST__
@@ -241,6 +243,10 @@ bool               readTest                                ( CFile           & x
  * TODO:
  * spravit pocitanie referencii cez zaobalovaciu strukturu a attach/detach funckie v const/dest
  * and i guess vo write spravit potom nech to pri volani spravi deep copy
+ * 
+ * Pri deep kopiroviani, verzie nakopiruj shallow, nie ale pointer ale novy TVersWrap s polom CFileov
+ * a to napln cez operator = ( shallow copy s counted ref ), m_VerCnt je useless mat v CFile
+ * 
  */
 int main ( void ) {
 
@@ -261,13 +267,13 @@ int main ( void ) {
   assert ( writeTest ( f0, { 100, 101, 102, 103 }, 4 ) );
   f0 . addVersion();
   assert ( f0 . seek ( 5 ));
+  cout << f0.getVersions(0);
+  cout << f0.getVersions(1);
   CFile f1 ( f0 );
   f0 . truncate ();
-  f0.printFile();
   assert ( f0 . seek ( 0 ));
   assert ( readTest ( f0, { 10, 20, 5, 4, 70 }, 20 ));
   assert ( f0 . undoVersion () );
-  f0.printFile();
   assert ( f0 . seek ( 0 ));
   assert ( readTest ( f0, { 10, 20, 5, 4, 70, 80, 100, 101, 102, 103 }, 20 ));
   assert ( f0 . undoVersion () );
@@ -277,6 +283,8 @@ int main ( void ) {
   assert ( writeTest ( f1, { 200, 210, 220 }, 3 ) );
   assert ( f1 . seek ( 0 ));
   assert ( readTest ( f1, { 10, 20, 5, 4, 70, 200, 210, 220, 102, 103 }, 20 ));
+  cout << f1.getVersions(0);
+  cout << f1.getVersions(1);
   assert ( f1 . undoVersion () );
   assert ( f1 . undoVersion () );
   assert ( readTest ( f1, { 4, 70, 80 }, 20 ));
@@ -295,8 +303,18 @@ int main ( void ) {
   assert ( f3 . seek ( 0 ));
   assert ( readTest ( f3, { 60, 70, 80, 90 }, 4 ) );
   CFile f4 ( f3 );
-  f3.addVersion();
-  assert ( writeTest ( f3, { 10, 20, 30 }, 3 ) );
+  f4.addVersion();
+  assert ( writeTest ( f4, { 10, 20, 30 }, 3 ) );
+  assert ( writeTest ( f4, { 10, 50, 60, 20, 30 }, 5 ) );
+  f4.addVersion();
+  assert ( writeTest ( f4, { 10, 50, 60, 20, 30 }, 5 ) );
+  f4.addVersion();
+  assert ( f4.undoVersion() );
+  assert ( f4.undoVersion() );
+  assert ( f4.undoVersion() );
+  cout << f4;
+  assert ( f4 . seek ( 0 ));
+  assert ( readTest ( f4, { 60, 70, 80, 90 }, 4 ) );
   /*
   assert ( f2 . fileSize () == 6 );
   f2.truncate();
