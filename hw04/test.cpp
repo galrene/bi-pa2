@@ -184,15 +184,9 @@ class CFile
     void                     addVersion                    ( void ) {
       if ( m_VerCnt >= m_Versions->m_VerCap )
         growVersions();
-      //-------------DEEP-COPY-BYTES-------------------------
       CFile a;
-      a.m_File->m_File = new uint8_t [m_File->m_Cap];
-      for ( size_t i = 0; i < m_File->m_Size; i++ )
-        a.m_File->m_File[i] = m_File->m_File[i];
-      a.m_File->m_Cap = m_File->m_Cap;
-      a.m_File->m_Size = m_File->m_Size;
+      a.attach(m_File);
       a.m_Pos = m_Pos;
-      //----------------------------------------------------
       m_Versions->m_Versions[m_VerCnt++] = a;
     }
     bool                     undoVersion                   ( void ) {
