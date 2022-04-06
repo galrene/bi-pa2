@@ -185,6 +185,7 @@ class CFile
       if ( m_VerCnt >= m_Versions->m_VerCap )
         growVersions();
       CFile a;
+      a.detach();
       a.attach(m_File);
       a.m_Pos = m_Pos;
       m_Versions->m_Versions[m_VerCnt++] = a;
