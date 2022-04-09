@@ -17,24 +17,24 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
-using namespace std;
+//using namespace std;
 #endif /* __PROGTEST__ */
 
 class CDate
 {
   public:
     // CDate ( y, m, d )
-    CDate ( uint y, uint m, uint d )
+    CDate ( unsigned int y, unsigned int m, unsigned int d )
     : m_Year(y), m_Month(m), m_Day(d) {}
-    uint m_Year;
-    uint m_Month;
-    uint m_Day;
-    friend ostream & operator << ( ostream & os, const CDate & src ) {
+    unsigned int m_Year;
+    unsigned int m_Month;
+    unsigned int m_Day;
+    friend std::ostream & operator << ( std::ostream & os, const CDate & src ) {
       os << "{" << src.m_Year << "/" << src.m_Month << "/" << src.m_Day << "}";
       return os;
     }
     friend bool operator <= ( const CDate & lhs, const CDate & rhs ) {
-      return lhs < rhs || (tie ( lhs.m_Day, lhs.m_Month, lhs.m_Year ) == tie ( rhs.m_Day, rhs.m_Month, rhs.m_Year ));
+      return lhs < rhs || (std::tie ( lhs.m_Day, lhs.m_Month, lhs.m_Year ) == std::tie ( rhs.m_Day, rhs.m_Month, rhs.m_Year ));
     }
     friend bool operator < ( const CDate & lhs, const CDate & rhs ) {
       if ( lhs.m_Year == rhs.m_Year ) {
@@ -50,22 +50,22 @@ class CSupermarket
   private:
     /* contains name and expiration date of an item  */
     struct TItem {
-      string m_Name;
+      std::string m_Name;
       CDate m_ExpDate;
-      TItem ( string name, CDate expdate )
+      TItem ( std::string name, CDate expdate )
       : m_Name(name), m_ExpDate(expdate) {}
     };
     struct TNameCount {
-      string m_Name;
+      std::string m_Name;
       size_t m_Cnt;
-      TNameCount ( string name, size_t cnt )
+      TNameCount ( std::string name, size_t cnt )
       : m_Name(name), m_Cnt(cnt) {}
       friend bool operator < ( const TNameCount & lhs, const TNameCount & rhs ) {
-        return tie ( lhs.m_Name, lhs.m_Cnt ) < tie ( rhs.m_Name, rhs.m_Cnt );
+        return std::tie ( lhs.m_Name, lhs.m_Cnt ) < std::tie ( rhs.m_Name, rhs.m_Cnt );
       }
     };
     struct ByNameAndDate {
-      static string firstLetInsens ( string name ) {
+      static std::string firstLetInsens ( std::string name ) {
         char a = tolower(name[0]);
         name.erase(name.begin());
         return a + name;
@@ -88,16 +88,16 @@ class CSupermarket
      * Iterator of the shopping list
      */
     struct TIteratorPair {
-      map<TItem, int, ByNameAndDate>::iterator m_MapIt;
-      list<pair<string,int>>::iterator m_ListIt;
-      TIteratorPair ( map<TItem, int, ByNameAndDate>::iterator it, list<pair<string,int>>::iterator it2 )
+      std::map<TItem, int, ByNameAndDate>::iterator m_MapIt;
+      std::list<std::pair<std::string,int>>::iterator m_ListIt;
+      TIteratorPair ( std::map<TItem, int, ByNameAndDate>::iterator it, std::list<std::pair<std::string,int>>::iterator it2 )
       : m_MapIt(it), m_ListIt(it2) {}
       friend bool operator < ( const TIteratorPair & lhs, const TIteratorPair & rhs ) {
         return lhs.m_MapIt->first.m_ExpDate < rhs.m_MapIt->first.m_ExpDate;
       }
     };
 
-    bool isSimilar ( string a, string name ) {
+    bool isSimilar ( std::string a, std::string name ) {
       size_t diffLetterCnt = 0;
       auto itName = name.begin();
       auto itMapItem = a.begin();
@@ -113,7 +113,7 @@ class CSupermarket
     /**
      * removes the corresponding items from the shopping list and the maps of all items
      */
-    void removeItem ( const TIteratorPair & foundItem, list<pair<string,int>> & shoppingList ) {
+    void removeItem ( const TIteratorPair & foundItem, std::list<std::pair<std::string,int>> & shoppingList ) {
       auto mapCnt = foundItem.m_MapIt->second;
       auto listCnt = foundItem.m_ListIt->second;
       if ( mapCnt < listCnt ) {
@@ -132,12 +132,7 @@ class CSupermarket
         shoppingList.erase(foundItem.m_ListIt);
       }
     }
-    // when I find SOME, while looking for similar I can find one I've already found/
-    // pri jednom volani findItems, musim mat unikatny iterPair, vo foundItems mozu byt rovnake
-    // --fixed by using a set?
-    set<TIteratorPair> findItems ( list<TIteratorPair> & foundItems, list<pair<string,int>>::iterator & shopListIt, string name, size_t sellCnt ) { 
-      // maybe causes usless copying and should outside the function
-      set<TIteratorPair> finds;
+    void findItems ( std::set<TIteratorPair> & finds, std::list<std::pair<std::string,int>>::iterator & shopListIt, std::string name, size_t sellCnt ) { 
       auto it = m_AllItems.lower_bound ( TItem ( name, CDate ( 0, 0, 0 ) ) );
       size_t matchCnt = 0;
       size_t foundAmount = 0;
@@ -149,13 +144,13 @@ class CSupermarket
       }
       if ( foundAmount >= sellCnt ) {
         shopListIt++;
-        return finds;
+        return;
       }
       //---------------------------------
       // here you might have found SOME matching items or havent found ANY
       
       // fake name of the same length as the searched name, so that lower bound returns the first possible mistyped item
-      string fakeName;
+      std::string fakeName;
       for ( size_t i = 0; i < name.length(); i++ )
         fakeName += "A";
       
@@ -166,10 +161,10 @@ class CSupermarket
         if ( isSimilar ( it->first.m_Name, name ) ) {
           matchCnt++;
           foundSimilar = it;
-          /* didnt find exact or decisive similar match */
+          // didnt find exact or decisive similar match
           if ( matchCnt >= 2 ) {
             shopListIt++;
-            return finds;
+            return;
           }
         }
         it++;
@@ -177,32 +172,35 @@ class CSupermarket
       if ( foundSimilar != m_AllItems.end() )
         finds.emplace ( TIteratorPair ( foundSimilar, shopListIt ) );
       shopListIt++;
-      return finds;
+      return;
     }
-    map<TItem, int, ByNameAndDate> m_AllItems;
-    map<TItem, int, ByDate> m_AllItemsByDate; // tu by mohol byt vektor, nasledne sorted ale n*O(1) + O(nlog(n)) ~= n*O(log(n))
+    std::map<TItem, int, ByNameAndDate> m_AllItems;
+    std::map<TItem, int, ByDate> m_AllItemsByDate;
   public:
     CSupermarket () = default;
     
-    CSupermarket & store ( string name, CDate expDate, size_t itemCnt ) {
+    CSupermarket & store ( std::string name, CDate expDate, size_t itemCnt ) {
       m_AllItems.emplace ( TItem ( name, expDate ), itemCnt );
       m_AllItemsByDate.emplace ( TItem ( name, expDate ), itemCnt );
       return *this;
     }
-    void sell ( list<pair<string,int> > & shopList ) {
-      list<TIteratorPair> foundItems;
+    void sell ( std::list<std::pair<std::string,int> > & shopList ) {
+      std::list<TIteratorPair> foundItems;
+      std::set<TIteratorPair> finds;
       auto shopListIt = shopList.begin();
       for ( const auto & [ str, cnt ] : shopList ) {
-        for ( const auto & a : findItems ( foundItems, shopListIt, str, cnt ) )
+        findItems ( finds, shopListIt, str, cnt );
+        for ( const auto & a : finds )
           foundItems.emplace_back(a);
+        finds.clear();
       }
       for ( const auto & foundItem : foundItems )
         removeItem ( foundItem, shopList );
     }
 
-    list<pair<string,int> > expired ( const CDate & expDate ) {
+    std::list<std::pair<std::string,int> > expired ( const CDate & expDate ) const {
       auto itMainMap = m_AllItemsByDate.upper_bound ( TItem ( "", expDate ) );
-      map<string,int> foundItems;
+      std::map<std::string,int> foundItems;
       if ( itMainMap == m_AllItemsByDate.end() )
         itMainMap--;
       while ( expDate <= itMainMap->first.m_ExpDate )
@@ -212,47 +210,27 @@ class CSupermarket
         itMainMap--;
       }
       foundItems[itMainMap->first.m_Name] += itMainMap->second;
-      list<pair<string,int> > returnList ( foundItems.begin(), foundItems.end() );
-      returnList.sort( [] ( pair<string,int> & a, pair<string,int> & b) {
+      std::list<std::pair<std::string,int> > returnList ( foundItems.begin(), foundItems.end() );
+      returnList.sort( [] ( std::pair<std::string,int> & a, std::pair<std::string,int> & b) {
         return b.second < a.second;
       });
       return returnList;
     }
-    friend ostream & operator << ( ostream & os, const CSupermarket & src ) {
+    friend std::ostream & operator << ( std::ostream & os, const CSupermarket & src ) {
       for ( const auto & [ key, value ] : src.m_AllItems ) {
         os << key.m_Name << key.m_ExpDate << " (" << value << ")\n";
       }
       return os;
     }
-    void printByDate ( ostream & os ) {
+    void printByDate ( std::ostream & os ) {
       for ( const auto & [ key, value ] : m_AllItemsByDate )
         os << key.m_Name << " (" << value << ")\n";
     }
 };
 #ifndef __PROGTEST__
-
-/**
- * NOTES:
- * Veci chcem vydavat podla expDate, najskorsie first: 
- * mapa by mala byt asi zoradena podla CDate ascending - key by mal byt CDate a name
- * 
- * Pri vydavani najskor chceme najst vsetky itemy zo shoppingListu, vydavat od prveho po posledny
- * v ramci listu
- * 
- * NAPAD:
- * zamysli sa nad multimapou ktora ma kluc iba string?
- * 
- * VYRIESIT:
- * potrebujem to mate zosortene tak aby produkty s prvym velkym pismenom boli pri tych istych s malym prvym pismenom
- * aby mi vyhladavanie fungovalo, aktualne to spravi ale pokazi ine
- * ALEBO spravit to vyhladavanie inou logikou
- * ( vyhladavanie nerozoznava ked najde dva vhodne itemy s jednym znakom off )
- * 
- * expired musi mergovat dokopy rovnake itemy
- */
 int main ( void )
 {
-
+  using namespace std;
   /*
   CSupermarket cc;
   cc . store ( "bread", CDate ( 2016, 4, 30 ), 100 )
