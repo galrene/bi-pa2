@@ -33,7 +33,7 @@ class CDate
       return os;
     }
     friend bool operator <= ( const CDate & lhs, const CDate & rhs ) {
-      return lhs < rhs || (tie ( lhs.m_Day, lhs.m_Month, lhs.m_Year ) == tie ( rhs.m_Day, rhs.m_Month, rhs.m_Year ));
+      return lhs < rhs || ( tie ( lhs.m_Day, lhs.m_Month, lhs.m_Year ) == tie ( rhs.m_Day, rhs.m_Month, rhs.m_Year ) );
     }
     friend bool operator < ( const CDate & lhs, const CDate & rhs ) {
       if ( lhs.m_Year == rhs.m_Year ) {
@@ -53,15 +53,6 @@ class CSupermarket
       CDate m_ExpDate;
       TItem ( string name, CDate expdate )
       : m_Name(name), m_ExpDate(expdate) {}
-    };
-    struct TNameCount {
-      string m_Name;
-      size_t m_Cnt;
-      TNameCount ( string name, size_t cnt )
-      : m_Name(name), m_Cnt(cnt) {}
-      friend bool operator < ( const TNameCount & lhs, const TNameCount & rhs ) {
-        return tie ( lhs.m_Name, lhs.m_Cnt ) < tie ( rhs.m_Name, rhs.m_Cnt );
-      }
     };
     struct ByNameAndDate {
       static string firstLetInsens ( string name ) {
@@ -91,11 +82,7 @@ class CSupermarket
       list<pair<string,int>>::iterator m_ListIt;
       TIteratorPair ( map<TItem, int, ByNameAndDate>::iterator it, list<pair<string,int>>::iterator it2 )
       : m_MapIt(it), m_ListIt(it2) {}
-      friend bool operator < ( const TIteratorPair & lhs, const TIteratorPair & rhs ) {
-        return lhs.m_MapIt->first.m_ExpDate < rhs.m_MapIt->first.m_ExpDate;
-      }
     };
-
     bool isSimilar ( string a, string name ) {
       size_t diffLetterCnt = 0;
       auto itName = name.begin();
@@ -131,9 +118,8 @@ class CSupermarket
         shoppingList.erase(foundItem.m_ListIt);
       }
     }
-    
     void exactMatch ( list<TIteratorPair> & finds, map<TItem, int,ByNameAndDate>::iterator & it,
-                         list<pair<string,int>>::iterator & shopListIt, string name, size_t sellCnt ) {
+                      list<pair<string,int>>::iterator & shopListIt, string name, size_t sellCnt ) {
       size_t foundAmount = 0;
       while ( it != m_AllItems.end() && it->first.m_Name == name && foundAmount < sellCnt ) {
         foundAmount += it->second;
@@ -144,24 +130,13 @@ class CSupermarket
         return;
       }
     }
-    
     auto similarMatch ( string name, list<pair<string,int>>::iterator & shopListIt ) {
       // fake name of the same length as the searched name, so that lower bound returns the first possible mistyped item
+      // or .end() when there are only shorter items
       string fakeName;
       for ( size_t i = 0; i < name.length(); i++ )
         fakeName += "A";
       auto it = m_AllItems.lower_bound ( TItem ( fakeName, CDate ( 0, 0, 0 ) ) );
-      /**
-       * ked nie je item ktoreho meno porovna vacsie/rovne
-       * AAA
-       * -> iny pocet pismen
-       * 
-       * AC
-       * 
-       * ACCC
-       * 
-       * vrati end ked v liste su iba pismena s mensim poctom pismen ako hladam
-      */
       size_t matchCnt = 0;
       auto foundSimilar = m_AllItems.end();
       while ( it != m_AllItems.end() && it->first.m_Name.length() == name.length() ) {
@@ -178,17 +153,13 @@ class CSupermarket
     }
 
     void findItems ( list<TIteratorPair> & finds, list<pair<string,int>>::iterator & shopListIt, string name, size_t sellCnt ) { 
+      // returns .end() when there are only items shorter or same length but lexicographically smaller
       auto it = m_AllItems.lower_bound ( TItem ( name, CDate ( 0, 0, 0 ) ) );
       if ( it != m_AllItems.end() && it->first.m_Name == name ) {
         exactMatch( finds, it, shopListIt, name, sellCnt );
         ++shopListIt;
         return;
       }
-      // ked nie je item ktoreho meno porovna vacsie/rovne
-      // zz - hladane
-      //
-      // az
-      // zy
       auto foundSimilar = similarMatch ( name, shopListIt );
       if ( foundSimilar != m_AllItems.end() )
         finds.emplace_back ( TIteratorPair ( foundSimilar, shopListIt ) );
@@ -206,9 +177,6 @@ class CSupermarket
       return *this;
     }
     void sell ( list<pair<string,int> > & shopList ) {
-      cout << *this << endl;
-      if ( shopList.empty() || m_AllItems.empty() )
-        return;
       list<TIteratorPair> foundItems;
       auto shopListIt = shopList.begin();
       for ( const auto & [ str, cnt ] : shopList )
@@ -216,7 +184,6 @@ class CSupermarket
       for ( const auto & foundItem : foundItems )
         removeItem ( foundItem, shopList );
     }
-
     list<pair<string,int> > expired ( const CDate & expDate ) const {
       map<string,int> foundItems;
       for ( const auto & x : m_AllItemsByDate ) {
@@ -354,14 +321,13 @@ int main ( void )
   assert ( ( l15 == list<pair<string,int> > { { "ccccc", 10 } } ) );
 
   CSupermarket x;
-  x . store ( "ab", CDate ( 999, 5, 9 ), 20 )
-    . store ( "zz", CDate ( 999, 2, 9 ), 10 )
-    . store ( "zzaa", CDate ( 999, 2, 9 ), 10 );
+  x . store ( "abb", CDate ( 999, 5, 9 ), 20 )
+    . store ( "aaa", CDate ( 999, 2, 9 ), 10 );
   
   list<pair<string,int> > l16 { { "zzz", 10 } };
   x . sell ( l16 );
-  assert ( l16 . size () == 0 );
-  assert ( ( l16 == list<pair<string,int> > {  } ) );
+  assert ( l16 . size () == 1 );
+  assert ( ( l16 == list<pair<string,int> > { { "zzz", 10 } } ) );
 
   return EXIT_SUCCESS;
 }
