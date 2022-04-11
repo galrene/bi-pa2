@@ -123,7 +123,7 @@ class CSupermarket
       size_t foundAmount = 0;
       while ( it != m_AllItems.end() && it->first.m_Name == name && foundAmount < sellCnt ) {
         foundAmount += it->second;
-        finds.emplace_back ( TIteratorPair ( it, shopListIt ) );
+        finds.emplace_back ( it, shopListIt );
         ++it;
       }
       if ( foundAmount >= sellCnt ) {
@@ -133,38 +133,43 @@ class CSupermarket
     auto similarMatch ( string name, list<pair<string,int>>::iterator & shopListIt ) {
       // fake name of the same length as the searched name, so that lower bound returns the first possible mistyped item
       // or .end() when there are only shorter items
+      // prerobit na rovnaku logiku ako exactMatch, plnit rovno list, checkovat pocet, zvysovat matchCnt iba pri prvom, ked sa rovna meno matchnuteho
+      // menu dalsieho tak nezvysovat matchCnt
       string fakeName;
       for ( size_t i = 0; i < name.length(); i++ )
         fakeName += "A";
       auto it = m_AllItems.lower_bound ( TItem ( fakeName, CDate ( 0, 0, 0 ) ) );
-      size_t matchCnt = 0;
-      auto foundSimilar = m_AllItems.end();
+      auto potentialMatch = m_AllItems.end();
       while ( it != m_AllItems.end() && it->first.m_Name.length() == name.length() ) {
-        if ( isSimilar ( it->first.m_Name, name ) ) {
-          matchCnt++;
+        if ( isSimilar ( it->first.m_Name, name )  ) {
+          if ( potentialMatch == m_AllItems.end() )
+            potentialMatch = it;
           // didnt find exact or decisive similar match
-          if ( matchCnt >= 2 )
+          if ( it->first.m_Name != potentialMatch->first.m_Name )
             return m_AllItems.end();
-          foundSimilar = it;
         }
         ++it;
       }
-      return foundSimilar;
+      return potentialMatch;
     }
 
     void findItems ( list<TIteratorPair> & finds, list<pair<string,int>>::iterator & shopListIt, string name, size_t sellCnt ) { 
       // returns .end() when there are only items shorter or same length but lexicographically smaller
       auto it = m_AllItems.lower_bound ( TItem ( name, CDate ( 0, 0, 0 ) ) );
       if ( it != m_AllItems.end() && it->first.m_Name == name ) {
-        exactMatch( finds, it, shopListIt, name, sellCnt );
+        exactMatch ( finds, it, shopListIt, name, sellCnt );
         ++shopListIt;
         return;
       }
       auto foundSimilar = similarMatch ( name, shopListIt );
-      if ( foundSimilar != m_AllItems.end() )
-        finds.emplace_back ( TIteratorPair ( foundSimilar, shopListIt ) );
-      ++shopListIt;
-      return;
+      if ( foundSimilar != m_AllItems.end() ) {
+        exactMatch ( finds, foundSimilar, shopListIt, foundSimilar->first.m_Name, sellCnt );
+        ++shopListIt;
+        return;
+
+      }
+        ++shopListIt;
+        return;
     }
     map<TItem, int, ByNameAndDate> m_AllItems;
     map<TItem, int, ByDate> m_AllItemsByDate;
@@ -172,11 +177,12 @@ class CSupermarket
     CSupermarket () = default;
     
     CSupermarket & store ( string name, CDate expDate, size_t itemCnt ) {
-      m_AllItems.emplace ( TItem ( name, expDate ), itemCnt );
-      m_AllItemsByDate.emplace ( TItem ( name, expDate ), itemCnt );
+      m_AllItems[ TItem ( name, expDate ) ] += itemCnt;
+      m_AllItemsByDate[ TItem ( name, expDate ) ] += itemCnt;
       return *this;
     }
     void sell ( list<pair<string,int> > & shopList ) {
+      cout << *this << endl;
       list<TIteratorPair> foundItems;
       auto shopListIt = shopList.begin();
       for ( const auto & [ str, cnt ] : shopList )
@@ -211,7 +217,6 @@ class CSupermarket
 };
 #ifndef __PROGTEST__
 /**
- * POSSIBLE_BUGS:
  * 
  */
 int main ( void )
@@ -321,13 +326,16 @@ int main ( void )
   assert ( ( l15 == list<pair<string,int> > { { "ccccc", 10 } } ) );
 
   CSupermarket x;
-  x . store ( "abb", CDate ( 999, 5, 9 ), 20 )
-    . store ( "aaa", CDate ( 999, 2, 9 ), 10 );
+  x . store ( "azz", CDate ( 999, 5, 9 ), 20 )
+    . store ( "aaa", CDate ( 999, 2, 9 ), 10 )
+    . store ( "aaa", CDate ( 998, 2, 9 ), 10 )
+    . store ( "aaa", CDate ( 997, 2, 9 ), 10 )
+    . store ( "aaa", CDate ( 997, 2, 9 ), 10 );
   
-  list<pair<string,int> > l16 { { "zzz", 10 } };
+  list<pair<string,int> > l16 { { "zzz", 10 }, {"aab" , 50} };
   x . sell ( l16 );
   assert ( l16 . size () == 1 );
-  assert ( ( l16 == list<pair<string,int> > { { "zzz", 10 } } ) );
+  assert ( ( l16 == list<pair<string,int> > { { "aab", 10 } } ) );
 
   return EXIT_SUCCESS;
 }
