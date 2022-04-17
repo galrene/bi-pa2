@@ -58,6 +58,7 @@ class CSupermarket
     }
     void sell ( list<pair<string,int> > & shopList ) {
       vector<pair<string, sLIt> > foundItems;
+      cout << *this << endl;
       for ( auto sLIt = shopList.begin(); sLIt != shopList.end(); ++sLIt )
         findItems ( foundItems, sLIt );
       for ( auto foundIt = foundItems.begin(); foundIt != foundItems.end(); ++foundIt )
@@ -118,6 +119,8 @@ class CSupermarket
     auto similarMatch ( sLIt sLItem ) {
       auto foundSimilar = m_AllItems.end();
       for ( auto item = m_AllItems.begin(); item != m_AllItems.end(); ++item ) {
+        if ( sLItem->first.length() != item->first.length() )
+          continue;
         if ( isSimilar ( item, sLItem ) ) {
           if ( foundSimilar == m_AllItems.end() )
             foundSimilar = item;
@@ -138,7 +141,19 @@ class CSupermarket
         foundItems.emplace_back ( foundSimilar->first, sLItem );
     }
 
-    map<string, map<CDate, int>> m_AllItems;
+   map<string, map<CDate, int>> m_AllItems;
+    friend ostream & operator << ( ostream & os, const CSupermarket & src ) {
+      for ( auto it = src.m_AllItems.begin(); it != src.m_AllItems.end(); ++it ) {
+        os << it->first << endl;
+        for ( auto itInner = it->second.begin(); itInner != it->second.end(); ++itInner ) {
+          os << "\t" << itInner->first << " (" << itInner->second << ")\n";
+        }
+      }
+      os << "-----------------------------------------" << endl;
+      return os;
+    }
+
+
 };
 #ifndef __PROGTEST__
 int main ( void )
