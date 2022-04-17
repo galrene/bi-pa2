@@ -43,7 +43,7 @@ class CSupermarket
 {
   public:
     typedef list<pair<string,int> >::iterator sLIt;
-    typedef map<string, map<CDate,int>>::iterator mapIt;
+    typedef unordered_map<string, map<CDate,int>>::iterator mapIt;
     CSupermarket() = default;
     CSupermarket & store ( string name, CDate expDate, int count ) {
       m_AllItems[name][expDate] += count;
@@ -57,13 +57,14 @@ class CSupermarket
       for ( auto foundIt = foundItems.begin(); foundIt != foundItems.end(); ++foundIt )
         removeItems ( shopList, foundIt );
     }
-
     list<pair<string,int>> expired ( CDate expDate ) const {
-      map<string,int> expItems;
+      unordered_map<string,int> expItems;
       for ( auto it = m_AllItems.begin(); it != m_AllItems.end(); ++it ) {
         for ( auto itInner = it->second.begin(); itInner != it->second.end(); ++itInner ) {
           if ( itInner->first < expDate )
             expItems[it->first] += itInner->second;
+          else
+            break;
         }
       }
       list<pair<string,int>> returnList ( expItems.begin(), expItems.end() );
@@ -77,10 +78,9 @@ class CSupermarket
       auto mapIt = m_AllItems.find ( foundItemIt->first );
       if ( mapIt == m_AllItems.end() )
         return;
-      auto innerMapIt = mapIt->second.begin();
+      
       vector<map<CDate,int>::iterator> toRemove;
-
-      for ( ;innerMapIt != mapIt->second.end() && ! mapIt->second.empty() ; ++innerMapIt ) {
+      for ( auto innerMapIt = mapIt->second.begin(); innerMapIt != mapIt->second.end() && ! mapIt->second.empty(); ++innerMapIt ) {
         int shopListCnt = foundItemIt->second->second;
         int mapCnt = innerMapIt->second;
         if ( mapCnt > shopListCnt ) {
@@ -106,7 +106,7 @@ class CSupermarket
       if ( mapIt != m_AllItems.end() && mapIt->second.empty() )
         m_AllItems.erase(foundItemIt->first);
     }
-    bool isSimilar ( mapIt item, sLIt shopListItem ) {
+    bool isSimilar ( mapIt & item, sLIt & shopListItem ) {
       auto mapStr = item->first.begin();
       auto slStr = shopListItem->first.begin();
       size_t diffLetterCnt = 0;
@@ -118,7 +118,7 @@ class CSupermarket
       }
       return true;
     }
-    auto similarMatch ( sLIt sLItem ) {
+    auto similarMatch ( sLIt & sLItem ) {
       auto foundSimilar = m_AllItems.end();
       for ( auto item = m_AllItems.begin(); item != m_AllItems.end(); ++item ) {
         if ( sLItem->first.length() != item->first.length() )
@@ -132,7 +132,7 @@ class CSupermarket
       }
       return foundSimilar;
     }
-    void findItems ( vector<pair<string,sLIt> > & foundItems, sLIt sLItem ) {
+    void findItems ( vector<pair<string,sLIt> > & foundItems, sLIt & sLItem ) {
       auto foundExact = m_AllItems.find( sLItem->first );
       if ( foundExact != m_AllItems.end() ) {
         foundItems.emplace_back ( sLItem->first, sLItem );
@@ -142,8 +142,7 @@ class CSupermarket
       if ( foundSimilar != m_AllItems.end() )
         foundItems.emplace_back ( foundSimilar->first, sLItem );
     }
-
-   map<string, map<CDate, int>> m_AllItems;
+    unordered_map<string, map<CDate, int>> m_AllItems;
     friend ostream & operator << ( ostream & os, const CSupermarket & src ) {
       for ( auto it = src.m_AllItems.begin(); it != src.m_AllItems.end(); ++it ) {
         os << it->first << endl;
