@@ -51,23 +51,24 @@ class CSupermarket
     }
     void sell ( list<pair<string,int> > & shopList ) {
       vector<pair<string, sLIt> > foundItems;
-      cout << *this << endl;
+      //cout << *this << endl;
       for ( auto sLIt = shopList.begin(); sLIt != shopList.end(); ++sLIt )
         findItems ( foundItems, sLIt );
       for ( auto foundIt = foundItems.begin(); foundIt != foundItems.end(); ++foundIt )
         removeItems ( shopList, foundIt );
     }
     list<pair<string,int>> expired ( CDate expDate ) const {
-      unordered_map<string,int> expItems;
+      list<pair<string,int>> returnList;
       for ( auto it = m_AllItems.begin(); it != m_AllItems.end(); ++it ) {
+        size_t cnt = 0;
         for ( auto itInner = it->second.begin(); itInner != it->second.end(); ++itInner ) {
           if ( itInner->first < expDate )
-            expItems[it->first] += itInner->second;
+            cnt += itInner->second;
           else
             break;
         }
+        if ( cnt != 0 ) returnList.emplace_back ( it->first, cnt );
       }
-      list<pair<string,int>> returnList ( expItems.begin(), expItems.end() );
       returnList.sort ( [] ( const pair<string, int> a, const pair<string, int> b ) {
         return a.second > b.second;
       });
@@ -90,7 +91,7 @@ class CSupermarket
         }
         else if ( shopListCnt > mapCnt ) {
           toRemove.emplace_back(innerMapIt);
-          //mapIt->second.erase(innerMapIt);
+          //mapIt->second.erase(innerMapIt++);
           foundItemIt->second->second -= mapCnt;
         }
         else if ( shopListCnt == mapCnt ) {
