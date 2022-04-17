@@ -79,30 +79,25 @@ class CSupermarket
       auto mapIt = m_AllItems.find ( foundItemIt->first );
       if ( mapIt == m_AllItems.end() )
         return;
-      
-      vector<map<CDate,int>::iterator> toRemove;
-      for ( auto innerMapIt = mapIt->second.begin(); innerMapIt != mapIt->second.end() && ! mapIt->second.empty(); ++innerMapIt ) {
+      for ( auto innerMapIt = mapIt->second.begin(); innerMapIt != mapIt->second.end() && ! mapIt->second.empty();  ) {
         int shopListCnt = foundItemIt->second->second;
         int mapCnt = innerMapIt->second;
         if ( mapCnt > shopListCnt ) {
           shopList.erase(foundItemIt->second);
           innerMapIt->second -= shopListCnt;
+          innerMapIt++;
           break;
         }
         else if ( shopListCnt > mapCnt ) {
-          toRemove.emplace_back(innerMapIt);
-          //mapIt->second.erase(innerMapIt++);
+          mapIt->second.erase(innerMapIt++);
           foundItemIt->second->second -= mapCnt;
         }
         else if ( shopListCnt == mapCnt ) {
-          toRemove.emplace_back(innerMapIt);
-          //mapIt->second.erase(innerMapIt);
+          mapIt->second.erase(innerMapIt++);
           shopList.erase(foundItemIt->second);
           break;
         }
       }
-      for ( auto & it : toRemove )
-        mapIt->second.erase(it);
       // deleted all instances of an element
       if ( mapIt != m_AllItems.end() && mapIt->second.empty() )
         m_AllItems.erase(foundItemIt->first);
