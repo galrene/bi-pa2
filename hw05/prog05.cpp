@@ -46,14 +46,7 @@ class CSupermarket
     typedef map<string, map<CDate,int>>::iterator mapIt;
     CSupermarket() = default;
     CSupermarket & store ( string name, CDate expDate, int count ) {
-      auto found = m_AllItems.find ( name );
-      if ( found != m_AllItems.end() )
-        found->second.emplace( expDate, count );
-      else {
-        map<CDate, int> innerMap;
-        innerMap[expDate] = count;
-        m_AllItems[name] = innerMap;
-      }
+      m_AllItems[name][expDate] += count;
       return *this;
     }
     void sell ( list<pair<string,int> > & shopList ) {
@@ -81,8 +74,13 @@ class CSupermarket
     }
   private:
     void removeItems ( list<pair<string,int> > & shopList, vector<pair<string,sLIt> >::iterator & foundItemIt ) {
-      map<string,map<CDate,int> >::iterator mapIt = m_AllItems.find ( foundItemIt->first );
-      for ( map<CDate,int>::iterator innerMapIt = mapIt->second.begin() ;innerMapIt != mapIt->second.end() && mapIt != m_AllItems.end(); ++innerMapIt ) {
+      auto mapIt = m_AllItems.find ( foundItemIt->first );
+      if ( mapIt == m_AllItems.end() )
+        return;
+      auto innerMapIt = mapIt->second.begin();
+      vector<map<CDate,int>::iterator> toRemove;
+
+      for ( ;innerMapIt != mapIt->second.end() && ! mapIt->second.empty() ; ++innerMapIt ) {
         int shopListCnt = foundItemIt->second->second;
         int mapCnt = innerMapIt->second;
         if ( mapCnt > shopListCnt ) {
@@ -91,17 +89,21 @@ class CSupermarket
           break;
         }
         else if ( shopListCnt > mapCnt ) {
-          mapIt->second.erase(innerMapIt);
+          toRemove.emplace_back(innerMapIt);
+          //mapIt->second.erase(innerMapIt);
           foundItemIt->second->second -= mapCnt;
         }
         else if ( shopListCnt == mapCnt ) {
-          mapIt->second.erase(innerMapIt);
+          toRemove.emplace_back(innerMapIt);
+          //mapIt->second.erase(innerMapIt);
           shopList.erase(foundItemIt->second);
           break;
         }
       }
+      for ( auto & it : toRemove )
+        mapIt->second.erase(it);
       // deleted all instances of an element
-      if ( mapIt->second.empty() )
+      if ( mapIt != m_AllItems.end() && mapIt->second.empty() )
         m_AllItems.erase(foundItemIt->first);
     }
     bool isSimilar ( mapIt item, sLIt shopListItem ) {
@@ -146,10 +148,10 @@ class CSupermarket
       for ( auto it = src.m_AllItems.begin(); it != src.m_AllItems.end(); ++it ) {
         os << it->first << endl;
         for ( auto itInner = it->second.begin(); itInner != it->second.end(); ++itInner ) {
-          os << "\t" << itInner->first << " (" << itInner->second << ")\n";
+          os << "  " << itInner->first << " (" << itInner->second << ")\n";
         }
       }
-      os << "-----------------------------------------" << endl;
+      os << "-----------------------------------------";
       return os;
     }
 
