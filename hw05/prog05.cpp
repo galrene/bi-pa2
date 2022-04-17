@@ -82,7 +82,7 @@ class CSupermarket
   private:
     void removeItems ( list<pair<string,int> > & shopList, vector<pair<string,sLIt> >::iterator & foundItemIt ) {
       map<string,map<CDate,int> >::iterator mapIt = m_AllItems.find ( foundItemIt->first );
-      for ( map<CDate,int>::iterator innerMapIt = mapIt->second.begin() ;innerMapIt != mapIt->second.end(); ++innerMapIt ) {
+      for ( map<CDate,int>::iterator innerMapIt = mapIt->second.begin() ;innerMapIt != mapIt->second.end() && mapIt != m_AllItems.end(); ++innerMapIt ) {
         int shopListCnt = foundItemIt->second->second;
         int mapCnt = innerMapIt->second;
         if ( mapCnt > shopListCnt ) {
@@ -246,6 +246,54 @@ int main ( void )
   assert ( l15 . size () == 1 );
   assert ( ( l15 == list<pair<string,int> > { { "ccccc", 10 } } ) );
 
+  CSupermarket x;
+  x . store ( "azz", CDate ( 999, 5, 9 ), 20 )
+    . store ( "aaa", CDate ( 999, 2, 9 ), 10 )
+    . store ( "aaa", CDate ( 997, 2, 9 ), 10 )
+    . store ( "aaa", CDate ( 996, 2, 9 ), 10 )
+    . store ( "aaa", CDate ( 995, 2, 9 ), 10 );
+  
+  list<pair<string,int> > l16 { { "zzz", 10 }, {"aab" , 50} };
+  x . sell ( l16 );
+  assert ( l16 . size () == 1 );
+  assert ( ( l16 == list<pair<string,int> > { { "aab", 10 } } ) );
+
+  CSupermarket y;
+  y . store ( "bread", CDate ( 2000, 1, 1 ), 10 )
+    . store ( "bread", CDate ( 2000, 2, 1 ), 10 );
+
+  list<pair<string,int> > l17 { { "bread", 10 }, { "brrad", 10 } };
+  y . sell ( l17 );
+  assert ( l17 . size () == 0 );
+  assert ( ( l17 == list<pair<string,int> > { } ) );
+
+  CSupermarket z;
+  z . store ( "Bread", CDate ( 2000, 1, 1 ), 10 )
+    . store ( "bread", CDate ( 2000, 2, 1 ), 10 );
+
+  list<pair<string,int> > l18 { { "bread", 10 }, { "bread", 10 } };
+  z . sell ( l18 );
+  assert ( l18 . size () == 1 );
+  assert ( ( l18 == list<pair<string,int> > { { "bread", 10 } } ) );
+ 
+  CSupermarket zz;
+  zz . store ( "Bread", CDate ( 2000, 1, 1 ), 10 )
+    . store ( "bread", CDate ( 2000, 2, 1 ), 10 );
+
+  list<pair<string,int> > l19 { { "bread", 10 }, { "brrad", 10 } };
+  zz . sell ( l19 );
+  assert ( l19 . size () == 1 );
+  assert ( ( l19 == list<pair<string,int> > { { "brrad", 10 } } ) );
+
+  CSupermarket z2;
+  z2 . store ( "cake", CDate ( 2000, 2, 1 ), 10 )
+    . store ( "coke", CDate ( 2000, 2, 2 ), 10 )
+    . store ( "Coke", CDate ( 2000, 2, 3 ), 10 );
+
+  list<pair<string,int> > l20 { { "Coke", 3 }, { "cake", 2 }, { "Cake", 3 } };
+  z2 . sell ( l20 );
+  assert ( l20 . size () == 1 );
+  assert ( ( l20 == list<pair<string,int> > { { "Cake", 3 } } ) );
   return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
