@@ -12,7 +12,7 @@ class CFile
 {
   private:
   /**
-   * Wrapper structure containing data array
+   * @brief Wrapper structure containing data array
    * and relevant variables for dynamic allocation and copy-on-write reference counting
    */
   struct TFileWrap {
@@ -35,10 +35,12 @@ class CFile
    }
   };
   TFileWrap * m_FilePtr;
+  /* Cursor position in the file */
   size_t m_Pos;
   /**
-   * Wrapper structure containing an array of CFile versions,
-   * variables relevant for dynamic allocation and copy-on-write ref
+   * @brief Wrapper structure containing an array of CFile versions,
+   * variables relevant to dynamic allocation and pointer reference count
+   * for copy-on-write 
    */
   struct TVersWrap {
     CFile * m_Versions;
@@ -56,43 +58,69 @@ class CFile
       m_RefCnt = 0;
     }
   };
-  
   TVersWrap * m_VersPtr;
+  /* Number of existing versions */
   size_t m_VerCnt;
-  void attach ( TFileWrap * file ) {
+  /**
+   * @brief Attach TFileWrap pointer from arg
+   * 
+   * @param[in] Pointer to a struct containing data and reference count   
+   */
+  void attachFile ( TFileWrap * file ) {
     m_FilePtr = file;
     m_FilePtr->m_RefCnt++;
   }
-  void detach ( void ) {
-    if ( --m_FilePtr->m_RefCnt == 0 )
-      delete m_FilePtr;
-  }
-  void detachVers ( void ) {
-    if ( --m_VersPtr->m_RefCnt == 0 )
-      delete m_VersPtr;
-  }
+  /**
+   * @brief Attach TVersWrap pointer from arg
+   * 
+   * @param Pointer to a struct containing backed-up versions and reference count   
+   */
   void attachVers ( TVersWrap * vers ) {
     m_VersPtr = vers;
     m_VersPtr->m_RefCnt++;
   }
-  // m_Pos should be replacable by m_Size and work the same
+  /**
+   * @brief Detach pointer containing data
+   */
+  void detachFile ( void ) {
+    if ( --m_FilePtr->m_RefCnt == 0 )
+      delete m_FilePtr;
+  }
+  /**
+   * @brief Detach pointer containing versions
+   */
+  void detachVers ( void ) {
+    if ( --m_VersPtr->m_RefCnt == 0 )
+      delete m_VersPtr;
+  }
+  /**
+   * @brief Grow a dynamically allocated array of type uint8_t
+   * by size * 2 + 5
+   */
   void growFile ( void ) {
     m_FilePtr->m_Cap = m_FilePtr->m_Cap * 2 + 5;
-    uint8_t * tmp = new uint8_t [m_FilePtr->m_Cap];
+    uint8_t * newData = new uint8_t [m_FilePtr->m_Cap];
     for ( size_t j = 0; j < m_Pos; j++ )
-      tmp[j] = m_FilePtr->m_Data[j];
+      newData[j] = m_FilePtr->m_Data[j];
     delete [] m_FilePtr->m_Data;
-    m_FilePtr->m_Data = tmp;
+    m_FilePtr->m_Data = newData;
   }
+  /**
+   * @brief Grow a dynamically allocated array of type CFile
+   * by size * 2 + 5
+   */
   void growVersions ( void ) {
     m_VersPtr->m_VerCap = m_VersPtr->m_VerCap * 2 + 5;
-    CFile * tmp = new CFile [m_VersPtr->m_VerCap];
+    CFile * newVers = new CFile [m_VersPtr->m_VerCap];
     for ( size_t i = 0; i < m_VerCnt; i++ )
-      tmp[i] = m_VersPtr->m_Versions[i];
+      newVers[i] = m_VersPtr->m_Versions[i];
     delete [] m_VersPtr->m_Versions;
-    m_VersPtr->m_Versions = tmp;
+    m_VersPtr->m_Versions = newVers;
   }
-  /* detaches and makes a deep copy of TFileWrap */
+  /**
+   * @brief create an independant deep copy of the file
+   * pointed to by m_FilePtr contianed in TFileWrap
+   */
   void deepCopyTFile ( void ) {
     TFileWrap * newFile = new TFileWrap;
     newFile->m_Data = new uint8_t [m_FilePtr->m_Cap];
@@ -100,10 +128,13 @@ class CFile
       newFile->m_Data[i] = m_FilePtr->m_Data[i];
     newFile->m_Cap = m_FilePtr->m_Cap;
     newFile->m_Size = m_FilePtr->m_Size;
-    detach();
+    detachFile();
     m_FilePtr = newFile;
   }
-    /* detaches and makes shallow copies of existing versions of CFile */
+  /**
+   * @brief create a shallow copy of CFile versions
+   * pointed to by m_VersPtr contained in TVersWrap
+   */
   void copyTVers ( void ) {
     TVersWrap * newVers = new TVersWrap;
     newVers->m_Versions = new CFile [m_VersPtr->m_VerCap];
@@ -120,32 +151,47 @@ class CFile
       m_VersPtr = new TVersWrap;
       m_VerCnt = 0;
     }
+    /** @brief shallow copy */
     CFile ( const CFile & file ) {
-      attach ( file.m_FilePtr );
+      attachFile ( file.m_FilePtr );
       m_Pos = file.m_Pos;
       attachVers ( file.m_VersPtr );
       m_VerCnt = file.m_VerCnt;
     }
     ~CFile ( void ) {
-      detach();
+      detachFile();
       detachVers();
     }
+    /** @brief shallow copy */
     CFile & operator = ( const CFile & rhs ) {
       if ( &rhs == this ) return *this;
-      detach();
-      attach (rhs.m_FilePtr);
+      detachFile();
+      attachFile (rhs.m_FilePtr);
       m_Pos = rhs.m_Pos;
       detachVers();
       attachVers (rhs.m_VersPtr);
       m_VerCnt = rhs.m_VerCnt;
       return *this;
     }
+    /**
+     * @brief move the cursor - where operations take effect
+     * 
+     * @param offset where to position the cursor in file
+     * @return true if offset is valid, false otherwise
+     */
     bool                     seek                          ( uint32_t          offset ) {
       if ( offset > m_FilePtr->m_Size || offset < 0 )
         return false;
       m_Pos = offset;
       return true;
     }
+    /**
+     * @brief read "bytes" number of bytes from file to "dst", starting at cursor position
+     * 
+     * @param dst destination C-type array
+     * @param bytes number of bytes to read
+     * @return number of successfully read bytes
+     */
     uint32_t                 read                          ( uint8_t         * dst,
                                                              uint32_t          bytes ) {
       size_t i = 0;
@@ -156,7 +202,13 @@ class CFile
         return r;
       return bytes;
     }
-    /* writes bytes into m_File, if rewriting a shared cpy, makes deep copy */
+    /**
+     * @brief write bytes into file at cursor position, create a deep copy if rewriting shared data
+     * 
+     * @param src C-type array of bytes to write
+     * @param bytes number of bytes to write
+     * @return number of successfully written bytes 
+     */
     uint32_t                 write                         ( const uint8_t   * src,
                                                              uint32_t          bytes ) {
       if ( m_FilePtr->m_RefCnt > 1 ) {
@@ -172,48 +224,53 @@ class CFile
       }
       return bytes;
     }
-    /* makes a deep copy of bytes on truncate */
+    /**
+     * @brief truncate the file (cuts off the rest) at cursor position
+     */
     void                     truncate                      ( void ) {
       if ( m_Pos == m_FilePtr->m_Size )
         return;
-      /* spravit hlboku kopiu - done */
-      TFileWrap * temp = new TFileWrap;
-      uint8_t * tmp = new uint8_t [m_Pos];
+      TFileWrap * newFile = new TFileWrap;
+      uint8_t * newData = new uint8_t [m_Pos];
       for ( size_t i = 0; i < m_Pos; i++ )
-        tmp[i] = m_FilePtr->m_Data[i];
-      temp->m_Cap = m_Pos;
-      temp->m_Size = m_Pos;
-      temp->m_Data = tmp;
-      detach();
-      m_FilePtr = temp;
+        newData[i] = m_FilePtr->m_Data[i];
+      newFile->m_Cap = m_Pos;
+      newFile->m_Size = m_Pos;
+      newFile->m_Data = newData;
+      detachFile();
+      m_FilePtr = newFile;
     }
+    /**
+     * @brief return the file size
+     * @return file size 
+     */
     uint32_t                 fileSize                      ( void ) const { return m_FilePtr->m_Size; }
+    /**
+     * @brief save versions of the current state of the file
+     */
     void                     addVersion                    ( void ) {
       if ( m_VerCnt >= m_VersPtr->m_VerCap )
         growVersions();
       CFile a;
-      a.detach();
-      a.attach(m_FilePtr);
+      a.detachFile();
+      a.attachFile(m_FilePtr);
       a.m_Pos = m_Pos;
       m_VersPtr->m_Versions[m_VerCnt++] = a;
     }
+    /**
+     * @brief revert to the previous version of file
+     * 
+     * @return false if there are no existing versions, true otherwise
+     */
     bool                     undoVersion                   ( void ) {
       if ( ! m_VerCnt )
         return false;
-      detach ();
-      attach ( m_VersPtr->m_Versions[m_VerCnt-1].m_FilePtr );
+      detachFile ();
+      attachFile ( m_VersPtr->m_Versions[m_VerCnt-1].m_FilePtr );
       m_Pos = m_VersPtr->m_Versions[m_VerCnt-1].m_Pos;
       m_VerCnt--;
       return true;
     }
-    friend ostream & operator << ( ostream & os, const CFile & a ) {
-      cout << "[ ";
-      for ( size_t i = 0; i < a.m_FilePtr->m_Size; i++ )
-        cout <<(int) a.m_FilePtr->m_Data[i] << " ";
-      cout << "]" << endl;
-      return os;
-    }
-    CFile & getVersions ( size_t cnt ) { return m_VersPtr->m_Versions[cnt];}
 };
 
 #ifndef __PROGTEST__
@@ -260,8 +317,6 @@ int main ( void ) {
   assert ( writeTest ( f0, { 100, 101, 102, 103 }, 4 ) );
   f0 . addVersion();
   assert ( f0 . seek ( 5 ));
-  cout << f0.getVersions(0);
-  cout << f0.getVersions(1);
   CFile f1 ( f0 );
   f0 . truncate ();
   assert ( f0 . seek ( 0 ));
@@ -276,8 +331,6 @@ int main ( void ) {
   assert ( writeTest ( f1, { 200, 210, 220 }, 3 ) );
   assert ( f1 . seek ( 0 ));
   assert ( readTest ( f1, { 10, 20, 5, 4, 70, 200, 210, 220, 102, 103 }, 20 ));
-  cout << f1.getVersions(0);
-  cout << f1.getVersions(1);
   assert ( f1 . undoVersion () );
   assert ( f1 . undoVersion () );
   assert ( readTest ( f1, { 4, 70, 80 }, 20 ));
@@ -305,22 +358,8 @@ int main ( void ) {
   assert ( f4.undoVersion() );
   assert ( f4.undoVersion() );
   assert ( f4.undoVersion() );
-  cout << f4;
   assert ( f4 . seek ( 0 ));
   assert ( readTest ( f4, { 60, 70, 80, 90 }, 4 ) );
-  /*
-  assert ( f2 . fileSize () == 6 );
-  f2.truncate();
-  assert ( f2 . seek ( 0 ));
-  assert ( readTest ( f2, { 10, 20, 30, 60, 70, 80 }, 8 ));
-  assert ( readTest ( f2, { }, 0 ));
-  assert ( f2 . seek ( 5 ));
-  assert ( writeTest ( f2, { 60, 70, 80 }, 3 ) );
-  assert ( f2 . fileSize () == 8 );
-  assert ( f2 . seek ( 7 ));
-  assert ( ! readTest ( f2, { 70, 80 }, 2 ));
-  */
-
   return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
