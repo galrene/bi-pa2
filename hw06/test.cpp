@@ -29,18 +29,18 @@ class CDataType {
     string m_Name;
     virtual ~CDataType ( void ) noexcept = default;
 
-    bool operator == ( const CDataType & rhs ) const {
-      return isEqual ( rhs );
+    bool operator == ( CDataType & rhs ) const {
+      return isEqual ( *this, rhs );
     }
-    bool operator != ( const CDataType & rhs ) const {
-      return ! isEqual ( rhs );
+    bool operator != ( CDataType & rhs ) const {
+      return ! isEqual ( *this, rhs );
     }
     friend ostream & operator << ( ostream & os, const CDataType & x ) {
       x.print ( os );
       return os;
     }
     virtual size_t getSize ( void ) const = 0;
-    virtual bool isEqual ( const CDataType & rhs ) const = 0;
+    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const = 0;
     virtual void print ( ostream & os ) const = 0;
 };
 class CDataTypeInt : public CDataType
@@ -51,7 +51,7 @@ class CDataTypeInt : public CDataType
       m_Type = "int";
     }
     virtual size_t getSize ( void ) const override { return 4; }
-    virtual bool isEqual ( const CDataType & rhs ) const override {
+    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
       return m_Type == rhs.m_Type;
     }
     virtual void print ( ostream & os ) const override {
@@ -67,7 +67,7 @@ class CDataTypeDouble : public CDataType
       m_Type = "double";
     }
     virtual size_t getSize ( void ) const override { return 8; }
-    virtual bool isEqual ( const CDataType & rhs ) const override {
+    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
       return m_Type == rhs.m_Type;
     }
     virtual void print ( ostream & os ) const override {
@@ -97,8 +97,20 @@ class CDataTypeEnum : public CDataType
       }
       return *this;
     }
-    virtual bool isEqual ( const CDataType &rhs ) const override {
-      return m_Type == rhs.m_Type;
+    bool contentsAreEqual ( const CDataTypeEnum * rhs ) const {
+      if ( m_Content.size() != rhs->m_Content.size() )
+        return false;
+      for ( auto itA = m_Content.begin(), itB = rhs->m_Content.begin(); itA != m_Content.end() && itB != rhs->m_Content.end() ; ++itA, ++itB ) {
+          if ( itA->first != itB->first )
+            return false;
+      }
+      return true;
+    }
+    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
+      if ( m_Type != rhs.m_Type )
+        return false;
+      CDataTypeEnum * a = dynamic_cast<CDataTypeEnum*> (&rhs);
+      return contentsAreEqual(a);
     }
     virtual void print ( ostream & os ) const override {
       os << m_Type << "\n  {";
@@ -115,6 +127,8 @@ class CDataTypeEnum : public CDataType
 };
 class CDataTypeStruct : public CDataType
 {
+  private:
+    vector<shared_ptr<CDataType>> m_Content;
   public:
     CDataTypeStruct ( void ) {
       m_Type = "struct";
@@ -123,7 +137,6 @@ class CDataTypeStruct : public CDataType
       std::swap ( m_Content, rhs.m_Content );
       return *this;
     }
-    vector<shared_ptr<CDataType>> m_Content;
     virtual size_t getSize ( void ) const override {
       size_t wholeSize = 0;
       for ( const auto & x : m_Content )
@@ -147,10 +160,19 @@ class CDataTypeStruct : public CDataType
       }
       return *found;
     }
-    bool contentsAreEqual ( CDataType & rhs ) {}
-    virtual bool isEqual ( const CDataType & rhs ) const override {
+    bool contentsAreEqual ( const CDataTypeStruct * rhs ) const {
+      auto it = m_Content.begin();
+      for ( auto & x : rhs->m_Content ) {
+          if ( ! isEqual ( *(*it), *x ) )
+            return false;
+          ++it;
+      }
+      return true;
+    }
+    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
       if ( m_Type != rhs.m_Type ) return false;
-      
+      CDataTypeStruct * a = dynamic_cast<CDataTypeStruct*> (&rhs);
+      return contentsAreEqual(a);
     }
     virtual void print ( ostream & os ) const override {
       os << "struct\n{\n";
