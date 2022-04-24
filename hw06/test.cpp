@@ -27,122 +27,118 @@ class CDataType {
   public:
     string m_Type;
     string m_Name;
-    CDataType * m_Ptr;
     virtual ~CDataType ( void ) noexcept = default;
 
-    bool operator == ( CDataType & rhs ) {
+    bool operator == ( const CDataType & rhs ) const {
       return isEqual ( rhs );
     }
-    bool operator != ( CDataType & rhs ) {
+    bool operator != ( const CDataType & rhs ) const {
       return ! isEqual ( rhs );
     }
-    friend ostream & operator << ( ostream & os, CDataType & x ) {
+    friend ostream & operator << ( ostream & os, const CDataType & x ) {
       x.print ( os );
       return os;
     }
-    virtual size_t getSize ( void ) = 0;
-    virtual bool isEqual ( CDataType & rhs ) = 0;
-    virtual void print ( ostream & os ) = 0;
-    virtual void createPtr ( string name ) = 0;
+    virtual size_t getSize ( void ) const = 0;
+    virtual bool isEqual ( const CDataType & rhs ) const = 0;
+    virtual void print ( ostream & os ) const = 0;
 };
 class CDataTypeInt : public CDataType
 {
   public:
+    shared_ptr<CDataTypeInt> m_Ptr;
     CDataTypeInt ( void ) {
-      m_Type = "CDataTypeInt";
+      m_Type = "int";
     }
-    virtual void createPtr ( string name ) override {
-      m_Ptr = new CDataTypeInt();
-      m_Name = name;
-    }
-    virtual size_t getSize ( void ) override { return 4; }
-    virtual bool isEqual ( CDataType & rhs ) override {
+    virtual size_t getSize ( void ) const override { return 4; }
+    virtual bool isEqual ( const CDataType & rhs ) const override {
       return m_Type == rhs.m_Type;
-      // try this return typeid ( rhs ) == typeid ( *this)
     }
-    virtual void print ( ostream & os ) override {
-      os << m_Type;
+    virtual void print ( ostream & os ) const override {
+      os << m_Type << " " << m_Name << ";";
       return;
     }
 };
 class CDataTypeDouble : public CDataType
 {
   public:
+    shared_ptr<CDataTypeDouble> m_Ptr;
     CDataTypeDouble ( void ) {
-      m_Type = "CDataTypeDouble";
+      m_Type = "double";
     }
-    virtual void createPtr ( string name ) override {
-      m_Ptr = new CDataTypeDouble();
-      m_Ptr->m_Name = name;
-    }
-    virtual size_t getSize ( void ) override { return 8; }
-    virtual bool isEqual ( CDataType & rhs ) override {
+    virtual size_t getSize ( void ) const override { return 8; }
+    virtual bool isEqual ( const CDataType & rhs ) const override {
       return m_Type == rhs.m_Type;
     }
-    virtual void print ( ostream & os ) override {
-      os << m_Type;
+    virtual void print ( ostream & os ) const override {
+      os << m_Type << " " << m_Name << ";";
       return;
     }
 };
 class CDataTypeEnum : public CDataType
 {
-  protected:
-    set<string> m_Content;
+  private:
+    struct ByAdded {
+      bool operator () ( const pair<string,int> & a, const pair<string,int> & b ) const {
+        return a.second < b.second;
+      }
+    };
   public:
+    set<pair<string,int>, ByAdded> m_Content;
+    shared_ptr<CDataTypeEnum> m_Ptr;
     CDataTypeEnum ( void ) {
-      m_Type = "CDataTypeEnum";
+      m_Type = "enum";
     }
-    virtual size_t getSize ( void ) override { return 4; }
+    virtual size_t getSize ( void ) const override { return 4; }
     CDataTypeEnum & add ( string name ) {
-      if ( ! m_Content.insert(name).second ) {
+      if ( ! m_Content.insert( { name, m_Content.size() }).second ) {
         string excMessage = "Duplicate enum value: " + name;
         throw invalid_argument ( excMessage );
       }
       return *this;
     }
-    virtual void createPtr ( string name ) override {
-      m_Ptr = new CDataTypeEnum();
-      m_Ptr->m_Name = name;
-    }
-    virtual bool isEqual ( CDataType & rhs ) override {
+    virtual bool isEqual ( const CDataType &rhs ) const override {
       return m_Type == rhs.m_Type;
     }
-    virtual void print ( ostream & os ) override {
-      os << m_Type;
+    virtual void print ( ostream & os ) const override {
+      os << m_Type << "\n  {";
+      os << "\n";
+      for ( const auto & [ x, z ] : m_Content ) {
+        os << "    " << x;
+        if ( x != (*(--(m_Content.end()))).first )
+          os << ",\n";
+      }
+      os << "\n  } ";
+      os << m_Name << ";";
       return;
     }
 };
 class CDataTypeStruct : public CDataType
 {
-  private:
-    void decideType ( CDataType & type ) {
-      if ( type.m_Type == "CDataTypeInt" )
-        type.m_Ptr = dynamic_cast<CDataTypeInt*> (type.m_Ptr);
-      else if ( type.m_Type == "CDataTypeDouble" )
-        type.m_Ptr = dynamic_cast<CDataTypeDouble*> (type.m_Ptr);
-      else if ( type.m_Type == "CDataTypeEnum" )
-        type.m_Ptr = dynamic_cast<CDataTypeEnum*> (type.m_Ptr);
-    }
   public:
     CDataTypeStruct ( void ) {
-      m_Type = "CDataTypeStruct";
+      m_Type = "struct";
     }
-    // asi by mal byt vector, pretoze potrebujem zachovavat poradie
-    vector<CDataType*> m_Content;
-    virtual size_t getSize ( void ) override {
+    CDataTypeStruct operator = ( CDataTypeStruct & rhs ) {
+      std::swap ( m_Content, rhs.m_Content );
+      return *this;
+    }
+    vector<shared_ptr<CDataType>> m_Content;
+    virtual size_t getSize ( void ) const override {
       size_t wholeSize = 0;
       for ( const auto & x : m_Content )
         wholeSize += x->getSize();
       return wholeSize;
     }
-    CDataTypeStruct & addField ( string name, CDataType type ) {
-      type.createPtr ( name );
-      decideType(type);
+    template <typename T>
+    CDataTypeStruct & addField ( string name, T type ) {
+      type.m_Ptr = make_shared<T> (type);
+      type.m_Ptr->m_Name = name;
       m_Content.push_back ( type.m_Ptr );
       return *this;
     }
-    CDataType * field ( string name ) {
-      auto found = find_if ( m_Content.begin(), m_Content.end(), [name]  ( CDataType *& a ) {
+    shared_ptr<CDataType> & field ( string name ) {
+      auto found = find_if ( m_Content.begin(), m_Content.end(), [name]  ( shared_ptr<CDataType> & a ) {
         return a->m_Type == name;
       });
       if ( found == m_Content.end() ) {
@@ -151,13 +147,19 @@ class CDataTypeStruct : public CDataType
       }
       return *found;
     }
-    virtual void createPtr ( string name ) override;
-    bool contentsAreEqual ( CDataType & rhs );
-    virtual bool isEqual ( CDataType & rhs ) override {
-      return m_Type == rhs.m_Type;
+    bool contentsAreEqual ( CDataType & rhs ) {}
+    virtual bool isEqual ( const CDataType & rhs ) const override {
+      if ( m_Type != rhs.m_Type ) return false;
+      
     }
-    virtual void print ( ostream & os ) override {
-      os << m_Type;
+    virtual void print ( ostream & os ) const override {
+      os << "struct\n{\n";
+      for ( const auto & x : m_Content ) {
+        os << "  " << *x;
+        if ( x != *(--(m_Content.end())) )
+          os << "\n";
+      }
+      os << "\n}";
       return;
     }
 };
@@ -165,7 +167,13 @@ class CDataTypeStruct : public CDataType
 static bool        whitespaceMatch                         ( const string    & a,
                                                              const string    & b )
 {
-  // todo
+  stringstream ss (a);
+  stringstream ss2 (b);
+
+  for ( string strA, strB; ss >> strA, ss2 >> strB; ) {
+    if ( strA != strB )
+      return false;
+  }
   return true;
 }
 template <typename T_>
@@ -186,8 +194,6 @@ int main ( void )
                           add ( "BROKEN" ) . 
                           add ( "DEAD" ) ).
                         addField ( "m_Ratio", CDataTypeDouble () );
-  
-  /*
   CDataTypeStruct b = CDataTypeStruct () .
                         addField ( "m_Length", CDataTypeInt () ) .
                         addField ( "m_Status", CDataTypeEnum () . 
@@ -214,6 +220,10 @@ int main ( void )
                           add ( "BROKEN" ) . 
                           add ( "DEAD" ) ).
                         addField ( "m_Ratio", CDataTypeInt () );
+  cout << a << "\n---------------------------\n";
+  cout << b << "\n---------------------------\n";
+  cout << c << "\n---------------------------\n";
+  cout << d << "\n---------------------------\n";
   assert ( whitespaceMatch ( a, "struct\n"
     "{\n"
     "  int m_Length;\n"
@@ -269,6 +279,7 @@ int main ( void )
   assert ( a != b );
   assert ( a == c );
   assert ( a != d );
+  /*
   assert ( a . field ( "m_Status" ) == CDataTypeEnum () . add ( "NEW" ) . add ( "FIXED" ) . add ( "BROKEN" ) . add ( "DEAD" ) );
   assert ( a . field ( "m_Status" ) != CDataTypeEnum () . add ( "NEW" ) . add ( "BROKEN" ) . add ( "FIXED" ) . add ( "DEAD" ) );
   assert ( a != CDataTypeInt() );
