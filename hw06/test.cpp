@@ -28,20 +28,18 @@ class CDataType {
     string m_Type;
     string m_Name;
     virtual ~CDataType ( void ) noexcept = default;
-    template < typename T >
-    bool operator == ( T rhs ) const {
-      return isEqual ( *this, rhs );
+    bool operator == ( const CDataType & rhs ) const {
+      return isEqual ( rhs );
     }
-    template < typename T >
-    bool operator != ( T rhs ) const {
-      return ! isEqual ( *this, rhs );
+    bool operator != ( const CDataType & rhs ) const {
+      return ! isEqual ( rhs );
     }
     friend ostream & operator << ( ostream & os, const CDataType & x ) {
       x.print ( os );
       return os;
     }
     virtual size_t getSize ( void ) const = 0;
-    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const = 0;
+    virtual bool isEqual ( const CDataType & rhs ) const = 0;
     virtual void print ( ostream & os ) const = 0;
 };
 class CDataTypeInt : public CDataType
@@ -52,7 +50,7 @@ class CDataTypeInt : public CDataType
       m_Type = "int";
     }
     virtual size_t getSize ( void ) const override { return 4; }
-    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
+    virtual bool isEqual ( const CDataType & rhs ) const override {
       return m_Type == rhs.m_Type;
     }
     virtual void print ( ostream & os ) const override {
@@ -68,7 +66,7 @@ class CDataTypeDouble : public CDataType
       m_Type = "double";
     }
     virtual size_t getSize ( void ) const override { return 8; }
-    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
+    virtual bool isEqual ( const CDataType & rhs ) const override {
       return m_Type == rhs.m_Type;
     }
     virtual void print ( ostream & os ) const override {
@@ -92,7 +90,7 @@ class CDataTypeEnum : public CDataType
     }
     virtual size_t getSize ( void ) const override { return 4; }
     CDataTypeEnum & add ( string name ) {
-      if ( ! m_Content.insert( { name, m_Content.size() }).second ) {
+      if ( ! m_Content.insert ( { name, m_Content.size() } ).second ) {
         string excMessage = "Duplicate enum value: " + name;
         throw invalid_argument ( excMessage );
       }
@@ -107,10 +105,11 @@ class CDataTypeEnum : public CDataType
       }
       return true;
     }
-    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
+    virtual bool isEqual ( const CDataType & rhs ) const override {
       if ( m_Type != rhs.m_Type )
         return false;
-      CDataTypeEnum * a = dynamic_cast<CDataTypeEnum*> (&rhs);
+      CDataType * x = const_cast<CDataType*> (&rhs);
+      CDataTypeEnum * a = dynamic_cast<CDataTypeEnum*> (x);
       return contentsAreEqual(a);
     }
     virtual void print ( ostream & os ) const override {
@@ -169,15 +168,18 @@ class CDataTypeStruct : public CDataType
     bool contentsAreEqual ( CDataTypeStruct *& rhs ) const {
       auto itA = m_Content.begin();
       auto itB = rhs->m_Content.begin();
+      if ( m_Content.size() != rhs->m_Content.size() )
+        return false;
       for ( ; itA != m_Content.end() && itB != rhs->m_Content.end(); ++itA, ++itB ) {
-          if ( CDataType::operator!= ( *(*itA), *(*itB) )  )
+          if ( *(*itA) != *(*itB) )
             return false;
       }
       return true;
     }
-    virtual bool isEqual ( const CDataType & lhs, CDataType & rhs ) const override {
+    virtual bool isEqual ( const CDataType & rhs ) const override {
       if ( m_Type != rhs.m_Type ) return false;
-      CDataTypeStruct * a = dynamic_cast<CDataTypeStruct*> (&rhs);
+      CDataType * x = const_cast<CDataType*> (&rhs);
+      CDataTypeStruct * a = dynamic_cast<CDataTypeStruct*> (x);
       return contentsAreEqual(a);
     }
     virtual void print ( ostream & os ) const override {
@@ -248,9 +250,9 @@ int main ( void )
                           add ( "BROKEN" ) . 
                           add ( "DEAD" ) ).
                         addField ( "m_Ratio", CDataTypeInt () );
-  cout << a << "\n---------------------------\n";
+  //cout << a << "\n---------------------------\n";
   //cout << b << "\n---------------------------\n";
-  cout << c << "\n---------------------------\n";
+  //cout << c << "\n---------------------------\n";
   //cout << d << "\n---------------------------\n";
   assert ( whitespaceMatch ( a, "struct\n"
     "{\n"
@@ -309,8 +311,10 @@ int main ( void )
   assert ( a != d );
   assert ( a . field ( "m_Status" ) == CDataTypeEnum () . add ( "NEW" ) . add ( "FIXED" ) . add ( "BROKEN" ) . add ( "DEAD" ) );
   assert ( a . field ( "m_Status" ) != CDataTypeEnum () . add ( "NEW" ) . add ( "BROKEN" ) . add ( "FIXED" ) . add ( "DEAD" ) );
+  CDataTypeEnum da = CDataTypeEnum() . add("jozo");
+  CDataTypeInt ddd = CDataTypeInt();
+  assert ( da != ddd );
   assert ( a != CDataTypeInt() );
-  /*
   assert ( whitespaceMatch ( a . field ( "m_Status" ), "enum\n"
     "{\n"
     "  NEW,\n"
@@ -323,7 +327,8 @@ int main ( void )
   b . addField ( "m_Other", CDataTypeDouble ());
 
   a . addField ( "m_Sum", CDataTypeInt ());
-
+  cout << aOld << "\n-------------------\n";
+  cout << a << "\n-------------------\n";
   assert ( a != aOld );
   assert ( a != c );
   assert ( aOld == c );
@@ -357,6 +362,7 @@ int main ( void )
 
   c . addField ( "m_Another", a . field ( "m_Status" ));
 
+  /*
   assert ( whitespaceMatch ( c, "struct\n"
     "{\n"
     "  int m_First;\n"
