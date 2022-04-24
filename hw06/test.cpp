@@ -28,11 +28,12 @@ class CDataType {
     string m_Type;
     string m_Name;
     virtual ~CDataType ( void ) noexcept = default;
-
-    bool operator == ( CDataType & rhs ) const {
+    template < typename T >
+    bool operator == ( T rhs ) const {
       return isEqual ( *this, rhs );
     }
-    bool operator != ( CDataType & rhs ) const {
+    template < typename T >
+    bool operator != ( T rhs ) const {
       return ! isEqual ( *this, rhs );
     }
     friend ostream & operator << ( ostream & os, const CDataType & x ) {
@@ -129,6 +130,13 @@ class CDataTypeStruct : public CDataType
 {
   private:
     vector<shared_ptr<CDataType>> m_Content;
+    vector<shared_ptr<CDataType>>::iterator findItem ( string & name ) {
+      for ( auto it = m_Content.begin(); it != m_Content.end(); ++it ) {
+        if ( (*(*it) ).m_Name == name )
+          return it;
+      }
+      return m_Content.end();
+    }
   public:
     CDataTypeStruct ( void ) {
       m_Type = "struct";
@@ -150,22 +158,20 @@ class CDataTypeStruct : public CDataType
       m_Content.push_back ( type.m_Ptr );
       return *this;
     }
-    shared_ptr<CDataType> & field ( string name ) {
-      auto found = find_if ( m_Content.begin(), m_Content.end(), [name]  ( shared_ptr<CDataType> & a ) {
-        return a->m_Type == name;
-      });
+    CDataType & field ( string name ) {
+      auto found = findItem(name);
       if ( found == m_Content.end() ) {
         string excMess = "Unknown field: " + name;
         throw invalid_argument ( excMess );
       }
-      return *found;
+      return *(*found);
     }
-    bool contentsAreEqual ( const CDataTypeStruct * rhs ) const {
-      auto it = m_Content.begin();
-      for ( auto & x : rhs->m_Content ) {
-          if ( ! isEqual ( *(*it), *x ) )
+    bool contentsAreEqual ( CDataTypeStruct *& rhs ) const {
+      auto itA = m_Content.begin();
+      auto itB = rhs->m_Content.begin();
+      for ( ; itA != m_Content.end() && itB != rhs->m_Content.end(); ++itA, ++itB ) {
+          if ( CDataType::operator!= ( *(*itA), *(*itB) )  )
             return false;
-          ++it;
       }
       return true;
     }
@@ -243,9 +249,9 @@ int main ( void )
                           add ( "DEAD" ) ).
                         addField ( "m_Ratio", CDataTypeInt () );
   cout << a << "\n---------------------------\n";
-  cout << b << "\n---------------------------\n";
+  //cout << b << "\n---------------------------\n";
   cout << c << "\n---------------------------\n";
-  cout << d << "\n---------------------------\n";
+  //cout << d << "\n---------------------------\n";
   assert ( whitespaceMatch ( a, "struct\n"
     "{\n"
     "  int m_Length;\n"
@@ -301,10 +307,10 @@ int main ( void )
   assert ( a != b );
   assert ( a == c );
   assert ( a != d );
-  /*
   assert ( a . field ( "m_Status" ) == CDataTypeEnum () . add ( "NEW" ) . add ( "FIXED" ) . add ( "BROKEN" ) . add ( "DEAD" ) );
   assert ( a . field ( "m_Status" ) != CDataTypeEnum () . add ( "NEW" ) . add ( "BROKEN" ) . add ( "FIXED" ) . add ( "DEAD" ) );
   assert ( a != CDataTypeInt() );
+  /*
   assert ( whitespaceMatch ( a . field ( "m_Status" ), "enum\n"
     "{\n"
     "  NEW,\n"
