@@ -27,6 +27,7 @@ class CDataType {
   public:
     string m_Type;
     string m_Name;
+    shared_ptr<CDataType> m_Ptr;
     virtual ~CDataType ( void ) noexcept = default;
     bool operator == ( const CDataType & rhs ) const {
       return isEqual ( rhs );
@@ -39,15 +40,18 @@ class CDataType {
       return os;
     }
     virtual size_t getSize ( void ) const = 0;
+    virtual void create ( void ) = 0;
     virtual bool isEqual ( const CDataType & rhs ) const = 0;
     virtual void print ( ostream & os ) const = 0;
 };
 class CDataTypeInt : public CDataType
 {
   public:
-    shared_ptr<CDataTypeInt> m_Ptr;
     CDataTypeInt ( void ) {
       m_Type = "int";
+    }
+    virtual void create ( void ) override {
+      m_Ptr = make_shared<CDataTypeInt> (*this);
     }
     virtual size_t getSize ( void ) const override { return 4; }
     virtual bool isEqual ( const CDataType & rhs ) const override {
@@ -61,9 +65,11 @@ class CDataTypeInt : public CDataType
 class CDataTypeDouble : public CDataType
 {
   public:
-    shared_ptr<CDataTypeDouble> m_Ptr;
     CDataTypeDouble ( void ) {
       m_Type = "double";
+    }
+    virtual void create ( void ) override {
+      m_Ptr = make_shared<CDataTypeDouble> (*this);
     }
     virtual size_t getSize ( void ) const override { return 8; }
     virtual bool isEqual ( const CDataType & rhs ) const override {
@@ -76,31 +82,35 @@ class CDataTypeDouble : public CDataType
 };
 class CDataTypeEnum : public CDataType
 {
-  private:
-    struct ByAdded {
-      bool operator () ( const pair<string,int> & a, const pair<string,int> & b ) const {
-        return a.second < b.second;
-      }
-    };
   public:
-    set<pair<string,int>, ByAdded> m_Content;
-    shared_ptr<CDataTypeEnum> m_Ptr;
+    vector<string> m_Content;
     CDataTypeEnum ( void ) {
       m_Type = "enum";
     }
+    virtual void create ( void ) override {
+      m_Ptr = make_shared<CDataTypeEnum> (*this);
+    }
     virtual size_t getSize ( void ) const override { return 4; }
+    auto linearSearch ( string name ) {
+      for ( auto it = m_Content.begin(); it != m_Content.end(); ++it ) {
+        if ( *it == name )
+          return it;
+      }
+      return m_Content.end();
+    }
     CDataTypeEnum & add ( string name ) {
-      if ( ! m_Content.insert ( { name, m_Content.size() } ).second ) {
+      if ( linearSearch ( name ) != m_Content.end() ) {
         string excMessage = "Duplicate enum value: " + name;
         throw invalid_argument ( excMessage );
       }
+      m_Content.emplace_back ( name );
       return *this;
     }
     bool contentsAreEqual ( const CDataTypeEnum * rhs ) const {
       if ( m_Content.size() != rhs->m_Content.size() )
         return false;
       for ( auto itA = m_Content.begin(), itB = rhs->m_Content.begin(); itA != m_Content.end() && itB != rhs->m_Content.end() ; ++itA, ++itB ) {
-          if ( itA->first != itB->first )
+          if ( *itA != *itB )
             return false;
       }
       return true;
@@ -115,9 +125,9 @@ class CDataTypeEnum : public CDataType
     virtual void print ( ostream & os ) const override {
       os << m_Type << "\n  {";
       os << "\n";
-      for ( const auto & [ x, z ] : m_Content ) {
+      for ( const auto & x : m_Content ) {
         os << "    " << x;
-        if ( x != (*(--(m_Content.end()))).first )
+        if ( x != *(--(m_Content.end())) )
           os << ",\n";
       }
       os << "\n  } ";
@@ -144,17 +154,25 @@ class CDataTypeStruct : public CDataType
       std::swap ( m_Content, rhs.m_Content );
       return *this;
     }
+    virtual void create ( void ) override {
+      m_Ptr = make_shared<CDataTypeStruct> (*this);
+    }
     virtual size_t getSize ( void ) const override {
       size_t wholeSize = 0;
       for ( const auto & x : m_Content )
         wholeSize += x->getSize();
       return wholeSize;
     }
-    template <typename T>
-    CDataTypeStruct & addField ( string name, T type ) {
-      type.m_Ptr = make_shared<T> (type);
-      type.m_Ptr->m_Name = name;
-      m_Content.push_back ( type.m_Ptr );
+    CDataTypeStruct & addField ( string name, const CDataType & type ) {
+      auto found = findItem(name);
+      if ( found != m_Content.end() ) {
+        string excMess = "Duplicate field: " + name;
+        throw invalid_argument ( excMess );
+      }
+      CDataType * x = const_cast<CDataType*> (&type);
+      x->create();
+      x->m_Ptr->m_Name = name;
+      m_Content.push_back ( x->m_Ptr );
       return *this;
     }
     CDataType & field ( string name ) {
@@ -250,10 +268,10 @@ int main ( void )
                           add ( "BROKEN" ) . 
                           add ( "DEAD" ) ).
                         addField ( "m_Ratio", CDataTypeInt () );
-  //cout << a << "\n---------------------------\n";
-  //cout << b << "\n---------------------------\n";
-  //cout << c << "\n---------------------------\n";
-  //cout << d << "\n---------------------------\n";
+  cout << a << "\n---------------------------\n";
+  cout << b << "\n---------------------------\n";
+  cout << c << "\n---------------------------\n";
+  cout << d << "\n---------------------------\n";
   assert ( whitespaceMatch ( a, "struct\n"
     "{\n"
     "  int m_Length;\n"
@@ -362,7 +380,6 @@ int main ( void )
 
   c . addField ( "m_Another", a . field ( "m_Status" ));
 
-  /*
   assert ( whitespaceMatch ( c, "struct\n"
     "{\n"
     "  int m_First;\n"
@@ -433,7 +450,6 @@ int main ( void )
   {
     assert ( e . what () == "Duplicate enum value: FIRST"sv );
   }
-  */
   return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
