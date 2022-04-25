@@ -91,14 +91,18 @@ class CDataTypeEnum : public CDataType
       m_Ptr = make_shared<CDataTypeEnum> (*this);
     }
     virtual size_t getSize ( void ) const override { return 4; }
-    auto linearSearch ( string name ) {
+    auto linearSearch ( string & name ) {
       for ( auto it = m_Content.begin(); it != m_Content.end(); ++it ) {
         if ( *it == name )
           return it;
       }
       return m_Content.end();
     }
-    CDataTypeEnum & add ( string name ) {
+    CDataTypeEnum & add ( const char * name ) {
+      string a ( name );
+      return add ( a );
+    }
+    CDataTypeEnum & add ( string & name ) {
       if ( linearSearch ( name ) != m_Content.end() ) {
         string excMessage = "Duplicate enum value: " + name;
         throw invalid_argument ( excMessage );
@@ -139,7 +143,7 @@ class CDataTypeStruct : public CDataType
 {
   private:
     vector<shared_ptr<CDataType>> m_Content;
-    vector<shared_ptr<CDataType>>::iterator findItem ( string & name ) {
+    auto findItem ( string & name ) const {
       for ( auto it = m_Content.begin(); it != m_Content.end(); ++it ) {
         if ( (*(*it) ).m_Name == name )
           return it;
@@ -150,8 +154,13 @@ class CDataTypeStruct : public CDataType
     CDataTypeStruct ( void ) {
       m_Type = "struct";
     }
-    CDataTypeStruct operator = ( CDataTypeStruct & rhs ) {
-      std::swap ( m_Content, rhs.m_Content );
+    CDataTypeStruct ( const CDataTypeStruct & a ) {
+      m_Content = a.m_Content;
+      m_Name = a.m_Name;
+    }
+    CDataTypeStruct & operator = ( const CDataTypeStruct & rhs ) {
+      m_Content = rhs.m_Content;
+      m_Name = rhs.m_Name;
       return *this;
     }
     virtual void create ( void ) override {
@@ -163,8 +172,12 @@ class CDataTypeStruct : public CDataType
         wholeSize += x->getSize();
       return wholeSize;
     }
-    CDataTypeStruct & addField ( string name, const CDataType & type ) {
-      auto found = findItem(name);
+    CDataTypeStruct & addField ( const char * name, const CDataType & type ) {
+      string a (name);
+      return addField ( a, type );
+    } 
+    CDataTypeStruct & addField ( string & name, const CDataType & type ) {
+      auto found = findItem ( name );
       if ( found != m_Content.end() ) {
         string excMess = "Duplicate field: " + name;
         throw invalid_argument ( excMess );
@@ -175,7 +188,11 @@ class CDataTypeStruct : public CDataType
       m_Content.push_back ( x->m_Ptr );
       return *this;
     }
-    CDataType & field ( string name ) {
+    CDataType & field ( const char * name ) const {
+      string a ( name );
+      return field ( a );
+    }
+    CDataType & field ( string & name ) const {
       auto found = findItem(name);
       if ( found == m_Content.end() ) {
         string excMess = "Unknown field: " + name;
@@ -207,7 +224,7 @@ class CDataTypeStruct : public CDataType
         if ( x != *(--(m_Content.end())) )
           os << "\n";
       }
-      os << "\n}";
+      os << "\n}\n";
       return;
     }
 };
@@ -234,7 +251,7 @@ static bool        whitespaceMatch                         ( const T_        & x
 }
 int main ( void )
 {
-  CDataTypeStruct a = CDataTypeStruct () .
+  CDataTypeStruct  a = CDataTypeStruct () .
                         addField ( "m_Length", CDataTypeInt () ) .
                         addField ( "m_Status", CDataTypeEnum () . 
                           add ( "NEW" ) . 
@@ -242,6 +259,7 @@ int main ( void )
                           add ( "BROKEN" ) . 
                           add ( "DEAD" ) ).
                         addField ( "m_Ratio", CDataTypeDouble () );
+  
   CDataTypeStruct b = CDataTypeStruct () .
                         addField ( "m_Length", CDataTypeInt () ) .
                         addField ( "m_Status", CDataTypeEnum () . 
@@ -268,10 +286,7 @@ int main ( void )
                           add ( "BROKEN" ) . 
                           add ( "DEAD" ) ).
                         addField ( "m_Ratio", CDataTypeInt () );
-  cout << a << "\n---------------------------\n";
-  cout << b << "\n---------------------------\n";
-  cout << c << "\n---------------------------\n";
-  cout << d << "\n---------------------------\n";
+  cout << a;
   assert ( whitespaceMatch ( a, "struct\n"
     "{\n"
     "  int m_Length;\n"
@@ -329,9 +344,6 @@ int main ( void )
   assert ( a != d );
   assert ( a . field ( "m_Status" ) == CDataTypeEnum () . add ( "NEW" ) . add ( "FIXED" ) . add ( "BROKEN" ) . add ( "DEAD" ) );
   assert ( a . field ( "m_Status" ) != CDataTypeEnum () . add ( "NEW" ) . add ( "BROKEN" ) . add ( "FIXED" ) . add ( "DEAD" ) );
-  CDataTypeEnum da = CDataTypeEnum() . add("jozo");
-  CDataTypeInt ddd = CDataTypeInt();
-  assert ( da != ddd );
   assert ( a != CDataTypeInt() );
   assert ( whitespaceMatch ( a . field ( "m_Status" ), "enum\n"
     "{\n"
@@ -345,8 +357,7 @@ int main ( void )
   b . addField ( "m_Other", CDataTypeDouble ());
 
   a . addField ( "m_Sum", CDataTypeInt ());
-  cout << aOld << "\n-------------------\n";
-  cout << a << "\n-------------------\n";
+
   assert ( a != aOld );
   assert ( a != c );
   assert ( aOld == c );
