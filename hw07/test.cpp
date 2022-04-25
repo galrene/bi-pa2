@@ -57,9 +57,38 @@ class CIndex
       }
       return m_Indices;
     }
-    // todo
 };
-  
+template<>
+class CIndex<string> {
+  private:
+    string m_Elements;
+    bool isFullMatch ( const string & searchedElem, size_t i ) const {
+      for ( const auto & x : searchedElem ) {
+        if ( i >= m_Elements.size() || m_Elements[i++] != x )
+          return false;
+      }
+      return true;
+    }
+  public:
+    CIndex ( string src )
+    : m_Elements ( src ) {}
+    set<size_t> search ( const string & searchedElem ) const {
+      set<size_t> m_Indices;
+      if ( searchedElem.empty() ) {
+        for ( size_t i = 0; i < m_Elements.size(); i++ ) {
+          m_Indices.insert(i);   
+        }
+        return m_Indices;
+      }
+      size_t i = 0;
+      for ( const auto & x : m_Elements ) {
+        if ( x == searchedElem[0] && isFullMatch ( searchedElem, i ) )
+          m_Indices.insert ( i );
+        ++i;
+      }
+      return m_Indices;
+    }
+};
 #ifndef __PROGTEST__  
 class CStrComparator
 {
