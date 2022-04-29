@@ -24,67 +24,42 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-template <typename T_, typename C_ = T_>
+template <typename T_, typename C_ = std::less<typename T_::value_type>>
 class CIndex
 {
   private:
-    vector<T_> m_Elements;
-    bool isFullMatch ( const T_ & searchedElem, size_t i ) const {
-      for ( const auto & x : searchedElem ) {
-        if ( i >= m_Elements.size() || m_Elements[i++] != x )
+  T_ m_Elements;
+  C_ m_Cmp;
+    bool isFullMatch ( const T_ & searchedElem, typename T_::const_iterator it ) const {
+      auto searchedIt = searchedElem.begin();
+      for ( ; searchedIt != searchedElem.end() ; ++searchedIt ) {
+        if ( ! isEqual ( *(it++), *searchedIt ) )
           return false;
       }
       return true;
     }
-    bool isEqual ( const char & lhs, const char & rhs ) const {
-      if ( lhs == rhs )
+    bool isEqual ( const typename T_::value_type  & lhs,
+                   const typename T_::value_type  & rhs ) const {
+      if ( ! m_Cmp ( lhs, rhs ) 
+        && ! m_Cmp ( rhs, lhs ) )
         return true;
       return false;
     }
   public:
-    CIndex ( T_ source ) {
-      for ( auto x : source ) {
-        m_Elements.push_back ( x );
-      }
-    }
+    explicit CIndex ( T_ elems, C_ cmp = C_{} )
+    : m_Elements ( elems ), m_Cmp ( cmp ) {}
     set<size_t> search ( const T_ & searchedElem ) const {
       set<size_t> m_Indices;
-      size_t i = 0;
-      for ( const auto & x : m_Elements ) {
-        if ( isEqual ( x, searchedElem[0] ) && isFullMatch ( searchedElem, i ) )
-          m_Indices.insert ( i );
-        ++i;
-      }
-      return m_Indices;
-    }
-};
-template<>
-class CIndex<string> {
-  private:
-    string m_Elements;
-    bool isFullMatch ( const string & searchedElem, size_t i ) const {
-      for ( const auto & x : searchedElem ) {
-        if ( i >= m_Elements.size() || m_Elements[i++] != x )
-          return false;
-      }
-      return true;
-    }
-  public:
-    CIndex ( string src )
-    : m_Elements ( src ) {}
-    set<size_t> search ( const string & searchedElem ) const {
-      set<size_t> m_Indices;
       if ( searchedElem.empty() ) {
-        for ( size_t i = 0; i < m_Elements.size(); i++ ) {
-          m_Indices.insert(i);   
-        }
+        for ( size_t i = 0; i < m_Elements.size(); i++ )
+          m_Indices.insert(i);
         return m_Indices;
       }
       size_t i = 0;
-      for ( const auto & x : m_Elements ) {
-        if ( x == searchedElem[0] && isFullMatch ( searchedElem, i ) )
+      for ( auto it = m_Elements.begin(); it != m_Elements.end(); ++it ) {
+        if ( isEqual ( *it, *(searchedElem.begin()) ) && isFullMatch ( searchedElem, it ) )
           m_Indices.insert ( i );
-        ++i;
+        i++;
       }
       return m_Indices;
     }
@@ -154,7 +129,6 @@ int main ( void )
   assert ( r15 == ( set<size_t> { 0, 5, 10, 19, 25, 36, 41, 48 } ) );
   set<size_t> r16 = t4 . search ( "" );
   assert ( r16 == ( set<size_t> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50 } ) );
-  /*
   CIndex <string, bool(*)(const char &, const char & )> t5 ( "automatIc authentication automotive auTOmation raut", upperCaseCompare );
   set<size_t> r17 = t5 . search ( "auto" );
   assert ( r17 == ( set<size_t> { 0, 25, 36 } ) );
@@ -180,7 +154,6 @@ int main ( void )
   assert ( r25 == ( set<size_t> { 2 } ) );
   set<size_t> r26 = t7 . search ( list<string>{"test", "this"} );
   assert ( r26 == ( set<size_t> { 2, 5 } ) );
-  */
   return 0;
 }
 #endif /* __PROGTEST__ */
