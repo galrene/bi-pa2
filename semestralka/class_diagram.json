@@ -1,0 +1,892 @@
+{
+  "entities": [
+    {
+      "name": "Cattack",
+      "parent": null,
+      "attr": [],
+      "transform": {
+        "x": 1572,
+        "y": 167.94019412994385,
+        "width": 67,
+        "height": 62
+      }
+    },
+    {
+      "name": "Ccard_base",
+      "parent": null,
+      "attr": [
+        {
+          "name": "use_card",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "dump_info",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_name",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_type",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_cost",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        }
+      ],
+      "transform": {
+        "x": 1698.8181818181818,
+        "y": -71.62467329429853,
+        "width": 88.78125,
+        "height": 135.2921401515151
+      }
+    },
+    {
+      "name": "Ccharacter",
+      "parent": null,
+      "attr": [
+        {
+          "name": "load",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "save",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_name",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_hp",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_strength",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_mana",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        }
+      ],
+      "transform": {
+        "x": 1382.0909090909095,
+        "y": 171.12201231176192,
+        "width": 110,
+        "height": 121.39996337890625
+      }
+    },
+    {
+      "name": "Ccomputer_player_att",
+      "parent": null,
+      "attr": [],
+      "transform": {
+        "x": 1108.9596514596515,
+        "y": 333.1025994329743,
+        "width": 132.16259765625,
+        "height": 75.90909090909082
+      }
+    },
+    {
+      "name": "Ccomputer_player_def",
+      "parent": null,
+      "attr": [],
+      "transform": {
+        "x": 1261.686924186925,
+        "y": 333.1025994329742,
+        "width": 138.63636363636306,
+        "height": 76.81818181818176
+      }
+    },
+    {
+      "name": "Cdeck",
+      "parent": null,
+      "attr": [
+        {
+          "name": "add_card",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "remove_card",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "draw_card",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "load",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "save",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_deck",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        }
+      ],
+      "transform": {
+        "x": 1316.6643356643353,
+        "y": -57.500365310615535,
+        "width": 93,
+        "height": 121.39999389648438
+      }
+    },
+    {
+      "name": "Cdefense",
+      "parent": null,
+      "attr": [],
+      "transform": {
+        "x": 1762.909090909091,
+        "y": 172.57655776630747,
+        "width": 67,
+        "height": 58
+      }
+    },
+    {
+      "name": "Cgame_settings",
+      "parent": null,
+      "attr": [
+        {
+          "name": "m_twoplayergame",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_maxtdecksize",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        }
+      ],
+      "transform": {
+        "x": 938.0209790209794,
+        "y": 329.0590752488249,
+        "width": 137.756854256854,
+        "height": 79.95261509324015
+      }
+    },
+    {
+      "name": "Cgame_state_manager",
+      "parent": null,
+      "attr": [
+        {
+          "name": "load_cards",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "begin_game",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "save_game",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "load_game",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "end_game",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "end_turn",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_turnnumber",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_player1",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_player2",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        }
+      ],
+      "transform": {
+        "x": 938.2727272727274,
+        "y": 62.64805397842875,
+        "width": 139.171875,
+        "height": 195.36482469963298
+      }
+    },
+    {
+      "name": "Cpassive",
+      "parent": null,
+      "attr": [],
+      "transform": {
+        "x": 1667.6363636363635,
+        "y": 169.21292140267116,
+        "width": 61,
+        "height": 60
+      }
+    },
+    {
+      "name": "Cplayer",
+      "parent": null,
+      "attr": [
+        {
+          "name": "load_deck",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "draw_card",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "play_card",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "save",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "load",
+          "primary": true,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_deck",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_character",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_hand",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        },
+        {
+          "name": "m_name",
+          "primary": false,
+          "unique": false,
+          "nullable": false
+        }
+      ],
+      "transform": {
+        "x": 1158.0909090909092,
+        "y": 119.2129214026711,
+        "width": 127,
+        "height": 152.99996948242188
+      }
+    },
+    {
+      "name": "Cspecial",
+      "parent": null,
+      "attr": [],
+      "transform": {
+        "x": 1876.6363636363635,
+        "y": 167.3947395844893,
+        "width": 65,
+        "height": 59
+      }
+    }
+  ],
+  "relations": [
+    [
+      {
+        "entity": "Ccard_base",
+        "identifying": false,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1718.818181818182,
+            "y": 63.66746685721657,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1662.159090909091,
+              "y": 115.80383049358021
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Cattack",
+        "identifying": true,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1605.5,
+            "y": 167.94019412994385,
+            "edge": 0
+          },
+          "points": [
+            {
+              "x": 1662.159090909091,
+              "y": 115.80383049358021
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cdeck",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 1,
+        "xor": null,
+        "name": "contains",
+        "transform": {
+          "anchor": {
+            "x": 1409.6643356643353,
+            "y": 3.199631637626652,
+            "edge": 1
+          },
+          "points": [
+            {
+              "x": 1554.2412587412587,
+              "y": 3.0874717179990325
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Ccard_base",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 0,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1698.8181818181818,
+            "y": 2.9753117983714135,
+            "edge": 3
+          },
+          "points": [
+            {
+              "x": 1554.2412587412587,
+              "y": 3.0874717179990325
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cdefense",
+        "identifying": true,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1796.409090909091,
+            "y": 172.57655776630747,
+            "edge": 0
+          },
+          "points": [
+            {
+              "x": 1772.3089488636365,
+              "y": 118.12201231176202
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Ccard_base",
+        "identifying": false,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1748.208806818182,
+            "y": 63.66746685721657,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1772.3089488636365,
+              "y": 118.12201231176202
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cgame_state_manager",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1007.8586647727275,
+            "y": 258.0128786780617,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1007.3790354610669,
+              "y": 293.5359769634433
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Cgame_settings",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 1,
+        "xor": null,
+        "name": "uses",
+        "transform": {
+          "anchor": {
+            "x": 1006.8994061494064,
+            "y": 329.0590752488249,
+            "edge": 0
+          },
+          "points": [
+            {
+              "x": 1007.3790354610669,
+              "y": 293.5359769634433
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cpassive",
+        "identifying": true,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1698.1363636363635,
+            "y": 169.21292140267116,
+            "edge": 0
+          },
+          "points": [
+            {
+              "x": 1715.8249289772727,
+              "y": 116.44019412994386
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Ccard_base",
+        "identifying": false,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1733.513494318182,
+            "y": 63.66746685721657,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1715.8249289772727,
+              "y": 116.44019412994386
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cplayer",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 0,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1158.0909090909092,
+            "y": 160.3314150749621,
+            "edge": 3
+          },
+          "points": [
+            {
+              "x": 1117.7677556818185,
+              "y": 160.33094070160365
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Cgame_state_manager",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1077.4446022727275,
+            "y": 160.33046632824522,
+            "edge": 1
+          },
+          "points": [
+            {
+              "x": 1117.7677556818185,
+              "y": 160.33094070160365
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cplayer",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 1,
+        "xor": null,
+        "name": "plays",
+        "transform": {
+          "anchor": {
+            "x": 1285.0909090909092,
+            "y": 230.95723386244333,
+            "edge": 1
+          },
+          "points": [
+            {
+              "x": 1333.5909090909095,
+              "y": 231.3896139318292
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Ccharacter",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1382.0909090909095,
+            "y": 231.82199400121505,
+            "edge": 3
+          },
+          "points": [
+            {
+              "x": 1333.5909090909095,
+              "y": 231.3896139318292
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cplayer",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 1,
+        "xor": null,
+        "name": "uses",
+        "transform": {
+          "anchor": {
+            "x": 1285.0909090909092,
+            "y": 156.2844176147924,
+            "edge": 1
+          },
+          "points": [
+            {
+              "x": 1363.1643356643353,
+              "y": 156.2844176147924
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Cdeck",
+        "identifying": false,
+        "optional": false,
+        "cardinality": 0,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1363.1643356643353,
+            "y": 63.89962858586884,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1363.1643356643353,
+              "y": 156.2844176147924
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cplayer",
+        "identifying": false,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1197.1800503625443,
+            "y": 272.212890885093,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1180.815944661098,
+              "y": 302.65774515903365
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Ccomputer_player_att",
+        "identifying": true,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1164.4518389596515,
+            "y": 333.1025994329743,
+            "edge": 0
+          },
+          "points": [
+            {
+              "x": 1180.815944661098,
+              "y": 302.65774515903365
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cplayer",
+        "identifying": false,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1249.414196914197,
+            "y": 272.212890885093,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1289.4511647986078,
+              "y": 302.6577451590336
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Ccomputer_player_def",
+        "identifying": true,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1329.4881326830186,
+            "y": 333.1025994329742,
+            "edge": 0
+          },
+          "points": [
+            {
+              "x": 1289.4511647986078,
+              "y": 302.6577451590336
+            }
+          ],
+          "manual": false
+        }
+      }
+    ],
+    [
+      {
+        "entity": "Cspecial",
+        "identifying": true,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1900.9675879675876,
+            "y": 167.3947395844893,
+            "edge": 0
+          },
+          "points": [
+            {
+              "x": 1831.935853642885,
+              "y": 115.53110322085293
+            }
+          ],
+          "manual": false
+        }
+      },
+      {
+        "entity": "Ccard_base",
+        "identifying": false,
+        "optional": true,
+        "cardinality": 1,
+        "xor": null,
+        "name": null,
+        "transform": {
+          "anchor": {
+            "x": 1762.904119318182,
+            "y": 63.66746685721657,
+            "edge": 2
+          },
+          "points": [
+            {
+              "x": 1831.935853642885,
+              "y": 115.53110322085293
+            }
+          ],
+          "manual": false
+        }
+      }
+    ]
+  ],
+  "notes": [
+    {
+      "text": "abstract class",
+      "transform": {
+        "x": 1702.596015096015,
+        "y": -115.26103693066216,
+        "width": 86.36363636363637,
+        "height": 23.5
+      }
+    },
+    {
+      "text": "primary keys - methods\nrequired attributes - variables\n\noptional relation - inheritance\nmandatory relation - class uses another class",
+      "transform": {
+        "x": 932.323287823288,
+        "y": -98.35194602157124,
+        "width": 235.734375,
+        "height": 77.5
+      }
+    }
+  ]
+}
