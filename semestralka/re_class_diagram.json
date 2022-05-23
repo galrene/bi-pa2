@@ -880,12 +880,21 @@
       }
     },
     {
-      "text": "primary keys - methods\nrequired attributes - variables\n\noptional relation - inheritance\nmandatory relation - class uses another class",
+      "text": "# => methods\n* => variables",
       "transform": {
-        "x": 932.323287823288,
+        "x": 917.8788433788434,
         "y": -98.35194602157124,
-        "width": 235.734375,
-        "height": 77.5
+        "width": 119.33297258297262,
+        "height": 58.51089015151494
+      }
+    },
+    {
+      "text": "abstract class",
+      "transform": {
+        "x": 1180.5451492951495,
+        "y": 83.4922774632771,
+        "width": 85.5555555555552,
+        "height": 26.66666666666663
       }
     }
   ]
