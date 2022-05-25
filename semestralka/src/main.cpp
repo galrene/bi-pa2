@@ -15,10 +15,8 @@ int main(int argc, char const *argv[])
     WINDOW * win = newwin(50,50,0,0);
     int c;
     while ( (c = getch()) ) {
-        if (  )
-            break;
         box(win,0,0);
-        wprintw(win, "Test:\n ");
+        wprintw(win, "Hlavné menu\n");
         wrefresh(win);
         waddch ( win, c );
         wrefresh(win);

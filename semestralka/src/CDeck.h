@@ -1,6 +1,7 @@
 #include "CCard.h"
 #include <map>
 #include <memory>
+using namespace std;
 
 class CDeck {
   protected:

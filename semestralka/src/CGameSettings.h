@@ -1,6 +1,7 @@
 #include <memory>
 #include "CCard.h"
 #include "CDeck.h"
+using namespace std;
 
 class CGameSettings {
   protected:

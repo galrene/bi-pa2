@@ -1,6 +1,7 @@
 #include "CCharacter.h"
 #include "CDeck.h"
 #include <string>
+using namespace std;
 
 class CPlayer {
   protected:
