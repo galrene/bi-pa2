@@ -34,7 +34,8 @@
 				"-std=c++17",
 				"${file}",
 				"-o",
-				"${fileDirname}/a.out"
+				"${fileDirname}/a.out",
+				"-lncurses"
 			],
 			"options": {
 				"cwd": "${fileDirname}"
@@ -46,6 +47,34 @@
 			"group": {
 				"kind": "build",
 				"isDefault": true
+			},
+			"detail": "compiler: /usr/bin/g++"
+
+		},
+		{
+			"type": "shell",
+			"label": "C g++ ncurses build",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-g",
+				"-Wall",
+				"-pedantic",
+				"-std=c++17",
+				"${file}",
+				"-o",
+				"${fileDirname}/a.out",
+				"-lncurses"
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": {
+				"base" : "$gcc",
+				"fileLocation" : "absolute"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": false
 			},
 			"detail": "compiler: /usr/bin/g++"
 
