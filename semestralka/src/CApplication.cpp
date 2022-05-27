@@ -1,18 +1,13 @@
 #include <ncurses.h>
 #include <iostream>
 #include <vector>
-
+#include "CGameSettings.h"
+#include "CGameStateManager.h"
 using namespace std;
 
-class CInterface {
+class CApplication {
   public:
-    CInterface ( void ) {
-        initCurses(); // add try catch block
-        getmaxyx ( stdscr, m_YMax, m_XMax );
-        m_Win = newwin ( m_YMax/3, 25, m_YMax/4, (m_XMax/2-10) );
-        keypad ( m_Win, TRUE ); // enable keypad inputs
-    }
-
+    CApplication ( CGameSettings & settings, CGameStateManager & gsm );
     void drawMenu ( const char * menuHeader  );
     void toggleColor ( size_t itemIndex, vector<pair<string,bool>> & menuItems );
     bool handleSettings ( void );
@@ -25,16 +20,28 @@ class CInterface {
     bool initCurses ( void );
     int m_XMax, m_YMax;
     WINDOW * m_Win;
+    CGameSettings m_Settings;
+    CGameStateManager m_Gsm;
 };
 
-void CInterface::drawMenu ( const char * menuHeader  ) {
+CApplication::CApplication ( CGameSettings & settings, CGameStateManager & gsm ) {
+    initCurses(); // add try catch block
+    getmaxyx ( stdscr, m_YMax, m_XMax );
+    m_Win = newwin ( m_YMax/3, 25, m_YMax/4, (m_XMax/2-10) );
+    keypad ( m_Win, TRUE ); // enable keypad inputs
+    m_Gsm = gsm;
+    m_Settings = settings;
+
+}
+
+void CApplication::drawMenu ( const char * menuHeader  ) {
     wclear ( m_Win );
     /* lines, colons, beginY, beginX */
     box ( m_Win, 0, 0 );
     mvwprintw ( m_Win, 0, 7, "%s", menuHeader );
 }
 
-bool CInterface::initCurses ( void ) {
+bool CApplication::initCurses ( void ) {
     initscr();
     cbreak();
     noecho();
@@ -54,7 +61,7 @@ bool CInterface::initCurses ( void ) {
 }
 
 // toggles a setting by changing color and changing its status in the menuItems vector
-void CInterface::toggleColor ( size_t itemIndex, vector<pair<string,bool>> & menuItems ) {
+void CApplication::toggleColor ( size_t itemIndex, vector<pair<string,bool>> & menuItems ) {
     wmove ( m_Win, 1+itemIndex,2 );
     wclrtoeol(m_Win);
     drawMenu ( "Settings" );
@@ -72,7 +79,7 @@ void CInterface::toggleColor ( size_t itemIndex, vector<pair<string,bool>> & men
     wattroff ( m_Win, OFF_PAIR );
 }
 
-bool CInterface::handleSettings ( void ) {
+bool CApplication::handleSettings ( void ) {
     drawMenu ( "Settings" );
     vector<pair<string, bool>> menuItems = { {"Two-player game", false},
                                     {"Deck size", false},
@@ -80,8 +87,10 @@ bool CInterface::handleSettings ( void ) {
     size_t highlight = 0;
     while ( highlight != 2 ) {
         handleSettingsMovement ( highlight, menuItems );
-        if ( highlight == 0 )
+        if ( highlight == 0 ) {
             toggleColor ( 0, menuItems );
+            m_Settings.toggleSP();
+        }
         if ( highlight == 1 )
             toggleColor ( 1, menuItems );
     }
@@ -91,7 +100,7 @@ bool CInterface::handleSettings ( void ) {
     return true;
 }
 
-bool CInterface::handleMainMenu ( void ) {
+bool CApplication::handleMainMenu ( void ) {
     drawMenu ( "Main menu" );
     vector<string> menuItems = {"New Game","Load Game","Settings", "-Quit-"};
     size_t highlight = 0;
@@ -108,7 +117,7 @@ bool CInterface::handleMainMenu ( void ) {
     return true;
 }
 
-bool CInterface::handleNavigation ( const size_t & menuSize, size_t & highlight ) {
+bool CApplication::handleNavigation ( const size_t & menuSize, size_t & highlight ) {
     int button;
     button = wgetch ( m_Win );
     switch ( button ) {
@@ -132,7 +141,7 @@ bool CInterface::handleNavigation ( const size_t & menuSize, size_t & highlight 
     return false;
 }
 
-void CInterface::handleMenuMovement ( size_t & highlight, vector<string> & menuItems ) {
+void CApplication::handleMenuMovement ( size_t & highlight, vector<string> & menuItems ) {
     while ( 1 ) {
         // draw menu and highlight currently selected
         for ( size_t i = 0; i < menuItems.size(); i++ ) {
@@ -146,7 +155,7 @@ void CInterface::handleMenuMovement ( size_t & highlight, vector<string> & menuI
     }
 }
 
-void CInterface::handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems ) {
+void CApplication::handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems ) {
     // SIMPLIFY
     while ( 1 ) {
         // draw menu and highlight currently selected
@@ -176,8 +185,10 @@ void CInterface::handleSettingsMovement ( size_t & highlight, vector<pair<string
 
 
 int main ( int argc, char const *argv[] ) {
-    CInterface interface;
-    while ( interface.handleMainMenu () ) {}
+    CGameSettings settings;
+    CGameStateManager gsm;
+    CApplication app ( settings, gsm );
+    while ( app.handleMainMenu () ) {}
     endwin();
     return 0;
 }
