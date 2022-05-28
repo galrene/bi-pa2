@@ -168,7 +168,7 @@ int CApplication::readNumber ( size_t yCoord, size_t xCoord ) {
     for ( const auto & x : buff )
         if ( x != '\0' && (x < '0' || x > '9') )
             return -1;
-    return stoi ( buff );
+    return atoi ( buff );
     // printw ( "Entered: %d \n", loadedNumber );
     // printw ( "Res: %d \n", res );
 }
@@ -185,7 +185,7 @@ bool CApplication::isValidDeckSize ( int number ) {
 bool CApplication::handleSettings ( void ) {
     drawMenu ( "Settings" );
     vector<pair<string, bool>> menuItems = { {"Two-player game", m_Settings.isTwoPlayerGame() },
-                                             {"Deck size:", false},
+                                             {"Dick size:", false},
                                              {"-Return-", false} };
     size_t highlight = 0;
     while ( highlight != 2 ) {
