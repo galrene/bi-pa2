@@ -16,7 +16,8 @@ class CApplication {
     bool handleNavigation ( const size_t & menuSize, size_t & highlight );
     void handleMenuMovement ( size_t & highlight, vector<string> & menuItems );
     void handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems );
-
+    int  readNumber ( size_t yCoord, size_t xCoord );
+    bool isValidDeckSize ( int number );
   protected:
     bool initCurses ( void );
     int m_XMax, m_YMax;
@@ -114,18 +115,20 @@ void CApplication::handleSettingsMovement ( size_t & highlight, vector<pair<stri
     while ( 1 ) {
         // draw menu and highlight currently selected
         for ( size_t i = 0; i < menuItems.size(); i++ ) {
-            if ( i == highlight && ! menuItems[i].second && i != menuItems.size() - 1 )
+            if ( i == highlight && ! menuItems[i].second && i == 0 )
                 wattron ( m_Win, OFF_SELECTED_PAIR );
-            else if ( i == highlight && menuItems[i].second )
+            else if ( i == highlight && menuItems[i].second && i == 0 )
                 wattron ( m_Win, ON_SELECTED_PAIR );
-            else if ( i != menuItems.size() - 1 && ! menuItems[i].second )
+            else if ( i == 0 && ! menuItems[i].second )
                 wattron ( m_Win, OFF_PAIR );
-            else if ( i != menuItems.size() - 1 && menuItems[i].second )
+            else if ( i == 0 && menuItems[i].second )
                 wattron ( m_Win, ON_PAIR );
-            if ( i == highlight && i == menuItems.size() - 1 )
+            if ( i == highlight && i != 0 )
                 wattron ( m_Win, A_REVERSE );
             
             mvwprintw ( m_Win, i+1, 2, "%s", menuItems[i].first.c_str() );
+            if ( i == 1 )
+                wprintw ( m_Win, " %d", m_Settings.getMaxDeckSize() );
             wattroff ( m_Win, OFF_PAIR );
             wattroff ( m_Win, OFF_PAIR );
             wattroff ( m_Win, ON_SELECTED_PAIR );
@@ -136,14 +139,43 @@ void CApplication::handleSettingsMovement ( size_t & highlight, vector<pair<stri
             break;
     }
 }
+/**
+ * @brief reads a number at given coords
+ * 
+ * @param yCoord 
+ * @param xCoord 
+ * @return int 
+ */
+int CApplication::readNumber ( size_t yCoord, size_t xCoord ) {
+    curs_set ( 1 );
+    echo();
+    char buff[4];
+    mvwgetnstr ( m_Win, yCoord, xCoord, buff, 3);
+    noecho();
+    curs_set ( 0 );
+    for ( size_t i = 0; i < 3; i++ )
+        if ( buff[i] < '0' || buff[i] > '9' )
+            return -1;
+    return stoi ( buff );
+    // printw ( "Entered: %d \n", loadedNumber );
+    // printw ( "Res: %d \n", res );
+}
+
+bool CApplication::isValidDeckSize ( int number ) {
+    if ( number <= 0 ) {
+        printw ( "ERROR: %d Must be a positive number\n", number );
+        refresh();
+        return false;
+    }
+    return true;
+}
 
 bool CApplication::handleSettings ( void ) {
     drawMenu ( "Settings" );
-    vector<pair<string, bool>> menuItems = { {"Two-player game", false},
-                                             {"Deck size", false},
+    vector<pair<string, bool>> menuItems = { {"Two-player game", m_Settings.isTwoPlayerGame() },
+                                             {"Deck size:", false},
                                              {"-Return-", false} };
     size_t highlight = 0;
-    size_t deckSize = 10; // create a constant of this
     while ( highlight != 2 ) {
         handleSettingsMovement ( highlight, menuItems );
         if ( highlight == 0 ) {
@@ -151,18 +183,15 @@ bool CApplication::handleSettings ( void ) {
             m_Settings.toggleSP();
         }
         if ( highlight == 1 ) {
-            //toggleColor ( 1, menuItems );
-            curs_set ( 1 );
-            if ( mvwscanw ( m_Win, 2, 2 + menuItems[1].first.size(), ": %d", &deckSize ) != 1 ) {
-                printw ( "ERROR: Deck size has to be a number\n" );
-                refresh();
-            }
-            curs_set ( 0 );
-            m_Settings.setMaxDeckSize(deckSize);
+            mvwprintw ( m_Win, 2, 3 + menuItems[highlight].first.size(), "   " ); // clear 3 spaces 
+            int num = readNumber ( 2, 3 + menuItems[highlight].first.size() );
+            if ( isValidDeckSize ( num ) )
+                m_Settings.setMaxDeckSize ( num );
+            drawMenu ( "Settings" );
         }
     }
     
-    printw ("Your choice was : %s\n",menuItems[highlight].first.c_str() );
+    // printw ("Your choice was : %s\n",menuItems[highlight].first.c_str() );
     refresh();
     return true;
 }
@@ -193,7 +222,7 @@ bool CApplication::handleMainMenu ( void ) {
     else if ( highlight == 2 )
         handleSettings ();
     
-    printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
+    // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
     refresh();
     return true;
 }

@@ -5,16 +5,20 @@
 #include "CDeck.h"
 using namespace std;
 
+const int defaultDeckSize = 16;
+
 class CGameSettings {
   protected:
     bool m_TwoPlayerGame;
     int m_MaxDeckSize;
   public:
     CGameSettings ()
-    : m_TwoPlayerGame ( false ), m_MaxDeckSize ( 16 ) {}
+    : m_TwoPlayerGame ( false ), m_MaxDeckSize ( defaultDeckSize ) {}
     // switch from single player to 1v1 and vice versa
     void toggleSP ( void ) { m_TwoPlayerGame == true
                              ? m_TwoPlayerGame = false
                              : m_TwoPlayerGame = true;}
+    bool isTwoPlayerGame ( void ) { return m_TwoPlayerGame; }
     void setMaxDeckSize ( int newSize ) { m_MaxDeckSize = newSize; }
+    int getMaxDeckSize ( void ) { return m_MaxDeckSize; }
 };
