@@ -1,3 +1,4 @@
+#pragma once
 #include "CCard.h"
 #include <map>
 #include <memory>

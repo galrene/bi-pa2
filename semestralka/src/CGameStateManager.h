@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CGameSettings.h"
 #include "CPlayer.h"
 using namespace std;

@@ -1,3 +1,4 @@
+#pragma once
 #include "CCharacter.h"
 #include "CDeck.h"
 #include <string>

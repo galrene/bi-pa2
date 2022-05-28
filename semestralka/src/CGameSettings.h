@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include "CCard.h"
 #include "CDeck.h"
