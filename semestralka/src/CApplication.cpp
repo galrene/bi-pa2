@@ -13,9 +13,9 @@ class CApplication {
     void toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & menuItems );
     bool handleSettings ( void );
     bool handleMainMenu ( void );
-    bool handleNavigation ( const size_t & menuSize, size_t & highlight );
-    void handleMenuMovement ( size_t & highlight, vector<string> & menuItems );
-    void handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems );
+    int handleNavigation ( const size_t & menuSize, size_t & highlight );
+    bool handleMenuMovement ( size_t & highlight, vector<string> & menuItems );
+    bool handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems );
     int  readNumber ( size_t yCoord, size_t xCoord );
     bool isValidDeckSize ( int number );
   protected:
@@ -86,8 +86,14 @@ void CApplication::toggleColor ( const size_t & itemIndex, vector<pair<string,bo
     wattroff ( m_Win, ON_PAIR );
     wattroff ( m_Win, OFF_PAIR );
 }
-
-bool CApplication::handleNavigation ( const size_t & menuSize, size_t & highlight ) {
+/**
+ * @brief handle navigating the menu
+ * 
+ * @param menuSize count of menu items
+ * @param highlight currently highlighted menu item
+ * @return 1 on enter, 0 on normal navigation, -1 on q
+ */
+int CApplication::handleNavigation ( const size_t & menuSize, size_t & highlight ) {
     int button;
     button = wgetch ( m_Win );
     switch ( button ) {
@@ -101,16 +107,18 @@ bool CApplication::handleNavigation ( const size_t & menuSize, size_t & highligh
                 highlight++;
             else highlight = 0;
             break;
+        case 'q':
+            return -1;
         default:
             break;
     }
     // pressed enter
     if ( button == 10 )
-        return true;
-    return false;
+        return 1;
+    return 0;
 }
 
-void CApplication::handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems ) {
+bool CApplication::handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems ) {
     // SIMPLIFY
     while ( 1 ) {
         // draw menu and highlight currently selected
@@ -135,9 +143,13 @@ void CApplication::handleSettingsMovement ( size_t & highlight, vector<pair<stri
             wattroff ( m_Win, OFF_SELECTED_PAIR );
             wattroff ( m_Win, A_REVERSE );
         }
-        if ( handleNavigation ( menuItems.size(), highlight ) )
+        int res = handleNavigation ( menuItems.size(), highlight );
+        if ( res == 1 )
             break;
+        else if ( res == -1 )
+            return false;
     }
+    return true;
 }
 /**
  * @brief reads a number at given coords
@@ -149,12 +161,12 @@ void CApplication::handleSettingsMovement ( size_t & highlight, vector<pair<stri
 int CApplication::readNumber ( size_t yCoord, size_t xCoord ) {
     curs_set ( 1 );
     echo();
-    char buff[4];
+    char buff[4] = {0};
     mvwgetnstr ( m_Win, yCoord, xCoord, buff, 3);
     noecho();
     curs_set ( 0 );
-    for ( size_t i = 0; i < 3; i++ )
-        if ( buff[i] < '0' || buff[i] > '9' )
+    for ( const auto & x : buff )
+        if ( x != '\0' && (x < '0' || x > '9') )
             return -1;
     return stoi ( buff );
     // printw ( "Entered: %d \n", loadedNumber );
@@ -177,7 +189,8 @@ bool CApplication::handleSettings ( void ) {
                                              {"-Return-", false} };
     size_t highlight = 0;
     while ( highlight != 2 ) {
-        handleSettingsMovement ( highlight, menuItems );
+        if ( ! handleSettingsMovement ( highlight, menuItems ) )
+            return false;
         if ( highlight == 0 ) {
             toggleColor ( 0, menuItems );
             m_Settings.toggleSP();
@@ -188,6 +201,7 @@ bool CApplication::handleSettings ( void ) {
             if ( isValidDeckSize ( num ) )
                 m_Settings.setMaxDeckSize ( num );
             drawMenu ( "Settings" );
+            wrefresh ( m_Win );
         }
     }
     
@@ -196,7 +210,7 @@ bool CApplication::handleSettings ( void ) {
     return true;
 }
 
-void CApplication::handleMenuMovement ( size_t & highlight, vector<string> & menuItems ) {
+bool CApplication::handleMenuMovement ( size_t & highlight, vector<string> & menuItems ) {
     while ( 1 ) {
         // draw menu and highlight currently selected
         for ( size_t i = 0; i < menuItems.size(); i++ ) {
@@ -205,9 +219,13 @@ void CApplication::handleMenuMovement ( size_t & highlight, vector<string> & men
             mvwprintw ( m_Win, i+1, 2, "%s", menuItems[i].c_str() );
             wattroff ( m_Win, A_REVERSE );
         }
-        if ( handleNavigation ( menuItems.size(), highlight ) )
+        int res = handleNavigation ( menuItems.size(), highlight );
+        if ( res == 1 )
             break;
+        else if ( res == -1 )
+            return false;
     }
+    return true;
 }
 
 bool CApplication::handleMainMenu ( void ) {
@@ -215,12 +233,14 @@ bool CApplication::handleMainMenu ( void ) {
     vector<string> menuItems = {"New Game","Load Game","Settings", "-Quit-"};
     size_t highlight = 0;
     
-    handleMenuMovement (highlight, menuItems );
+    if ( ! handleMenuMovement (highlight, menuItems ) )
+        return false;
     // selected quit
     if ( highlight == 3 )
         return false;
     else if ( highlight == 2 )
-        handleSettings ();
+        if ( ! handleSettings () )
+            return false;
     
     // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
     refresh();
