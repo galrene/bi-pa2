@@ -7,13 +7,13 @@ using namespace std;
 
 class CApplication {
   public:
-    CApplication ( CGameSettings & settings, CGameStateManager & gsm );
+    CApplication ( CGameSettings settings/*, CGameStateManager gsm*/ );
     
     void drawMenu ( const char * menuHeader  );
     void toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & menuItems );
     bool handleSettings ( void );
     bool handleMainMenu ( void );
-    int handleNavigation ( const size_t & menuSize, size_t & highlight );
+    int  handleNavigation ( const size_t & menuSize, size_t & highlight );
     bool handleMenuMovement ( size_t & highlight, vector<string> & menuItems );
     bool handleSettingsMovement ( size_t & highlight, vector<pair<string,bool>> & menuItems );
     int  readNumber ( size_t yCoord, size_t xCoord );
@@ -23,15 +23,15 @@ class CApplication {
     int m_XMax, m_YMax;
     WINDOW * m_Win;
     CGameSettings m_Settings;
-    CGameStateManager m_Gsm;
+    // CGameStateManager m_Gsm;
 };
 
-CApplication::CApplication ( CGameSettings & settings, CGameStateManager & gsm ) {
+CApplication::CApplication ( CGameSettings settings/*, CGameStateManager gsm*/ ) {
     initCurses(); // add try catch block
     getmaxyx ( stdscr, m_YMax, m_XMax );
     m_Win = newwin ( m_YMax/3, 25, m_YMax/4, (m_XMax/2-10) );
     keypad ( m_Win, TRUE ); // enable keypad inputs
-    m_Gsm = gsm;
+    // m_Gsm = gsm;
     m_Settings = settings;
 
 }
@@ -40,7 +40,7 @@ void CApplication::drawMenu ( const char * menuHeader  ) {
     wclear ( m_Win );
     /* lines, colons, beginY, beginX */
     box ( m_Win, 0, 0 );
-    mvwprintw ( m_Win, 0, 7, "%s", menuHeader );
+    mvwprintw ( m_Win, 0, 8, "%s", menuHeader );
     //wrefresh (m_Win);
 }
 
@@ -165,7 +165,7 @@ int CApplication::readNumber ( size_t yCoord, size_t xCoord ) {
     mvwgetnstr ( m_Win, yCoord, xCoord, buff, 3);
     noecho();
     curs_set ( 0 );
-    for ( const auto & x : buff )
+    for ( const auto & x : buff ) // use isDigit() ?
         if ( x != '\0' && (x < '0' || x > '9') )
             return -1;
     return atoi ( buff );
@@ -175,13 +175,14 @@ int CApplication::readNumber ( size_t yCoord, size_t xCoord ) {
 
 bool CApplication::isValidDeckSize ( int number ) {
     if ( number <= 0 ) {
-        printw ( "ERROR: %d Must be a positive number\n", number );
+        printw ( "ERROR: %d Must be a number\n", number );
         refresh();
         return false;
     }
     return true;
 }
 
+// Spravit ako simple string vector bez paru, hodnoty citat iba zo settings
 bool CApplication::handleSettings ( void ) {
     drawMenu ( "Settings" );
     vector<pair<string, bool>> menuItems = { {"Two-player game", m_Settings.isTwoPlayerGame() },
@@ -252,9 +253,9 @@ bool CApplication::handleMainMenu ( void ) {
 
 
 int main ( int argc, char const *argv[] ) {
-    CGameStateManager gsm;
+    // CGameStateManager gsm;
     CGameSettings settings;
-    CApplication app ( settings, gsm );
+    CApplication app ( settings );
     while ( app.handleMainMenu () ) {}
     endwin();
     return 0;
