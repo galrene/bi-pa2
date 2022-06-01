@@ -177,24 +177,10 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
 
 bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
                                          vector<shared_ptr<CCharacter>> & loadedCharacters ) {
-    // stoi exception catch
-    try {
-        CCharacter character (      loadedData["name"],
-                                    loadedData["class"],
-                               stoi(loadedData["hp"]),
-                               stoi(loadedData["mana"]),
-                               stoi(loadedData["strength"]),
-                               stoi(loadedData["defense"]) );
-        if ( ! character.isSet() )
-            return false;
-        loadedCharacters.emplace_back ( make_shared<CCharacter> ( character ) );
-    }
-    catch ( const exception & e ) {
-        cerr << e.what() << " exception:\n";
-        cerr << "Bad character that should be an integer or an invalid attribute name in " << entry.path() << '\n';
+    CCharacter character ( loadedData );
+    if ( ! character.buildCharacter() )
         return false;
-    }
-    
+    loadedCharacters.emplace_back ( make_shared<CCharacter> ( character ) );
     return true;
 }
 /**
@@ -211,18 +197,22 @@ bool CConfigParser::loadCharacterFromIni ( const fs::directory_entry & entry, ve
         return false;
     }
     string header = readIni ( entry.path().generic_string() );
-    if ( header != "character" && header != "" ) {
+    if ( header == "" ) 
+        return false;
+    if ( header != "character" ) {
         cerr << "No [character] section found in" << entry.path().generic_string() << endl;
         return false;
     }
-    if ( header == "" ) 
-        return false;
-    if ( ! constructCharacter ( entry, loadedCharacters ) ) {
-        cerr << "Failed to set all of the required character attributes" << endl;
-        loadedData.clear();
+    try {
+        if ( ! constructCharacter ( entry, loadedCharacters ) )
+            cerr << "Failed to set all of the required character attributes" << endl;
+    }
+    catch ( const exception & e ) {
+        std::cerr << e.what() << '\n';
+        cerr << "Bad character that should be an integer or an invalid attribute name in " << entry.path() << '\n';
         return false;
     }
-    loadedData.clear();
+    
     return true;
 }
 
@@ -238,10 +228,9 @@ vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & di
     if ( ! enterDirectory ( dirName ) )
         return {}; 
     for ( const auto & chEntry : fs::directory_iterator ( m_Path ) ) {
-        if ( ! loadCharacterFromIni ( chEntry, loadedCharacters ) ) {
+        if ( ! loadCharacterFromIni ( chEntry, loadedCharacters ) )
             failedToLoad.push_back ( chEntry.path().generic_string() );
-            continue;
-        }
+        loadedData.clear();
     }
     if ( ! failedToLoad.empty() ) {
         cerr << "Failed to load files: " << endl;
@@ -256,33 +245,29 @@ bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<sh
         cerr << "Missing type atribute in card " << entry << endl;
         return false;
     }
-    if ( loadedData["type"] == "attack" ) {
+    else if ( loadedData["type"] == "attack" ) {
         CAttack att ( loadedData );
         if ( ! att.buildCard() )
             return false;
-        loadedCards.push_back ( make_shared<CAttack> ( att ) );
-        return true;
+        loadedCards.emplace_back ( make_shared<CAttack> ( att ) );
     }
     else if ( loadedData["type"] == "defense" ) {
         CDefense def ( loadedData );
         if ( ! def.buildCard() )
             return false;
-        loadedCards.push_back ( make_shared<CDefense> ( def ) );
-        return true;
+        loadedCards.emplace_back ( make_shared<CDefense> ( def ) );
     }
     else if ( loadedData["type"] == "passive" ) {
         CPassive pass ( loadedData );
         if ( ! pass.buildCard() )
             return false;
-        loadedCards.push_back ( make_shared<CPassive> ( pass ) );
-        return true;
+        loadedCards.emplace_back ( make_shared<CPassive> ( pass ) );
     }
     else if ( loadedData["type"] == "special" ) {
         CSpecial spec ( loadedData );
         if ( ! spec.buildCard() )
             return false;
-        loadedCards.push_back ( make_shared<CSpecial> ( spec ) );
-        return true;
+        loadedCards.emplace_back ( make_shared<CSpecial> ( spec ) );
     }
     else {
         cerr << "Unidentified card type \"" << loadedData["type"] << "\"" << endl;
@@ -304,14 +289,13 @@ bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, vector<
         return false;
     }
     try {
-        if ( ! constructCard ( entry, loadedCards ) ) {
+        if ( ! constructCard ( entry, loadedCards ) )
             cerr << "Failed to set all of the required card attributes" << endl;
-            return false;
-        }
     }
     catch ( const exception & e ) {
         cerr << e.what() << '\n';
-        cerr << "Failed to construct card " << entry << " invalid key value pair" << endl;
+        cerr << "Bad character that should be an integer or an invalid attibute name in " << entry << endl;
+        return false;
     }
     return true;
 }
