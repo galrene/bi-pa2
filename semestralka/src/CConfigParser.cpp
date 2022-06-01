@@ -7,46 +7,43 @@
 #include <string>
 #include <filesystem>
 #include "CCharacter.h"
+#include "Constants.h"
+#include "CCard.h"
 
 using namespace std;
 namespace fs = filesystem;
-
-const fs::path defaultPath = fs::current_path().parent_path();
 
 class CConfigParser {
   public:
     CConfigParser ( void );
     explicit CConfigParser ( fs::path location );
+
     vector<shared_ptr<CCharacter>> loadCharacters ( const string & dirName );
+    vector<shared_ptr<CCard>> loadCards ( const string & dirName );
     bool setPath ( const fs::path & location );
-    bool loadCards ();
   private:
-    bool constructCharacter ( vector<shared_ptr<CCharacter>> & loadedCharacters,
-                              const fs::directory_entry & chEntry );
+    bool constructCharacter ( const fs::directory_entry & entry,
+                              vector<shared_ptr<CCharacter>> & loadedCharacters );
+    bool constructCard ( const fs::directory_entry & entry,
+                         vector<shared_ptr<CCard>> & loadedCards );                              
     string readIni ( const fs::path & iniPath );
     bool isIni ( const fs::directory_entry & entry );
     bool enterDirectory ( const string & dirName );
     bool readKeyValue ( const string & line, string & key, string & value );
     bool loadCharacterFromIni ( const fs::directory_entry & entry,
                                 vector<shared_ptr<CCharacter>> & loadedCharacters );
+    bool loadCardFromIni ( const fs::directory_entry & entry,
+                            vector<shared_ptr<CCard>> & loadedCards );
 
     vector<string> failedToLoad;
     map<string,string> loadedData;
     fs::path m_Path;
 };
-/**
- * @brief Construct a new CConfigParser
- * 
- * @param location
- */
-CConfigParser::CConfigParser ( fs::path location )
-: m_Path ( location ) {}
-/**
+/*
  * @brief Construct a new CConfigParser at default location
  */
 CConfigParser::CConfigParser ( void )
 : m_Path ( defaultPath ) {}
-
 /**
  * @brief enters a directory from current working directory
  * 
@@ -55,6 +52,7 @@ CConfigParser::CConfigParser ( void )
  * @return false 
  */
 bool CConfigParser::enterDirectory ( const string & dirName ) {
+    m_Path = defaultPath;
     m_Path.append ( dirName );
     if ( ! fs::exists ( m_Path ) ) {
         cerr << "Directory " << m_Path << " doesn't exist " << endl;
@@ -173,25 +171,26 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
     return header;
 }
 
-bool CConfigParser::constructCharacter ( vector<shared_ptr<CCharacter>> & loadedCharacters,
-                                         const fs::directory_entry & chEntry ) {
+bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
+                                         vector<shared_ptr<CCharacter>> & loadedCharacters ) {
     // stoi exception catch
     try {
-        CCharacter character ( loadedData["name"],
-                                loadedData["class"],
-                                stoi(loadedData["hp"]),
-                                stoi(loadedData["mana"]),
-                                stoi(loadedData["strength"]) );
+        CCharacter character (      loadedData["name"],
+                                    loadedData["class"],
+                               stoi(loadedData["hp"]),
+                               stoi(loadedData["mana"]),
+                               stoi(loadedData["strength"]),
+                               stoi(loadedData["defense"]) );
         if ( ! character.isSet() )
             return false;
         loadedCharacters.emplace_back ( make_shared<CCharacter> ( character ) );
     }
     catch ( const exception & e ) {
-        failedToLoad.push_back ( chEntry.path().filename() );
         cerr << e.what() << " exception:\n";
-        cerr << "Bad character that should be an integer or an invalid attribute name in " << chEntry.path() << '\n';
+        cerr << "Bad character that should be an integer or an invalid attribute name in " << entry.path() << '\n';
+        return false;
     }
-    loadedData.clear();
+    
     return true;
 }
 /**
@@ -214,16 +213,18 @@ bool CConfigParser::loadCharacterFromIni ( const fs::directory_entry & entry, ve
     }
     if ( header == "" ) 
         return false;
-    if ( ! constructCharacter ( loadedCharacters, entry ) ) {
+    if ( ! constructCharacter ( entry, loadedCharacters ) ) {
         cerr << "Failed to set all of the required character attributes" << endl;
+        loadedData.clear();
         return false;
     }
+    loadedData.clear();
     return true;
 }
 
 /**
  * @brief load characters from ini files contained inside of a given directory
- * @param dirName name of directory ( in the parent directory ) containing character definitions
+ * @param dirName name of directory containing character definitions, search in program main directory by default
  * @return vector<shared_ptr<CCharacter>> of loaded characters on success
  * @return empty vector on failure to access directory
  */
@@ -246,10 +247,102 @@ vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & di
     failedToLoad.clear();
     return loadedCharacters;
 }
+bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<shared_ptr<CCard>> & loadedCards ) {
+    if ( loadedData["type"] == "" ) {
+        cerr << "Missing type atribute in card " << entry << endl;
+        return false;
+    }
+    if ( loadedData["type"] == "attack" ) {
+        CAttack att ( loadedData["name"],
+                      loadedData["type"],
+                      stoi(loadedData["manaCost"]),
+                      stoi(loadedData["damage"]) );
+        if ( ! att.containsDeps ( loadedData ) )
+            return false;
+        loadedCards.push_back ( make_shared<CAttack> ( att ) );
+        return true;
+    }
+    else if ( loadedData["type"] == "defense" ) {
+        CDefense def ( loadedData["name"],
+                       loadedData["type"],
+                       stoi(loadedData["manaCost"]),
+                       stoi(loadedData["heal"]) );
+        if ( ! def.containsDeps ( loadedData ) )
+            return false;
+        loadedCards.push_back ( make_shared<CDefense> ( def ) );
+        return true;
+    }
+    else if ( loadedData["type"] == "passive" ) {
+        CPassive pass ( loadedData["name"],
+                        loadedData["type"],
+                        stoi(loadedData["manaCost"]),
+                        stoi(loadedData["heal"]),
+                        stoi(loadedData["damage"]),
+                        stoi(loadedData["duration"]) );
+        if ( ! pass.containsDeps ( loadedData ) )
+            return false;
+        loadedCards.push_back ( make_shared<CPassive> ( pass ) );
+        return true;
+    }
+    else if ( loadedData["type"] == "special" ) {
+        CSpecial spec ( loadedData["name"],
+                        loadedData["type"],
+                        stoi(loadedData["manaCost"]),
+                        stoi(loadedData["manaDiff"]),
+                        stoi(loadedData["strengthDiff"]),
+                        stoi(loadedData["defenseDiff"]) );
+        if ( ! spec.containsDeps ( loadedData ) )
+            return false;
+        loadedCards.push_back ( make_shared<CSpecial> ( spec ) );
+        return true;
+    }
+    else {
+        cerr << "Unidentified card type \"" << loadedData["type"] << "\"" << endl;
+        return false;
+    }
+    return true;
+}
+
+bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, vector<shared_ptr<CCard>> & loadedCards ) {
+    if ( ! isIni ( entry ) ) {
+        cerr << entry.path().generic_string() << " isn't a .ini" << endl;
+        return false;
+    }
+    string header = readIni ( entry.path().generic_string() );
+    if ( header != "card" && header != "" ) {
+        cerr << "No [card] section found in" << entry.path().generic_string() << endl;
+        return false;
+    }
+    if ( header == "" ) 
+        return false;
+    if ( ! constructCard ( entry, loadedCards ) ) {
+        cerr << "Failed to set all of the required card attributes" << endl;
+        return false;
+    }
+    return true;
+}
+
+vector<shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
+    vector<shared_ptr<CCard>> loadedCards;
+    if ( ! enterDirectory ( dirName ) )
+        return {};
+    for ( const auto & entry : fs::directory_iterator ( m_Path ) ) {
+        if ( ! loadCardFromIni ( entry, loadedCards ) )
+            failedToLoad.push_back ( entry.path().generic_string() );
+        loadedData.clear();
+    }
+    if ( ! failedToLoad.empty() ) {
+        cerr << "Failed to load files: " << endl;
+        for ( const auto & x : failedToLoad )
+            cerr << "\t" << x << endl;
+    }
+    failedToLoad.clear();
+    return loadedCards;
+}
 
 int main ( int argc, char const *argv[] ) {
     CConfigParser cfgp;
     vector<shared_ptr<CCharacter>> characters = cfgp.loadCharacters ( "characters" );
-
+    vector<shared_ptr<CCard>> cards = cfgp.loadCards ( "cards" );
     return 0;
 }

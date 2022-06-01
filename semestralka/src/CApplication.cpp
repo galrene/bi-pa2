@@ -1,8 +1,11 @@
 #include <ncurses.h>
 #include <iostream>
 #include <vector>
+#include <functional>
+
 #include "CGameSettings.h"
 #include "CGameStateManager.h"
+#include "Constants.h"
 using namespace std;
 
 class CApplication {
@@ -87,7 +90,7 @@ void CApplication::toggleColor ( const size_t & itemIndex, vector<pair<string,bo
     wattroff ( m_Win, OFF_PAIR );
 }
 /**
- * @brief handle navigating the menu
+ * @brief handle navigating the menu using arrow keys
  * 
  * @param menuSize count of menu items
  * @param highlight currently highlighted menu item
@@ -107,7 +110,7 @@ int CApplication::handleNavigation ( const size_t & menuSize, size_t & highlight
                 highlight++;
             else highlight = 0;
             break;
-        case 'q':
+        case ('d' & 0x1F):
             return -1;
         default:
             break;
@@ -165,8 +168,8 @@ int CApplication::readNumber ( size_t yCoord, size_t xCoord ) {
     mvwgetnstr ( m_Win, yCoord, xCoord, buff, 3);
     noecho();
     curs_set ( 0 );
-    for ( const auto & x : buff ) // use isDigit() ?
-        if ( x != '\0' && (x < '0' || x > '9') )
+    for ( size_t i = 0; i < 3; i ++ ) // use isDigit() ?
+        if ( ! isdigit ( buff[i] ) && buff[i] != '\0' )
             return -1;
     return atoi ( buff );
     // printw ( "Entered: %d \n", loadedNumber );
@@ -181,7 +184,7 @@ bool CApplication::isValidDeckSize ( int number ) {
     }
     return true;
 }
-
+//  nechcem iba breaknut on click v menu?
 // Spravit ako simple string vector bez paru, hodnoty citat iba zo settings
 bool CApplication::handleSettings ( void ) {
     drawMenu ( "Settings" );
@@ -240,8 +243,7 @@ bool CApplication::handleMainMenu ( void ) {
     if ( highlight == 3 )
         return false;
     else if ( highlight == 2 )
-        if ( ! handleSettings () )
-            return false;
+        handleSettings ();
     
     // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
     refresh();

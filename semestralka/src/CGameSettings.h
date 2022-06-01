@@ -5,12 +5,11 @@
 #include "CDeck.h"
 using namespace std;
 
-const int defaultDeckSize = 16;
-
 class CGameSettings {
-  protected:
+  protected:    
     bool m_TwoPlayerGame;
     int m_MaxDeckSize;
+    friend class CApplication_v2;
   public:
     CGameSettings ()
     : m_TwoPlayerGame ( false ), m_MaxDeckSize ( defaultDeckSize ) {}
