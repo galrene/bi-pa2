@@ -168,6 +168,10 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
         }
         loadedData[tmpKey] = tmpVal;
     }
+    if ( header == "" ) {
+        cerr << "Missing header in " << iniPath << endl;
+        return "";
+    }
     return header;
 }
 
@@ -253,45 +257,29 @@ bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<sh
         return false;
     }
     if ( loadedData["type"] == "attack" ) {
-        CAttack att ( loadedData["name"],
-                      loadedData["type"],
-                      stoi(loadedData["manaCost"]),
-                      stoi(loadedData["damage"]) );
-        if ( ! att.containsDeps ( loadedData ) )
+        CAttack att ( loadedData );
+        if ( ! att.buildCard() )
             return false;
         loadedCards.push_back ( make_shared<CAttack> ( att ) );
         return true;
     }
     else if ( loadedData["type"] == "defense" ) {
-        CDefense def ( loadedData["name"],
-                       loadedData["type"],
-                       stoi(loadedData["manaCost"]),
-                       stoi(loadedData["heal"]) );
-        if ( ! def.containsDeps ( loadedData ) )
+        CDefense def ( loadedData );
+        if ( ! def.buildCard() )
             return false;
         loadedCards.push_back ( make_shared<CDefense> ( def ) );
         return true;
     }
     else if ( loadedData["type"] == "passive" ) {
-        CPassive pass ( loadedData["name"],
-                        loadedData["type"],
-                        stoi(loadedData["manaCost"]),
-                        stoi(loadedData["heal"]),
-                        stoi(loadedData["damage"]),
-                        stoi(loadedData["duration"]) );
-        if ( ! pass.containsDeps ( loadedData ) )
+        CPassive pass ( loadedData );
+        if ( ! pass.buildCard() )
             return false;
         loadedCards.push_back ( make_shared<CPassive> ( pass ) );
         return true;
     }
     else if ( loadedData["type"] == "special" ) {
-        CSpecial spec ( loadedData["name"],
-                        loadedData["type"],
-                        stoi(loadedData["manaCost"]),
-                        stoi(loadedData["manaDiff"]),
-                        stoi(loadedData["strengthDiff"]),
-                        stoi(loadedData["defenseDiff"]) );
-        if ( ! spec.containsDeps ( loadedData ) )
+        CSpecial spec ( loadedData );
+        if ( ! spec.buildCard() )
             return false;
         loadedCards.push_back ( make_shared<CSpecial> ( spec ) );
         return true;
@@ -309,15 +297,21 @@ bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, vector<
         return false;
     }
     string header = readIni ( entry.path().generic_string() );
-    if ( header != "card" && header != "" ) {
+    if ( header == "" ) 
+        return false;
+    if ( header != "card" ) {
         cerr << "No [card] section found in" << entry.path().generic_string() << endl;
         return false;
     }
-    if ( header == "" ) 
-        return false;
-    if ( ! constructCard ( entry, loadedCards ) ) {
-        cerr << "Failed to set all of the required card attributes" << endl;
-        return false;
+    try {
+        if ( ! constructCard ( entry, loadedCards ) ) {
+            cerr << "Failed to set all of the required card attributes" << endl;
+            return false;
+        }
+    }
+    catch ( const exception & e ) {
+        cerr << e.what() << '\n';
+        cerr << "Failed to construct card " << entry << " invalid key value pair" << endl;
     }
     return true;
 }
