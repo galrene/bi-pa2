@@ -10,6 +10,7 @@
 #include "CCharacter.h"
 #include "Constants.h"
 #include "CCard.h"
+#include "CConfigSaver.h"
 
 using namespace std;
 namespace fs = filesystem;
@@ -21,17 +22,6 @@ class CConfigParser {
 
     vector<shared_ptr<CCharacter>> loadCharacters ( const string & dirName );
     vector<shared_ptr<CCard>> loadCards ( const string & dirName );
-    /**
-     * @brief save elements inside a directory in .ini format files
-     * 
-     * @tparam C CCard or Character
-     * @param elements Cards or Characters
-     * @param dirName directory in which to save
-     * @return true saved successfully
-     * @return false couldnt create requested directory
-     */
-    template < typename C >
-    bool save ( C & elements, string dirName );
     bool setPath ( const fs::path & location );
   private:
     /**
@@ -354,65 +344,12 @@ vector<shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
     return loadedCards;
 }
 
-bool CConfigParser::createDirectory ( string & dirName ) {
-    fs::path tmpPath = m_Path;
-    tmpPath.append ( dirName );
-    if ( fs::exists ( tmpPath ) && fs::is_directory ( tmpPath ) && fs::is_empty ( tmpPath ) )
-        return true;
-    if ( ! fs::exists ( tmpPath ) ) {
-        fs::create_directory ( tmpPath );
-        return true;
-    }
-    tmpPath += "_";
-    for ( size_t i = 1; i < SIZE_MAX; i++ ) {
-        tmpPath += i + '0';
-        if ( ! fs::exists ( tmpPath ) ) {
-            fs::create_directory ( tmpPath );
-            break;
-        }
-        string clearNumber = tmpPath.generic_string(); clearNumber.pop_back();
-        tmpPath = clearNumber;
-    }
-    if ( ! fs::exists ( tmpPath ) ) {
-        cerr << "Unable to create savefile directory" << endl;
-        return false;
-    }
-    dirName = tmpPath.filename();
-    return true;
-}
-
-template < typename C >
-bool CConfigParser::save ( C & elements, string dirName ) {
-    try {
-        if ( ! createDirectory ( dirName ) )
-            return false;
-    }
-    catch ( const exception & e ) {
-        cerr << e.what() << '\n';
-        return false;
-    }
-    m_Path.append ( dirName );
-    for ( const auto & x : elements ) {
-        string fileName = x->getHeader();
-        fileName += ".ini";
-        m_Path.append ( fileName );
-        ofstream ofs ( m_Path );
-        if ( ! ofs.good() ) {
-            cerr << "Failed to access file " << m_Path << endl;
-            continue;
-        }
-        x->dumpInfo ( ofs );
-        m_Path = m_Path.parent_path();
-    }
-    m_Path = m_Path.parent_path();
-    return true;
-}
-
 int main ( int argc, char const *argv[] ) { 
     CConfigParser cfgp;
     vector<shared_ptr<CCharacter>> characters = cfgp.loadCharacters ( "characters" );
     vector<shared_ptr<CCard>> cards = cfgp.loadCards ( "cards" );
-    cfgp.save< vector<shared_ptr<CCard>> > ( cards, "saved_cards" );
-    cfgp.save< vector<shared_ptr<CCharacter>> > ( characters, "saved_characters" );
+    CSaver saver;
+    saver.save< vector<shared_ptr<CCard>> > ( cards, "saved_cards" );
+    saver.save< vector<shared_ptr<CCharacter>> > ( characters, "saved_characters" );
     return 0;
 }
