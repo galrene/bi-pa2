@@ -23,6 +23,7 @@ class CCharacter {
     void save ( string path );
     bool isSet ( void );
     string getHeader ( void );
+    string getName ( void );
 };
 
 CCharacter::CCharacter ( string name, string charClass, int hp, int mana, int strength, int defense )
@@ -33,7 +34,9 @@ CCharacter::CCharacter ( map <string,string> data )
 string CCharacter::getHeader ( void ) {
   return m_Name + "_" + m_Class;
 }
-
+string CCharacter::getName ( void ) {
+  return m_Name;
+}
 bool CCharacter::containsDeps ( map <string,string> & data ) {
   if ( data["name"] == "" || data["class"] == "" || data["mana"] == "" || data["hp"] == ""
       || data["strength"] == "" || data["defense"] == "" )

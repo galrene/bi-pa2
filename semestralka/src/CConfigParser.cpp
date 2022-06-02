@@ -23,7 +23,8 @@ class CConfigParser {
     /**
      * @brief save elements inside a directory in .ini format files
      * 
-     * @param elements vector<shared_ptr<C>> of CCard or CCharacter
+     * @tparam C CCard or Character
+     * @param elements Cards or Characters
      * @param dirName directory in which to save
      * @return true saved successfully
      * @return false couldnt create requested directory
@@ -32,6 +33,14 @@ class CConfigParser {
     bool save ( vector<shared_ptr<C>> & elements, string dirName );
     bool setPath ( const fs::path & location );
   private:
+    /**
+     * @brief check if currently loaded element in m_LoadedData already exists in container
+     * 
+     * @tparam C CCard or CCharacter
+     * @param loaded container containing currently loaded cards / characters
+     */
+    template < typename C >
+    bool exists ( vector<shared_ptr<C>> & loaded );
     bool constructCharacter ( const fs::directory_entry & entry,
                               vector<shared_ptr<CCharacter>> & loadedCharacters );
     bool constructCard ( const fs::directory_entry & entry,
@@ -190,6 +199,10 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
 bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
                                          vector<shared_ptr<CCharacter>> & loadedCharacters ) {
     CCharacter character ( loadedData );
+    if ( exists<CCharacter> ( loadedCharacters ) ) {
+        cerr << "Character with name \"" << loadedData["name"] << "\" already exists" << endl;
+        return false;
+    }
     if ( ! character.buildCharacter() )
         return false;
     loadedCharacters.emplace_back ( make_shared<CCharacter> ( character ) );
@@ -253,9 +266,22 @@ vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & di
     m_Path = m_Path.parent_path();
     return loadedCharacters;
 }
+template < typename C >
+bool CConfigParser::exists ( vector<shared_ptr<C>> & loaded ) {
+    string name = loadedData["name"];
+    for ( const auto & x : loaded )
+        if ( name == x->getName() )
+            return true;
+    return false;
+}
+
 bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<shared_ptr<CCard>> & loadedCards ) {
     if ( loadedData["type"] == "" ) {
         cerr << "Missing type atribute in card " << entry << endl;
+        return false;
+    }
+    if ( exists<CCard> ( loadedCards ) ) {
+        cerr << "Card with name \"" << loadedData["name"] << "\" already exists" << endl;
         return false;
     }
     else if ( loadedData["type"] == "attack" ) {
