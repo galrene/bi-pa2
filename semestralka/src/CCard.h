@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
+#include <iostream>
 #include <map>
 #include "CPlayer.h"
-
 using namespace std;
 
 class CCard {
@@ -19,10 +19,11 @@ class CCard {
     // virtual void useCard ( CPlayer & user, CPlayer & opponent ) = 0;
     virtual bool containsDeps ( map <string,string> & data ) = 0; 
     virtual bool buildCard ( void ) = 0;
+    virtual void dumpInfo ( ostream & os ) = 0;
+    virtual string getHeader ( void );
     // virtual void renderCard ( win, y, x ) = 0; na vykreslenie karty
     // virtual shared_ptr<CCard> create ( void ) = 0; na vytvorenie shared_ptr
     /* for saving */
-    // virtual void dumpInfo ( void ) = 0;
 };
 
 class CAttack : public CCard {
@@ -32,7 +33,7 @@ class CAttack : public CCard {
     // virtual void useCard ( CPlayer & user, CPlayer & opponent ) override;
     virtual bool containsDeps ( map <string,string> & data ) override;
     virtual bool buildCard ( void ) override;
-    // virtual void dumpInfo ( void ) override;
+    virtual void dumpInfo ( ostream & os ) override;
   protected:
     int m_Damage;
 };
@@ -42,7 +43,7 @@ class CDefense : public CCard {
     CDefense ( string name, string type, int cost, int heal );
     CDefense ( map <string,string> & data );
     // virtual void useCard ( CPlayer & user, CPlayer & opponent ) override;
-    // virtual void dumpInfo ( void ) override;
+    virtual void dumpInfo ( ostream & os ) override;
     virtual bool buildCard ( void ) override;
     virtual bool containsDeps ( map <string,string> & data ) override;
   protected:
@@ -55,7 +56,7 @@ class CPassive : public CCard {
     CPassive ( map <string,string> & data );
     
     // virtual void useCard ( CPlayer & user, CPlayer & opponent ) override;
-    // virtual void dumpInfo ( void ) override;
+    virtual void dumpInfo ( ostream & os ) override;
     virtual bool buildCard ( void ) override;
     virtual bool containsDeps ( map <string,string> & data ) override;
   protected:
@@ -69,7 +70,7 @@ class CSpecial : public CCard {
     CSpecial ( string name, string type, int cost, int strDiff, int DefDiff, int manaDiff );
     CSpecial ( map <string,string> & data );
     // virtual void useCard ( CPlayer & user, CPlayer & opponent ) override;
-    // virtual void dumpInfo ( void ) override;
+    virtual void dumpInfo ( ostream & os ) override;
     virtual bool buildCard ( void ) override;
     virtual bool containsDeps ( map <string,string> & data ) override;
   protected:
@@ -83,12 +84,16 @@ CCard::CCard ( string name, string type, int cost )
 
 CCard::CCard ( map <string,string> & data )
 : m_Data ( map<string,string> ( data ) ) {}
+
+string CCard::getHeader ( void ) {
+  return m_Name + "_" + m_Type;
+}
+
 //-----------------------------------------------------------------------
 CAttack::CAttack ( string name, string type, int cost, int dmg )
 : CCard ( name, type, cost ), m_Damage ( dmg ) {}
 CAttack::CAttack ( map <string,string> & data )
 : CCard ( data ) {}
-
 bool CAttack::containsDeps ( map <string,string> & data ) {
   if ( data["name"] == "" || data["type"] == "" || data["manaCost"] == "" || data["damage"] == "" )
     return false;
@@ -108,6 +113,14 @@ bool CAttack::buildCard ( void ) {
   m_Cost = stoi(m_Data["manaCost"]);
   m_Damage = stoi(m_Data["damage"]);
   return true;
+}
+
+void CAttack::dumpInfo ( ostream & os ) {
+  os << "[card]" << endl;
+  os << "type = " << m_Type << endl;
+  os << "name = " << m_Name << endl;
+  os << "manaCost = " << m_Cost << endl;
+  os << "damage = " << m_Damage << endl;
 }
 // void CAttack::useCard ( CPlayer & user, CPlayer & opponent ) {
 //  opponent.m_PlayedCharacter
@@ -133,6 +146,14 @@ bool CDefense::buildCard ( void ) {
   m_Heal = stoi(m_Data["heal"]);
   return true;
 }
+void CDefense::dumpInfo ( ostream & os ) {
+  os << "[card]" << endl;
+  os << "type = " << m_Type << endl;
+  os << "name = " << m_Name << endl;
+  os << "manaCost = " << m_Cost << endl;
+  os << "heal = " << m_Heal << endl;
+}
+
 //-----------------------------------------------------------------------
 CPassive::CPassive ( string name, string type, int cost, int heal, int dmg, size_t dur )
 : CCard ( name, type, cost ), m_Heal ( heal ), m_Damage ( dmg ), m_Duration ( dur ) {}
@@ -157,6 +178,15 @@ bool CPassive::buildCard ( void ) {
   m_Duration = stoi(m_Data["duration"]);
   return true;
 }
+void CPassive::dumpInfo ( ostream & os ) {
+  os << "[card]" << endl;
+  os << "type = " << m_Type << endl;
+  os << "name = " << m_Name << endl;
+  os << "manaCost = " << m_Cost << endl;
+  os << "heal = " << m_Heal << endl;
+  os << "damage = " << m_Damage << endl;
+  os << "duration = " << m_Duration << endl;
+}
 //-----------------------------------------------------------------------
 CSpecial::CSpecial ( string name, string type, int cost, int strDiff, int defDiff, int manaDiff )
 : CCard ( name, type, cost ), m_StrengthDiff ( strDiff ), m_DefenseDiff ( defDiff ), m_ManaDiff ( manaDiff ) {}
@@ -170,7 +200,6 @@ bool CSpecial::containsDeps ( map <string,string> & data ) {
     return false;
   return true;
 }
-
 bool CSpecial::buildCard ( void ) {
   if ( ! containsDeps ( m_Data ) )
     return false;
@@ -181,4 +210,13 @@ bool CSpecial::buildCard ( void ) {
   m_StrengthDiff = stoi(m_Data["strengthDiff"]);
   m_DefenseDiff = stoi(m_Data["defenseDiff"]);
   return true;
+}
+void CSpecial::dumpInfo ( ostream & os ) {
+  os << "[card]" << endl;
+  os << "type = " << m_Type << endl;
+  os << "name = " << m_Name << endl;
+  os << "manaCost = " << m_Cost << endl;
+  os << "manaDiff = " << m_ManaDiff << endl;
+  os << "strengthDiff = " << m_StrengthDiff << endl;
+  os << "defenseDiff = " << m_DefenseDiff << endl;
 }

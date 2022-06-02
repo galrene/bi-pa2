@@ -20,6 +20,7 @@ class CConfigParser {
 
     vector<shared_ptr<CCharacter>> loadCharacters ( const string & dirName );
     vector<shared_ptr<CCard>> loadCards ( const string & dirName );
+    bool saveCards ( vector<shared_ptr<CCard>> & cards, string dirName );
     bool setPath ( const fs::path & location );
   private:
     bool constructCharacter ( const fs::directory_entry & entry,
@@ -34,6 +35,7 @@ class CConfigParser {
                                 vector<shared_ptr<CCharacter>> & loadedCharacters );
     bool loadCardFromIni ( const fs::directory_entry & entry,
                             vector<shared_ptr<CCard>> & loadedCards );
+    bool createDirectory ( string & dirName );
 
     vector<string> failedToLoad;
     map<string,string> loadedData;
@@ -52,16 +54,17 @@ CConfigParser::CConfigParser ( void )
  * @return false 
  */
 bool CConfigParser::enterDirectory ( const string & dirName ) {
-    m_Path = defaultPath;
-    m_Path.append ( dirName );
-    if ( ! fs::exists ( m_Path ) ) {
-        cerr << "Directory " << m_Path << " doesn't exist " << endl;
+    fs::path tmpPath = m_Path;
+    tmpPath.append ( dirName );
+    if ( ! fs::exists ( tmpPath ) ) {
+        cerr << "Directory " << tmpPath << " doesn't exist " << endl;
         return false;
     }
-    if ( ! fs::is_directory ( m_Path ) ) {
-        cerr << m_Path << " isn't a directory" << endl;
+    if ( ! fs::is_directory ( tmpPath ) ) {
+        cerr << tmpPath << " isn't a directory" << endl;
         return false;
     }
+    m_Path = tmpPath;
     return true;
 }
 
@@ -238,6 +241,7 @@ vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & di
             cerr << "\t" << x << endl;
     }
     failedToLoad.clear();
+    m_Path = m_Path.parent_path();
     return loadedCharacters;
 }
 bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<shared_ptr<CCard>> & loadedCards ) {
@@ -315,12 +319,68 @@ vector<shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
             cerr << "\t" << x << endl;
     }
     failedToLoad.clear();
+    m_Path = m_Path.parent_path();
     return loadedCards;
+}
+
+bool CConfigParser::createDirectory ( string & dirName ) {
+    fs::path tmpPath = m_Path;
+    tmpPath.append ( dirName );
+    if ( fs::exists ( tmpPath ) && fs::is_directory ( tmpPath ) && fs::is_empty ( tmpPath ) )
+        return true;
+    if ( ! fs::exists ( tmpPath ) ) {
+        fs::create_directory ( tmpPath );
+        return true;
+    }
+    tmpPath += "_";
+    for ( size_t i = 1; i < SIZE_MAX; i++ ) {
+        tmpPath += i + '0';
+        if ( ! fs::exists ( tmpPath ) ) {
+            fs::create_directory ( tmpPath );
+            break;
+        }
+        string clearNumber = tmpPath.generic_string(); clearNumber.pop_back();
+        tmpPath = clearNumber;
+    }
+    if ( ! fs::exists ( tmpPath ) ) {
+        cerr << "Unable to create savefile directory" << endl;
+        return false;
+    }
+    dirName = tmpPath.filename();
+    return true;
+}
+
+
+bool CConfigParser::saveCards ( vector<shared_ptr<CCard>> & cards, string dirName ) {    
+    try {
+        if ( ! createDirectory ( dirName ) )
+            return false;
+    }
+    catch ( const exception & e ) {
+        cerr << e.what() << '\n';
+        return false;
+    }
+    m_Path.append ( dirName );
+    for ( const auto & x : cards ) {
+        string fileName = x->getHeader();
+        fileName += ".ini";
+        m_Path.append ( fileName );
+        ofstream ofs ( m_Path );
+        if ( ! ofs.good() ) {
+            cerr << "Failed to access file " << m_Path << endl;
+            continue;
+        }
+        x->dumpInfo ( ofs );
+        m_Path.remove_filename();
+    }
+    m_Path = m_Path.parent_path();
+    return true;
 }
 
 int main ( int argc, char const *argv[] ) {
     CConfigParser cfgp;
     vector<shared_ptr<CCharacter>> characters = cfgp.loadCharacters ( "characters" );
     vector<shared_ptr<CCard>> cards = cfgp.loadCards ( "cards" );
+    cfgp.saveCards ( cards, "save" );
     return 0;
 }
