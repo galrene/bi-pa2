@@ -16,17 +16,23 @@ class CCharacter {
   public:
     CCharacter ( string name, string charClass, int hp, int mana, int strength, int defense );
     CCharacter ( map <string,string> data );
-    /* to file */
+
+    void dumpInfo ( ostream & os );
     bool containsDeps ( map <string,string> & data );
     bool buildCharacter ( void );
     void save ( string path );
     bool isSet ( void );
+    string getHeader ( void );
 };
 
 CCharacter::CCharacter ( string name, string charClass, int hp, int mana, int strength, int defense )
 : m_Name ( name ), m_Class ( charClass ), m_HP ( hp ), m_Mana ( mana ), m_Strength ( strength ), m_Defense ( defense ) {}
 CCharacter::CCharacter ( map <string,string> data )
 : m_DataSource ( data ) {}
+
+string CCharacter::getHeader ( void ) {
+  return m_Name + "_" + m_Class;
+}
 
 bool CCharacter::containsDeps ( map <string,string> & data ) {
   if ( data["name"] == "" || data["class"] == "" || data["mana"] == "" || data["hp"] == ""
@@ -45,4 +51,14 @@ bool CCharacter::buildCharacter ( void ) {
   m_Strength = stoi(m_DataSource["strength"]);
   m_Defense = stoi(m_DataSource["defense"]);
   return true;
+}
+
+void CCharacter::dumpInfo ( ostream & os ) {
+  os << "[character]" << endl;
+  os << "name = " << m_Name << endl;
+  os << "class = " << m_Class << endl;
+  os << "hp = " << m_HP << endl;
+  os << "mana = " << m_Mana << endl;
+  os << "strength = " << m_Strength << endl;
+  os << "defense = " << m_Defense << endl;
 }

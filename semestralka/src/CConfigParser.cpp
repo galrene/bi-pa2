@@ -20,7 +20,16 @@ class CConfigParser {
 
     vector<shared_ptr<CCharacter>> loadCharacters ( const string & dirName );
     vector<shared_ptr<CCard>> loadCards ( const string & dirName );
-    bool saveCards ( vector<shared_ptr<CCard>> & cards, string dirName );
+    /**
+     * @brief save elements inside a directory in .ini format files
+     * 
+     * @param elements vector<shared_ptr<C>> of CCard or CCharacter
+     * @param dirName directory in which to save
+     * @return true saved successfully
+     * @return false couldnt create requested directory
+     */
+    template < typename C >
+    bool save ( vector<shared_ptr<C>> & elements, string dirName );
     bool setPath ( const fs::path & location );
   private:
     bool constructCharacter ( const fs::directory_entry & entry,
@@ -350,8 +359,8 @@ bool CConfigParser::createDirectory ( string & dirName ) {
     return true;
 }
 
-
-bool CConfigParser::saveCards ( vector<shared_ptr<CCard>> & cards, string dirName ) {    
+template < typename C >
+bool CConfigParser::save ( vector<shared_ptr<C>> & elements, string dirName ) {
     try {
         if ( ! createDirectory ( dirName ) )
             return false;
@@ -361,7 +370,7 @@ bool CConfigParser::saveCards ( vector<shared_ptr<CCard>> & cards, string dirNam
         return false;
     }
     m_Path.append ( dirName );
-    for ( const auto & x : cards ) {
+    for ( const auto & x : elements ) {
         string fileName = x->getHeader();
         fileName += ".ini";
         m_Path.append ( fileName );
@@ -371,7 +380,7 @@ bool CConfigParser::saveCards ( vector<shared_ptr<CCard>> & cards, string dirNam
             continue;
         }
         x->dumpInfo ( ofs );
-        m_Path.remove_filename();
+        m_Path = m_Path.parent_path();
     }
     m_Path = m_Path.parent_path();
     return true;
@@ -381,6 +390,7 @@ int main ( int argc, char const *argv[] ) {
     CConfigParser cfgp;
     vector<shared_ptr<CCharacter>> characters = cfgp.loadCharacters ( "characters" );
     vector<shared_ptr<CCard>> cards = cfgp.loadCards ( "cards" );
-    cfgp.saveCards ( cards, "save" );
+    cfgp.save<CCard> ( cards, "saved_cards" );
+    cfgp.save<CCharacter> ( characters, "saved_characters" );
     return 0;
 }
