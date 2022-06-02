@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -30,7 +31,7 @@ class CConfigParser {
      * @return false couldnt create requested directory
      */
     template < typename C >
-    bool save ( vector<shared_ptr<C>> & elements, string dirName );
+    bool save ( C & elements, string dirName );
     bool setPath ( const fs::path & location );
   private:
     /**
@@ -39,8 +40,6 @@ class CConfigParser {
      * @tparam C CCard or CCharacter
      * @param loaded container containing currently loaded cards / characters
      */
-    template < typename C >
-    bool exists ( vector<shared_ptr<C>> & loaded );
     bool constructCharacter ( const fs::directory_entry & entry,
                               vector<shared_ptr<CCharacter>> & loadedCharacters );
     bool constructCard ( const fs::directory_entry & entry,
@@ -57,6 +56,7 @@ class CConfigParser {
 
     vector<string> failedToLoad;
     map<string,string> loadedData;
+    set<string> loadedUniqueElements;
     fs::path m_Path;
 };
 /*
@@ -199,13 +199,14 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
 bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
                                          vector<shared_ptr<CCharacter>> & loadedCharacters ) {
     CCharacter character ( loadedData );
-    if ( exists<CCharacter> ( loadedCharacters ) ) {
+    if ( loadedUniqueElements.find ( loadedData["name"] ) != loadedUniqueElements.end() ) {
         cerr << "Character with name \"" << loadedData["name"] << "\" already exists" << endl;
         return false;
     }
     if ( ! character.buildCharacter() )
         return false;
     loadedCharacters.emplace_back ( make_shared<CCharacter> ( character ) );
+    loadedUniqueElements.insert ( loadedData["name"] );
     return true;
 }
 /**
@@ -264,15 +265,8 @@ vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & di
     }
     failedToLoad.clear();
     m_Path = m_Path.parent_path();
+    loadedUniqueElements.clear();
     return loadedCharacters;
-}
-template < typename C >
-bool CConfigParser::exists ( vector<shared_ptr<C>> & loaded ) {
-    string name = loadedData["name"];
-    for ( const auto & x : loaded )
-        if ( name == x->getName() )
-            return true;
-    return false;
 }
 
 bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<shared_ptr<CCard>> & loadedCards ) {
@@ -280,7 +274,7 @@ bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<sh
         cerr << "Missing type atribute in card " << entry << endl;
         return false;
     }
-    if ( exists<CCard> ( loadedCards ) ) {
+    if ( loadedUniqueElements.find ( loadedData["name"] ) != loadedUniqueElements.end() ) {
         cerr << "Card with name \"" << loadedData["name"] << "\" already exists" << endl;
         return false;
     }
@@ -312,6 +306,7 @@ bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<sh
         cerr << "Unidentified card type \"" << loadedData["type"] << "\"" << endl;
         return false;
     }
+    loadedUniqueElements.insert ( loadedData["name"] );
     return true;
 }
 
@@ -355,6 +350,7 @@ vector<shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
     }
     failedToLoad.clear();
     m_Path = m_Path.parent_path();
+    loadedUniqueElements.clear();
     return loadedCards;
 }
 
@@ -386,7 +382,7 @@ bool CConfigParser::createDirectory ( string & dirName ) {
 }
 
 template < typename C >
-bool CConfigParser::save ( vector<shared_ptr<C>> & elements, string dirName ) {
+bool CConfigParser::save ( C & elements, string dirName ) {
     try {
         if ( ! createDirectory ( dirName ) )
             return false;
@@ -412,11 +408,11 @@ bool CConfigParser::save ( vector<shared_ptr<C>> & elements, string dirName ) {
     return true;
 }
 
-int main ( int argc, char const *argv[] ) {
+int main ( int argc, char const *argv[] ) { 
     CConfigParser cfgp;
     vector<shared_ptr<CCharacter>> characters = cfgp.loadCharacters ( "characters" );
     vector<shared_ptr<CCard>> cards = cfgp.loadCards ( "cards" );
-    cfgp.save<CCard> ( cards, "saved_cards" );
-    cfgp.save<CCharacter> ( characters, "saved_characters" );
+    cfgp.save< vector<shared_ptr<CCard>> > ( cards, "saved_cards" );
+    cfgp.save< vector<shared_ptr<CCharacter>> > ( characters, "saved_characters" );
     return 0;
 }
