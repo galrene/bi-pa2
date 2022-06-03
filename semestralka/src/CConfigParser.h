@@ -343,7 +343,7 @@ vector<shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
     loadedUniqueElements.clear();
     return loadedCards;
 }
-
+/*
 int main ( int argc, char const *argv[] ) { 
     CConfigParser cfgp;
     vector<shared_ptr<CCharacter>> characters = cfgp.loadCharacters ( "characters" );
@@ -353,3 +353,4 @@ int main ( int argc, char const *argv[] ) {
     saver.save< vector<shared_ptr<CCharacter>> > ( characters, "saved_characters" );
     return 0;
 }
+*/

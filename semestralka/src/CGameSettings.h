@@ -3,6 +3,8 @@
 #include <memory>
 #include "CCard.h"
 #include "CDeck.h"
+#include "Constants.h"
+
 using namespace std;
 
 class CGameSettings {
@@ -11,7 +13,7 @@ class CGameSettings {
     int m_MaxDeckSize;
     friend class CApplication_v2;
   public:
-    CGameSettings ()
+    CGameSettings ( void )
     : m_TwoPlayerGame ( false ), m_MaxDeckSize ( defaultDeckSize ) {}
     // switch from single player to 1v1 and vice versa
     void toggleSP ( void ) { m_TwoPlayerGame == true
