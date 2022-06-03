@@ -11,10 +11,9 @@ class CGameSettings {
   protected:    
     bool m_TwoPlayerGame;
     int m_MaxDeckSize;
-    friend class CApplication_v2;
   public:
     CGameSettings ( void )
-    : m_TwoPlayerGame ( false ), m_MaxDeckSize ( defaultDeckSize ) {}
+    : m_TwoPlayerGame ( defaultTwoPlayerGame ), m_MaxDeckSize ( defaultDeckSize ) {}
     // switch from single player to 1v1 and vice versa
     void toggleSP ( void ) { m_TwoPlayerGame == true
                              ? m_TwoPlayerGame = false

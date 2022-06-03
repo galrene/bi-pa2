@@ -9,9 +9,10 @@ class CGameStateManager {
     size_t m_TurnNumber;
     CPlayer m_Player1;
     CPlayer m_Player2;
+    CGameSettings m_Settings;
     // ?  CPlayer m_OnTurn;     // might be useful, make as a bool inside CPlayer though
   public:
-    CGameStateManager ( CPlayer p1, CPlayer p2 );
+    CGameStateManager ( CPlayer p1, CPlayer p2, CGameSettings sett );
 
     void beginGame  ( void );
     void endGame    ( void );
@@ -23,8 +24,8 @@ class CGameStateManager {
     void endTurn    ( void );
     void loadPlayer ( CPlayer & player );
 };
-CGameStateManager::CGameStateManager ( CPlayer p1, CPlayer p2 )
-: m_Player1 ( p1 ), m_Player2 ( p2 ) {}
+CGameStateManager::CGameStateManager ( CPlayer p1, CPlayer p2, CGameSettings sett )
+: m_Player1 ( p1 ), m_Player2 ( p2 ), m_Settings ( sett ) {}
 
 
 /*
