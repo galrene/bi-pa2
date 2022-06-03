@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include <string>
 
 const int defaultDeckSize = 16;
 /**
@@ -28,4 +29,4 @@ const int maxNameLength = 20;
  * @brief Default computer-player name
  * 
  */
-const string defaultBotNickname = "TERMINATOR";
+const std::string defaultBotNickname = "TERMINATOR";
