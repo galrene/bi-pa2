@@ -23,8 +23,9 @@ class CMenu {
 
     bool handleCreateMenu ( void );
     void printCharacters ( vector<shared_ptr<CCharacter>> & characters );
-    void chooseName ( string & name, const char * menuHeader );
+    string chooseName ( const char * menuHeader );
     shared_ptr<CCharacter> chooseCharacter ( vector<shared_ptr<CCharacter>> & characters, const char * menuHeader );
+    shared_ptr<CPlayer> createPlayer ( vector<shared_ptr<CCharacter>> & loadedCharacters, const char * menuHeader );
     
   protected:
     bool chooseCharacterMovement ( vector<shared_ptr<CCharacter>> & characters );
@@ -43,13 +44,15 @@ class CMenu {
 CMenu::CMenu ( void ) {
     initCurses();
     getmaxyx ( stdscr, m_YMax, m_XMax );
-    m_Cols = m_YMax/2;
-    m_Lines = m_YMax/3;
-    // wvline(m_Win,'|',m_XMax/2);
-    // whline(m_Win,'-',m_YMax/2);
+    m_Cols = m_YMax / 2;
+    m_Lines = m_YMax / 3;
     /* lines, cols, int begin_y, int begin_x */
     m_Win = newwin ( m_Lines, m_Cols, m_YMax/4, (m_XMax/2 - m_Cols/2) );
     // m_Win = newwin ( m_YMax/3, 35, m_YMax/4, (m_XMax/2-10) );
+    move ( m_YMax/2 , 0);
+    hline ( '-', m_XMax );
+    move ( 0, m_XMax/2 );
+    vline ( '|', m_YMax );
     keypad ( m_Win, TRUE ); // enable keypad inputs
     m_Settings = CGameSettings(); // might not be necessary
 }
@@ -277,7 +280,7 @@ bool CMenu::chooseCharacterMovement ( vector<shared_ptr<CCharacter>> & character
     return true;
 }
 
-void CMenu::chooseName ( string & name, const char * menuHeader ) {
+string CMenu::chooseName ( const char * menuHeader ) {
     drawMenu ( menuHeader );
     string str;
     while ( 1 ) {
@@ -287,7 +290,7 @@ void CMenu::chooseName ( string & name, const char * menuHeader ) {
             printw ( "Name field cannot be empty.\n" );
         else break;
     }
-    name = str;
+    return str;
 }
 
 shared_ptr<CCharacter> CMenu::chooseCharacter ( vector<shared_ptr<CCharacter>> & characters, const char * menuHeader ) {
@@ -309,32 +312,43 @@ string CMenu::readString ( const size_t & y, const size_t & x, const size_t & n 
     delete buff;
     return str;
 }
+
+shared_ptr<CPlayer> CMenu::createPlayer ( vector<shared_ptr<CCharacter>> & loadedCharacters, const char * menuHeader ) {
+    string p_name = chooseName ( menuHeader );
+    string header = p_name + "'s character:";
+    shared_ptr<CCharacter> playerCharacter = chooseCharacter ( loadedCharacters, header.c_str() );
+    if ( ! playerCharacter )
+        return nullptr;
+    return make_shared<CPlayer> ( CPlayer ( p_name, *playerCharacter ) );
+}
+
 bool CMenu::handleCreateMenu ( void ) {
-    string p1_name;
-    string p2_name;
-    shared_ptr<CCharacter> p1_char;
-    shared_ptr<CCharacter> p2_char;
-    chooseName ( p1_name, "Player 1 name:" );
-    CConfigParser p;
-    vector<shared_ptr<CCharacter>> loadedCharacters = p.loadCharacters ( defaultCharacterDirectory );
-    string header = p1_name + "'s character:";
-    p1_char = chooseCharacter ( loadedCharacters, header.c_str() );
-    if ( ! p1_char )
+    CConfigParser parser;
+    shared_ptr<CPlayer> p1;
+    shared_ptr<CPlayer> p2;
+    vector<shared_ptr<CCharacter>> loadedCharacters = parser.loadCharacters ( defaultCharacterDirectory );
+    p1 = createPlayer ( loadedCharacters, "Player 1 name:" );
+    if ( ! p1 )
         return false;
     if ( m_Settings.isTwoPlayerGame() ) {
-        chooseName ( p2_name, "Player 2 name:");
-        header = p2_name + "'s character:";
-        p2_char = chooseCharacter ( loadedCharacters, header.c_str() );
-        if ( ! p2_char )
+        p2 = createPlayer ( loadedCharacters, "Player 2 name:" );
+        if ( ! p2 )
             return false;
     }
-    printw ("Player1 is %s playing as %s\n", p1_name.c_str(), p1_char->getName().c_str() );
-    printw ("Player2 is %s playing as %s\n", p2_name.c_str(), p2_char->getName().c_str() );
+    // construct an AI Player
+    else if ( ! m_Settings.isTwoPlayerGame() )
+        p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *loadedCharacters[random() % (loadedCharacters.size () + 1)] ) );
+    /**
+     * load decks mby
+     */
+    CGameStateManager gsm ( p1, p2, m_Settings );
+    if ( ! gsm.beginGame() )
+        return false;
     return true;
 }
 bool CMenu::handleMainMenu ( void ) {
     drawMenu ( "Main menu" );
-    vector<string> menuItems = {"New game","Load saved game","Settings", "-Quit-"};
+    vector<string> menuItems = { "New game", "Load saved game", "Settings", "-Quit-" };
     m_Highlight = 0;
     
     if ( ! handleMenuMovement ( menuItems ) )
@@ -356,11 +370,6 @@ bool CMenu::handleMainMenu ( void ) {
     refresh();
     return true;
 }
-
-
-
-
-
 int main ( int argc, char const *argv[] ) {
     CMenu menu;
     while ( menu.handleMainMenu () ) {}

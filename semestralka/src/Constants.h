@@ -24,3 +24,8 @@ const bool defaultTwoPlayerGame = true;
  * 
  */
 const int maxNameLength = 20;
+/**
+ * @brief Default computer-player name
+ * 
+ */
+const string defaultBotNickname = "TERMINATOR";

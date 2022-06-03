@@ -3,6 +3,8 @@
 // #include "CDeck.h"
 #include <string>
 using namespace std;
+ 
+// ! spravit abstraktne
 
 class CPlayer {
   protected:
@@ -11,6 +13,7 @@ class CPlayer {
     string m_Name;
     CCharacter m_LoadedCharacter; // character representing default state
   public:
+    CPlayer ( void );
     CPlayer ( string name, CCharacter character );
 
     CCharacter m_PlayedCharacter; // character representing current state
