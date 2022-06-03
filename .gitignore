@@ -13,3 +13,7 @@
 ### Above combination will ignore all files without extension ###
 
 *.out
+# Ignore object files
+*.o
+# Ignore makefile dependencies
+*.d
