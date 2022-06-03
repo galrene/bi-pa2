@@ -15,9 +15,7 @@ class CGameSettings {
     CGameSettings ( void )
     : m_TwoPlayerGame ( defaultTwoPlayerGame ), m_MaxDeckSize ( defaultDeckSize ) {}
     // switch from single player to 1v1 and vice versa
-    void toggleSP ( void ) { m_TwoPlayerGame == true
-                             ? m_TwoPlayerGame = false
-                             : m_TwoPlayerGame = true;}
+    void toggleSP ( void ) { m_TwoPlayerGame == true ? m_TwoPlayerGame = false : m_TwoPlayerGame = true;}
     bool isTwoPlayerGame ( void ) { return m_TwoPlayerGame; }
     void setMaxDeckSize ( int newSize ) { m_MaxDeckSize = newSize; }
     int getMaxDeckSize ( void ) { return m_MaxDeckSize; }

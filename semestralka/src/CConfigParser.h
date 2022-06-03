@@ -1,4 +1,4 @@
-// #pragma once
+#pragma once
 #include <iostream>
 #include <fstream>
 
@@ -10,7 +10,11 @@
 #include "CCharacter.h"
 #include "Constants.h"
 #include "CCard.h"
-#include "CConfigSaver.h"
+#include "CAttack.h"
+#include "CDefense.h"
+#include "CSpecial.h"
+#include "CPassive.h"
+#include "CSaver.h"
 
 using namespace std;
 namespace fs = filesystem;
