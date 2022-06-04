@@ -263,13 +263,44 @@ shared_ptr<CCharacter> CMenu::chooseCharacter ( vector<shared_ptr<CCharacter>> &
     return characters[m_Highlight];
 }
 
-shared_ptr<CPlayer> CMenu::createPlayer ( vector<shared_ptr<CCharacter>> & loadedCharacters, const char * menuHeader ) {
+void CMenu::printDecks ( vector<CDeck> & decks ) {
+    for ( size_t i = 0; i < decks.size(); i++ ) {
+        if ( i == m_Highlight )
+            wattron ( m_Win, A_REVERSE );
+        mvwprintw ( m_Win, 2+i, 2, "%s",decks[i].getName().c_str() );
+        wattroff ( m_Win, A_REVERSE );
+    }
+}
+bool CMenu::chooseDeckMovement ( vector<CDeck> & decks ) {
+    while ( 1 ) {
+        printDecks ( decks );
+        int res = handleNavigation ( decks.size() );
+        if ( res == 1 )
+            break;
+        else if ( res == -1 )
+            return false;
+    }
+    return true;
+}
+// ? please rework the return value
+CDeck CMenu::chooseDeckMenu ( vector<CDeck> & decks ) {
+    m_Highlight = 0;
+    drawMenu ( "Choose a deck:" );
+    if ( ! chooseDeckMovement ( decks ) )
+        return CDeck ("");
+    return decks[m_Highlight];
+}
+
+shared_ptr<CPlayer> CMenu::createPlayerMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters, vector<CDeck> & decks, const char * menuHeader ) {
     string p_name = chooseName ( menuHeader );
     string header = p_name + "'s character:";
     shared_ptr<CCharacter> playerCharacter = chooseCharacter ( loadedCharacters, header.c_str() );
     if ( ! playerCharacter )
         return nullptr;
-    return make_shared<CPlayer> ( CPlayer ( p_name, *playerCharacter ) );
+    CDeck deck = chooseDeckMenu ( decks );
+    if ( deck.getName() == "" )
+        return nullptr;
+    return make_shared<CPlayer> ( CPlayer ( p_name, *playerCharacter, *playerCharacter, deck ) );
 }
 
 bool CMenu::loadNecessities ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
@@ -311,17 +342,17 @@ bool CMenu::handleCreateMenu ( void ) {
         return true;
     shared_ptr<CPlayer> p1;
     shared_ptr<CPlayer> p2;
-    p1 = createPlayer ( characters, "Player 1 name:" );
+    p1 = createPlayerMenu ( characters, decks, "Player 1 name:" );
     if ( ! p1 )
         return false;
     if ( m_Settings.isTwoPlayerGame() ) {
-        p2 = createPlayer ( characters, "Player 2 name:" );
+        p2 = createPlayerMenu ( characters, decks, "Player 2 name:" );
         if ( ! p2 )
             return false;
     }
     // construct an AI Player with random character
-    else if ( ! m_Settings.isTwoPlayerGame() )
-        p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *characters[random() % (characters.size () + 1)] ) );
+    // else if ( ! m_Settings.isTwoPlayerGame() )
+        // p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *characters[random() % (characters.size () + 1)] ) );
         // create random deck for the bot
     CGameStateManager gsm ( p1, p2, m_Settings );
     if ( ! gsm.beginGame() )

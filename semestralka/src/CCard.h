@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 #include <map>
-#include "CPlayer.h"
+// #include "CPlayer.h" // ! cyklycky include s CDeck
 using namespace std;
 
 class CCard {

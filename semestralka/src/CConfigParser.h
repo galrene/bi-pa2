@@ -48,6 +48,7 @@ class CConfigParser {
     bool loadDeckFromIni ( const fs::directory_entry & entry,
                            vector<CDeck> & loadedDecks,
                            map<string,shared_ptr<CCard>> & setOfCards );
+    bool isDeckValid ( const fs::directory_entry & entry, CDeck & deck, map<string,shared_ptr<CCard>> & cardDefinitions );
     bool createDirectory ( string & dirName );
     string readIni ( const fs::path & iniPath );
     bool isIni ( const fs::directory_entry & entry );

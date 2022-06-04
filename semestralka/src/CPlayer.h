@@ -1,6 +1,6 @@
 #pragma once
 #include "CCharacter.h"
-// #include "CDeck.h"
+#include "CDeck.h"
 #include <string>
 using namespace std;
  
@@ -8,13 +8,12 @@ using namespace std;
 
 class CPlayer {
   protected:
-    // CDeck m_Deck;
-    // CDeck m_Hand;
     string m_Name;
     CCharacter m_LoadedCharacter; // character representing default state
+    CDeck m_Deck;
+    CDeck m_Hand;
   public:
-    CPlayer ( void );
-    CPlayer ( string name, CCharacter character );
+    CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
 
     CCharacter m_PlayedCharacter; // character representing current state
     bool operator == ( CPlayer & rhs );

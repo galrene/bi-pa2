@@ -1,7 +1,7 @@
 #include "CPlayer.h"
 
-CPlayer::CPlayer ( string name, CCharacter character )
-: m_Name ( name ), m_LoadedCharacter ( character ), m_PlayedCharacter ( character ) {}
+CPlayer::CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck )
+: m_Name ( name ), m_LoadedCharacter ( currentCharacter ), m_PlayedCharacter ( defaultCharacter ), m_Deck ( deck ) {}
 
 
 bool CPlayer::operator == ( CPlayer & rhs ) {

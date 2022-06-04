@@ -1,3 +1,4 @@
+#pragma once
 #include <ncurses.h>
 #include <iostream>
 #include <vector>
@@ -30,7 +31,7 @@ class CMenu {
     bool handleCreateMenu ( void );
     string chooseName ( const char * menuHeader );
     shared_ptr<CCharacter> chooseCharacter ( vector<shared_ptr<CCharacter>> & characters, const char * menuHeader );
-    shared_ptr<CPlayer> createPlayer ( vector<shared_ptr<CCharacter>> & loadedCharacters, const char * menuHeader );
+    shared_ptr<CPlayer> createPlayerMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters, vector<CDeck> & decks, const char * menuHeader );
     
   protected:
     /**
@@ -59,7 +60,9 @@ class CMenu {
 
     bool loadingScreen ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks );
     bool loadNecessities ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks );
-
+    void printDecks ( vector<CDeck> & decks );
+    CDeck chooseDeckMenu ( vector<CDeck> & decks );
+    bool chooseDeckMovement ( vector<CDeck> & decks );
 
     int m_XMax, m_YMax;
     int m_Lines, m_Cols;

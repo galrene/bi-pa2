@@ -247,19 +247,7 @@ bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, map<str
     return true;
 }
 
-bool CConfigParser::loadDeckFromIni ( const fs::directory_entry & entry, vector<CDeck> & loadedDecks, map<string,shared_ptr<CCard>> & cardDefinitions ) {
-    CDeck deck;
-    if ( ! isIni ( entry ) ) {
-        cerr << entry.path().generic_string() << " isn't a .ini" << endl;
-        return false;
-    }
-    string header = readIni ( entry.path().generic_string() );
-    if ( header == "" ) 
-        return false;
-    if ( header != "deck" ) {
-        cerr << "No [deck] section found in" << entry.path().generic_string() << endl;
-        return false;
-    }
+bool CConfigParser::isDeckValid ( const fs::directory_entry & entry, CDeck & deck, map<string,shared_ptr<CCard>> & cardDefinitions ) {
     for ( const auto & cardAndCount : loadedData ) {
         if ( cardDefinitions.count ( cardAndCount.first ) == 0 ) {
             cerr << "Card " << cardAndCount.first << " in deck " << entry.path().filename() << " is undefined." << endl;
@@ -275,6 +263,24 @@ bool CConfigParser::loadDeckFromIni ( const fs::directory_entry & entry, vector<
         for ( size_t i = 0; i < count; i++ )
             deck.addCard ( card );
     }
+    return true;
+}
+
+bool CConfigParser::loadDeckFromIni ( const fs::directory_entry & entry, vector<CDeck> & loadedDecks, map<string,shared_ptr<CCard>> & cardDefinitions ) {
+    if ( ! isIni ( entry ) ) {
+        cerr << entry.path().generic_string() << " isn't a .ini" << endl;
+        return false;
+    }
+    CDeck deck ( entry.path().stem() );
+    string header = readIni ( entry.path().generic_string() );
+    if ( header == "" ) 
+        return false;
+    if ( header != "deck" ) {
+        cerr << "No [deck] section found in" << entry.path().generic_string() << endl;
+        return false;
+    }
+    if ( ! isDeckValid ( entry, deck, cardDefinitions ) )
+        return false;
     loadedDecks.push_back ( deck );
     return true;
 }

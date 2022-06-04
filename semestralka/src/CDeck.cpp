@@ -1,5 +1,10 @@
 #include "CDeck.h"
 
+CDeck::CDeck ( string name )
+: m_Name ( name ) {}
+
+string CDeck::getName ( void ) { return m_Name; }
+
 void CDeck::addCard ( shared_ptr<CCard> & card ) {
     m_Content.push_back ( card );
 }

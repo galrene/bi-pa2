@@ -10,6 +10,7 @@ class CGameStateManager {
     CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlayer> p2, CGameSettings sett );
 
     bool beginGame  ( void );
+    bool drawGame  ( void );
     bool endGame    ( void );
     bool playCard ( CCard & card, CPlayer & user );
     bool loadCards  ( void );
