@@ -79,7 +79,7 @@ string CMenu::readString ( const size_t & y, const size_t & x, const size_t & n 
     noecho();
     curs_set ( 0 );
     string str ( buff );
-    delete buff;
+    delete [] buff;
     return str;
 }
 int CMenu::handleNavigation ( const size_t & menuSize ) {
@@ -154,11 +154,11 @@ int CMenu::readNumber ( const size_t & yCoord, const size_t & xCoord, const size
     curs_set ( 0 );
     for ( size_t i = 0; i < n; i ++ )
         if ( ! isdigit ( buff[i] ) && buff[i] != '\0' ) {
-            delete buff;
+            delete [] buff;
             return -1;
         }
     int x = atoi ( buff );
-    delete buff;
+    delete [] buff;
     return x;
 }
 
