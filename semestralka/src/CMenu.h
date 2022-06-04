@@ -27,7 +27,7 @@ class CMenu {
     int readNumber ( const size_t & yCoord, const size_t & xCoord, const size_t & n );
     string readString ( const size_t & y, const size_t & x, const size_t & n );
 
-    bool handleCreateMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters );
+    bool handleCreateMenu ( void );
     string chooseName ( const char * menuHeader );
     shared_ptr<CCharacter> chooseCharacter ( vector<shared_ptr<CCharacter>> & characters, const char * menuHeader );
     shared_ptr<CPlayer> createPlayer ( vector<shared_ptr<CCharacter>> & loadedCharacters, const char * menuHeader );
@@ -56,6 +56,10 @@ class CMenu {
     bool initCurses ( void );
     void printError ( const char * errorMessage );
     bool handleMenuMovement ( vector<string> & menuItems );
+
+    bool loadingScreen ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks );
+    bool loadNecessities ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks );
+
 
     int m_XMax, m_YMax;
     int m_Lines, m_Cols;

@@ -183,35 +183,6 @@ bool CConfigParser::loadCharacterFromIni ( const fs::directory_entry & entry, ve
     return true;
 }
 
-/**
- * @brief load characters from ini files contained inside of a given directory
- * @param dirName name of directory containing character definitions, search in program main directory by default
- * @return vector<shared_ptr<CCharacter>> of loaded characters on success
- * @return empty vector on failure to access directory
- */
-vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & dirName ) {
-    vector<shared_ptr<CCharacter>> loadedCharacters;
-
-    if ( ! enterDirectory ( dirName ) )
-        return {}; 
-    for ( const auto & chEntry : fs::directory_iterator ( m_Path ) ) {
-        if ( ! loadCharacterFromIni ( chEntry, loadedCharacters ) )
-            failedToLoad.push_back ( chEntry.path().generic_string() );
-        loadedData.clear();
-    }
-    if ( ! failedToLoad.empty() ) {
-        cerr << "Failed to load files: " << endl;
-        for ( const auto & x : failedToLoad )
-            cerr << "\t" << x << endl;
-    }
-    if ( loadedCharacters.empty() )
-        cerr << "No characters found in directory." << endl;
-    failedToLoad.clear();
-    m_Path = m_Path.parent_path();
-    loadedUniqueElements.clear();
-    return loadedCharacters;
-}
-
 bool CConfigParser::constructCard ( const fs::directory_entry & entry, map<string,shared_ptr<CCard>> & loadedCards ) {
     if ( loadedData["type"] == "" ) {
         cerr << "Missing type atribute in card " << entry << endl;
@@ -291,8 +262,8 @@ bool CConfigParser::loadDeckFromIni ( const fs::directory_entry & entry, vector<
     }
     for ( const auto & cardAndCount : loadedData ) {
         if ( cardDefinitions.count ( cardAndCount.first ) == 0 ) {
-            cerr << "Card" << cardAndCount.first << "in deck" << entry.path().filename() << "is undefined." << endl;
-            continue;
+            cerr << "Card " << cardAndCount.first << " in deck " << entry.path().filename() << " is undefined." << endl;
+            return false;
         }
         shared_ptr<CCard> card = cardDefinitions[cardAndCount.first];
         for ( const auto & digit : cardAndCount.second )
@@ -322,9 +293,10 @@ vector<CDeck> CConfigParser::loadDecks ( const string & dirName, map<string,shar
         for ( const auto & x : failedToLoad )
             cerr << "\t" << x << endl;
     }
+    if ( loadedDecks.empty() )
+        cerr << "No decks loaded." << endl;
     failedToLoad.clear();
     m_Path = m_Path.parent_path();
-    loadedUniqueElements.clear();
     return loadedDecks;
 }
 
@@ -342,7 +314,32 @@ map<string,shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName 
         for ( const auto & x : failedToLoad )
             cerr << "\t" << x << endl;
     }
+    if ( loadedCards.empty() )
+        cerr << "No cards loaded." << endl;
     failedToLoad.clear();
     m_Path = m_Path.parent_path();
     return loadedCards;
+}
+
+vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & dirName ) {
+    vector<shared_ptr<CCharacter>> loadedCharacters;
+
+    if ( ! enterDirectory ( dirName ) )
+        return {}; 
+    for ( const auto & chEntry : fs::directory_iterator ( m_Path ) ) {
+        if ( ! loadCharacterFromIni ( chEntry, loadedCharacters ) )
+            failedToLoad.push_back ( chEntry.path().generic_string() );
+        loadedData.clear();
+    }
+    if ( ! failedToLoad.empty() ) {
+        cerr << "Failed to load files: " << endl;
+        for ( const auto & x : failedToLoad )
+            cerr << "\t" << x << endl;
+    }
+    if ( loadedCharacters.empty() )
+        cerr << "No characters loaded." << endl;
+    failedToLoad.clear();
+    m_Path = m_Path.parent_path();
+    loadedUniqueElements.clear();
+    return loadedCharacters;
 }

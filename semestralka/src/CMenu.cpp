@@ -3,10 +3,11 @@
 CMenu::CMenu ( void ) {
     initCurses();
     getmaxyx ( stdscr, m_YMax, m_XMax );
-    m_Cols = m_YMax / 2;
+    m_Cols = m_YMax / 2 + 15;
     m_Lines = m_YMax / 3;
     /* lines, cols, int begin_y, int begin_x */
-    m_Win = newwin ( m_Lines, m_Cols, m_YMax/4, (m_XMax/2 - m_Cols/2) );
+    m_Win = newwin ( m_Lines, m_Cols, ( m_YMax/2 - m_Lines/2 ), (m_XMax/2 - m_Cols/2) );
+    // m_Win = newwin ( m_Lines, m_Cols, m_YMax/4, (m_XMax/2 - m_Cols/2) );
     /* for centering
     move ( m_YMax/2 , 0);
     hline ( '-', m_XMax );
@@ -50,6 +51,7 @@ bool CMenu::initCurses ( void ) {
     #define ON_PAIR COLOR_PAIR(2)
     #define ON_SELECTED_PAIR COLOR_PAIR(4)
     #define OFF_SELECTED_PAIR COLOR_PAIR(1)
+    refresh();
     return true;
 }
 void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & menuItems ) {
@@ -96,6 +98,11 @@ int CMenu::handleNavigation ( const size_t & menuSize ) {
             break;
         case ('d' & 0x1F):
             return -1;
+        case ('c'): // for clearing error messages in the top left corner
+            move(0,0);
+            clrtoeol();
+            refresh();
+            break;
         default:
             break;
     }
@@ -242,7 +249,7 @@ string CMenu::chooseName ( const char * menuHeader ) {
         clearSpaces ( 2, 2, maxNameLength );
         str = readString ( 2, 2, maxNameLength );
         if ( str == "" )
-            printw ( "Name field cannot be empty.\n" );
+            printError ( "Name field cannot be empty.\n" );
         else break;
     }
     return str;
@@ -265,24 +272,57 @@ shared_ptr<CPlayer> CMenu::createPlayer ( vector<shared_ptr<CCharacter>> & loade
     return make_shared<CPlayer> ( CPlayer ( p_name, *playerCharacter ) );
 }
 
-bool CMenu::handleCreateMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters ) {
+bool CMenu::loadNecessities ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
+    CConfigParser parser;
+    if (  characters = parser.loadCharacters ( defaultCharacterDirectory ); characters.empty() ) {
+            printError ( "No characters loaded, check log for more info.\n" );
+            return false;
+    }
+    if (  cards = parser.loadCards ( defaultCardDirectory ); cards.empty() ) {
+            printError ( "No cards loaded, check log for more info.\n" );
+            return false;
+    }
+    if (  decks = parser.loadDecks ( defaultDeckDirectory, cards ); decks.empty() ) {
+            printError ( "No decks loaded, check log for more info.\n" ); 
+            return false;
+    }
+    return true;
+}
+
+bool CMenu::loadingScreen ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
+    drawMenu ( "Loading screen" );
+    if ( loadNecessities ( characters, cards, decks ) ) {
+        mvwprintw ( m_Win, m_Lines/2-1, m_Cols/2 - strlen("Loading successful.")/2, "Loading successful." );
+        mvwprintw ( m_Win, m_Lines/2, m_Cols/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
+        wgetch ( m_Win );
+        return true;
+    }
+    mvwprintw ( m_Win, m_Lines/2-1, m_Cols/2 - strlen("Error while loading necessities.")/2, "Error while loading necessities." );
+    mvwprintw ( m_Win, m_Lines/2, m_Cols/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
+    wgetch ( m_Win );
+    return false;
+}
+
+bool CMenu::handleCreateMenu ( void ) {
+    vector<shared_ptr<CCharacter>> characters;
+    map<string,shared_ptr<CCard>> cards;
+    vector<CDeck> decks;
+    if ( ! loadingScreen ( characters, cards, decks ) )
+        return true;
     shared_ptr<CPlayer> p1;
     shared_ptr<CPlayer> p2;
-    p1 = createPlayer ( loadedCharacters, "Player 1 name:" );
+    p1 = createPlayer ( characters, "Player 1 name:" );
     if ( ! p1 )
         return false;
     if ( m_Settings.isTwoPlayerGame() ) {
-        p2 = createPlayer ( loadedCharacters, "Player 2 name:" );
+        p2 = createPlayer ( characters, "Player 2 name:" );
         if ( ! p2 )
             return false;
     }
     // construct an AI Player with random character
     else if ( ! m_Settings.isTwoPlayerGame() )
-        p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *loadedCharacters[random() % (loadedCharacters.size () + 1)] ) );
+        p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *characters[random() % (characters.size () + 1)] ) );
         // create random deck for the bot
-    /**
-     * load decks mby
-     */
     CGameStateManager gsm ( p1, p2, m_Settings );
     if ( ! gsm.beginGame() )
         return false;
@@ -293,17 +333,11 @@ bool CMenu::handleMainMenu ( void ) {
     drawMenu ( "Main menu" );
     vector<string> menuItems = { "New game", "Load saved game", "Settings", "-Quit-" };
     m_Highlight = 0;
-    CConfigParser parser;
-    vector<shared_ptr<CCharacter>> loadedCharacters;
     if ( ! handleMenuMovement ( menuItems ) )
         return false;
     switch ( m_Highlight ) {
     case 0:
-        if (  loadedCharacters = parser.loadCharacters ( defaultCharacterDirectory ); loadedCharacters.empty() ) {
-            printError ( "No characters loaded, check log for more info.\n" );
-            break;
-        }
-        if ( ! handleCreateMenu ( loadedCharacters ) )
+        if ( ! handleCreateMenu () )
             return false;
         break;
     case 1:

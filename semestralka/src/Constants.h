@@ -4,16 +4,22 @@
 
 const int defaultDeckSize = 16;
 /**
- * @brief Path where ConfigParser looks for character a card definitions
+ * @brief Parent directory where ConfigParser looks for card, deck and character directories
  * 
  */
 const std::filesystem::path defaultPath = std::filesystem::current_path().parent_path() /= "example";
 /**
- * @brief Path where CSaver saves cards and characters
+ * @brief Parent directory where CSaver saves card, deck and character directories
  * 
  */
 const std::filesystem::path defaultSaveLocation = std::filesystem::current_path().parent_path() /= "example";
+/**
+ * @brief For loading, located in defaultPath directory
+ * 
+ */
 const std::string defaultCharacterDirectory = "characters";
+const std::string defaultCardDirectory = "cards";
+const std::string defaultDeckDirectory = "decks";
 
 /**
  * @brief Two player game or not by default

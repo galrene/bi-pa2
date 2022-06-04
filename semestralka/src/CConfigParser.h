@@ -25,7 +25,12 @@ class CConfigParser {
   public:
     CConfigParser ( void );
     explicit CConfigParser ( fs::path location );
-
+    /**
+     * @brief load characters from ini files contained inside of a given directory
+     * @param dirName name of directory containing character definitions, search in program main directory by default
+     * @return vector<shared_ptr<CCharacter>> of loaded characters on success
+     * @return empty vector on failure to access directory
+     */
     vector<shared_ptr<CCharacter>> loadCharacters ( const string & dirName );
     map<string,shared_ptr<CCard>> loadCards ( const string & dirName );
     vector<CDeck> loadDecks ( const string & dirName, map<string,shared_ptr<CCard>> & cardDefinitions );
