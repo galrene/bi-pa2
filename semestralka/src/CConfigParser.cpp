@@ -212,12 +212,12 @@ vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & di
     return loadedCharacters;
 }
 
-bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<shared_ptr<CCard>> & loadedCards ) {
+bool CConfigParser::constructCard ( const fs::directory_entry & entry, map<string,shared_ptr<CCard>> & loadedCards ) {
     if ( loadedData["type"] == "" ) {
         cerr << "Missing type atribute in card " << entry << endl;
         return false;
     }
-    if ( loadedUniqueElements.find ( loadedData["name"] ) != loadedUniqueElements.end() ) {
+    if ( loadedCards.find ( loadedData["name"] ) != loadedCards.end() ) {
         cerr << "Card with name \"" << loadedData["name"] << "\" already exists" << endl;
         return false;
     }
@@ -225,35 +225,34 @@ bool CConfigParser::constructCard ( const fs::directory_entry & entry, vector<sh
         CAttack att ( loadedData );
         if ( ! att.buildCard() )
             return false;
-        loadedCards.emplace_back ( make_shared<CAttack> ( att ) );
+        loadedCards[ loadedData["name"] ] = make_shared<CAttack> ( att );
     }
     else if ( loadedData["type"] == "defense" ) {
         CDefense def ( loadedData );
         if ( ! def.buildCard() )
             return false;
-        loadedCards.emplace_back ( make_shared<CDefense> ( def ) );
+        loadedCards[ loadedData["name"] ] = make_shared<CDefense> ( def );
     }
     else if ( loadedData["type"] == "passive" ) {
         CPassive pass ( loadedData );
         if ( ! pass.buildCard() )
             return false;
-        loadedCards.emplace_back ( make_shared<CPassive> ( pass ) );
+        loadedCards[ loadedData["name"] ] = make_shared<CPassive> ( pass );
     }
     else if ( loadedData["type"] == "special" ) {
         CSpecial spec ( loadedData );
         if ( ! spec.buildCard() )
             return false;
-        loadedCards.emplace_back ( make_shared<CSpecial> ( spec ) );
+        loadedCards[ loadedData["name"] ] = make_shared<CSpecial> ( spec );
     }
     else {
         cerr << "Unidentified card type \"" << loadedData["type"] << "\"" << endl;
         return false;
     }
-    loadedUniqueElements.insert ( loadedData["name"] );
     return true;
 }
 
-bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, vector<shared_ptr<CCard>> & loadedCards ) {
+bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, map<string,shared_ptr<CCard>> & loadedCards ) {
     if ( ! isIni ( entry ) ) {
         cerr << entry.path().generic_string() << " isn't a .ini" << endl;
         return false;
@@ -277,8 +276,60 @@ bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, vector<
     return true;
 }
 
-vector<shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
-    vector<shared_ptr<CCard>> loadedCards;
+bool CConfigParser::loadDeckFromIni ( const fs::directory_entry & entry, vector<CDeck> & loadedDecks, map<string,shared_ptr<CCard>> & cardDefinitions ) {
+    CDeck deck;
+    if ( ! isIni ( entry ) ) {
+        cerr << entry.path().generic_string() << " isn't a .ini" << endl;
+        return false;
+    }
+    string header = readIni ( entry.path().generic_string() );
+    if ( header == "" ) 
+        return false;
+    if ( header != "deck" ) {
+        cerr << "No [deck] section found in" << entry.path().generic_string() << endl;
+        return false;
+    }
+    for ( const auto & cardAndCount : loadedData ) {
+        if ( cardDefinitions.count ( cardAndCount.first ) == 0 ) {
+            cerr << "Card" << cardAndCount.first << "in deck" << entry.path().filename() << "is undefined." << endl;
+            continue;
+        }
+        shared_ptr<CCard> card = cardDefinitions[cardAndCount.first];
+        for ( const auto & digit : cardAndCount.second )
+            if ( ! isdigit ( digit ) ) {
+                cerr << "Card count of " << cardAndCount.first << " must be a positive intiger, not \"" << cardAndCount.second << "\"" << endl;
+                return false;
+            }
+        size_t count = stoi(cardAndCount.second); // PLEASE NO EXCEPTIONS
+        for ( size_t i = 0; i < count; i++ )
+            deck.addCard ( card );
+    }
+    loadedDecks.push_back ( deck );
+    return true;
+}
+
+vector<CDeck> CConfigParser::loadDecks ( const string & dirName, map<string,shared_ptr<CCard>> & cardDefinitions ) {
+    vector<CDeck> loadedDecks;
+    if ( ! enterDirectory ( dirName ) )
+        return {};
+    for ( const auto & entry : fs::directory_iterator ( m_Path ) ) {
+        if ( ! loadDeckFromIni ( entry, loadedDecks, cardDefinitions ) )
+            failedToLoad.push_back ( entry.path().generic_string() );
+        loadedData.clear();
+    }
+    if ( ! failedToLoad.empty() ) {
+        cerr << "Failed to load files: " << endl;
+        for ( const auto & x : failedToLoad )
+            cerr << "\t" << x << endl;
+    }
+    failedToLoad.clear();
+    m_Path = m_Path.parent_path();
+    loadedUniqueElements.clear();
+    return loadedDecks;
+}
+
+map<string,shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
+    map<string,shared_ptr<CCard>> loadedCards;
     if ( ! enterDirectory ( dirName ) )
         return {};
     for ( const auto & entry : fs::directory_iterator ( m_Path ) ) {
@@ -293,6 +344,5 @@ vector<shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName ) {
     }
     failedToLoad.clear();
     m_Path = m_Path.parent_path();
-    loadedUniqueElements.clear();
     return loadedCards;
 }

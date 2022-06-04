@@ -279,6 +279,7 @@ bool CMenu::handleCreateMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters
     // construct an AI Player with random character
     else if ( ! m_Settings.isTwoPlayerGame() )
         p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *loadedCharacters[random() % (loadedCharacters.size () + 1)] ) );
+        // create random deck for the bot
     /**
      * load decks mby
      */
@@ -318,7 +319,7 @@ bool CMenu::handleMainMenu ( void ) {
     default:
         break;
     }
-   
+
     // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
     refresh();
     return true;
