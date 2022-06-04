@@ -204,6 +204,8 @@ vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & di
         for ( const auto & x : failedToLoad )
             cerr << "\t" << x << endl;
     }
+    if ( loadedCharacters.empty() )
+        cerr << "No characters found in directory." << endl;
     failedToLoad.clear();
     m_Path = m_Path.parent_path();
     loadedUniqueElements.clear();

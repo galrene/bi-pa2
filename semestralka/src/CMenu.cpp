@@ -7,24 +7,32 @@ CMenu::CMenu ( void ) {
     m_Lines = m_YMax / 3;
     /* lines, cols, int begin_y, int begin_x */
     m_Win = newwin ( m_Lines, m_Cols, m_YMax/4, (m_XMax/2 - m_Cols/2) );
-    // m_Win = newwin ( m_YMax/3, 35, m_YMax/4, (m_XMax/2-10) );
+    /* for centering
     move ( m_YMax/2 , 0);
     hline ( '-', m_XMax );
     move ( 0, m_XMax/2 );
     vline ( '|', m_YMax );
+    */
     keypad ( m_Win, TRUE ); // enable keypad inputs
     m_Settings = CGameSettings(); // might not be necessary
 }
 CMenu::~CMenu ( void ) {
     endwin();
 }
+
+void CMenu::printError ( const char * errorMessage ) {
+    move (0,0);
+    clrtoeol ();
+    printw ( "ERROR: %s", errorMessage );
+    refresh();
+}
+
 void CMenu::drawMenu ( const char * menuHeader  ) {
     wclear ( m_Win );
     /* lines, colons, beginY, beginX */
     box ( m_Win, 0, 0 );
     mvwprintw ( m_Win, 0, (m_Cols/2 - strlen(menuHeader)/2), "%s", menuHeader );
-    // mvwprintw ( m_Win, 0, 8, "%s", menuHeader );
-    //wrefresh (m_Win);
+    wrefresh (m_Win);
 }
 bool CMenu::initCurses ( void ) {
     initscr();
@@ -281,11 +289,9 @@ shared_ptr<CPlayer> CMenu::createPlayer ( vector<shared_ptr<CCharacter>> & loade
     return make_shared<CPlayer> ( CPlayer ( p_name, *playerCharacter ) );
 }
 
-bool CMenu::handleCreateMenu ( void ) {
-    CConfigParser parser;
+bool CMenu::handleCreateMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters ) {
     shared_ptr<CPlayer> p1;
     shared_ptr<CPlayer> p2;
-    vector<shared_ptr<CCharacter>> loadedCharacters = parser.loadCharacters ( defaultCharacterDirectory );
     p1 = createPlayer ( loadedCharacters, "Player 1 name:" );
     if ( ! p1 )
         return false;
@@ -305,26 +311,38 @@ bool CMenu::handleCreateMenu ( void ) {
         return false;
     return true;
 }
+
 bool CMenu::handleMainMenu ( void ) {
     drawMenu ( "Main menu" );
     vector<string> menuItems = { "New game", "Load saved game", "Settings", "-Quit-" };
     m_Highlight = 0;
-    
+    CConfigParser parser;
+    vector<shared_ptr<CCharacter>> loadedCharacters;
     if ( ! handleMenuMovement ( menuItems ) )
         return false;
-    if ( m_Highlight == 0 ) {
-        if ( ! handleCreateMenu () )
+    switch ( m_Highlight ) {
+    case 0:
+        if (  loadedCharacters = parser.loadCharacters ( defaultCharacterDirectory ); loadedCharacters.empty() ) {
+            printError ( "No characters loaded, check log for more info.\n" );
+            break;
+        }
+        if ( ! handleCreateMenu ( loadedCharacters ) )
             return false;
-    }
-    else if ( m_Highlight == 1 )
-        cout << "1" << endl;
-    else if ( m_Highlight == 2 ) {
+        break;
+    case 1:
+        printError ( "Selected 1\n");
+        break;
+    case 2:
         if ( ! handleSettings () )
             return false;
-    }
-    else if ( m_Highlight == 3 )
+        break;
+    case 3:
         return false;
-    
+        break;
+    default:
+        break;
+    }
+   
     // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
     refresh();
     return true;

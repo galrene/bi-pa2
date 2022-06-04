@@ -21,7 +21,7 @@ class CMenu {
     int  readNumber ( size_t yCoord, size_t xCoord );
     string readString ( const size_t & y, const size_t & x, const size_t & n );
 
-    bool handleCreateMenu ( void );
+    bool handleCreateMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters );
     void printCharacters ( vector<shared_ptr<CCharacter>> & characters );
     string chooseName ( const char * menuHeader );
     shared_ptr<CCharacter> chooseCharacter ( vector<shared_ptr<CCharacter>> & characters, const char * menuHeader );
@@ -35,6 +35,9 @@ class CMenu {
     bool handleSettingsMovement ( vector<pair<string,bool>> & menuItems );
     bool isValidDeckSize ( int number );
     bool initCurses ( void );
+    void printError ( const char * errorMessage );
+
+
     int m_XMax, m_YMax;
     int m_Lines, m_Cols;
     WINDOW * m_Win;
