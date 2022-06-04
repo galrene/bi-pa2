@@ -30,3 +30,8 @@ const int maxNameLength = 20;
  * 
  */
 const std::string defaultBotNickname = "TERMINATOR";
+/**
+ * @brief default max length of an inputted number in Deck size input field
+ * 
+ */
+const int defaultInputLengthDeckSize = 3;

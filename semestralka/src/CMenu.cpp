@@ -52,12 +52,6 @@ bool CMenu::initCurses ( void ) {
     #define OFF_SELECTED_PAIR COLOR_PAIR(1)
     return true;
 }
-/**
- * @brief toggle enabled/disabled color 
- * 
- * @param itemIndex index of menuItem
- * @param menuItems vector with menuItems
- */
 void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & menuItems ) {
     wmove ( m_Win, 1+itemIndex,2 );
     wclrtoeol(m_Win);
@@ -75,13 +69,17 @@ void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & 
     wattroff ( m_Win, ON_PAIR );
     wattroff ( m_Win, OFF_PAIR );
 }
-/**
- * @brief handle navigating the menu using arrow keys
- * 
- * @param menuSize count of menu items
- * @param highlight currently highlighted menu item
- * @return 1 on enter, 0 on normal navigation, -1 on CTRL-D
- */
+string CMenu::readString ( const size_t & y, const size_t & x, const size_t & n ) {
+    curs_set ( 1 );
+    echo();
+    char * buff = new char [ n + 1 ];
+    mvwgetnstr ( m_Win, y, x, buff, n );
+    noecho();
+    curs_set ( 0 );
+    string str ( buff );
+    delete buff;
+    return str;
+}
 int CMenu::handleNavigation ( const size_t & menuSize ) {
     int button;
     button = wgetch ( m_Win );
@@ -140,26 +138,21 @@ bool CMenu::handleSettingsMovement (  vector<pair<string,bool>> & menuItems ) {
     }
     return true;
 }
-/**
- * @brief reads a number at given coords
- * 
- * @param yCoord 
- * @param xCoord 
- * @return int 
- */
-int CMenu::readNumber ( size_t yCoord, size_t xCoord ) {
+int CMenu::readNumber ( const size_t & yCoord, const size_t & xCoord, const size_t & n ) {
     curs_set ( 1 );
     echo();
-    char buff[4] = {0};
-    mvwgetnstr ( m_Win, yCoord, xCoord, buff, 3);
+    char * buff = new char [ n + 1 ];
+    mvwgetnstr ( m_Win, yCoord, xCoord, buff, n );
     noecho();
     curs_set ( 0 );
-    for ( size_t i = 0; i < 3; i ++ ) // use isDigit() ?
-        if ( ! isdigit ( buff[i] ) && buff[i] != '\0' )
+    for ( size_t i = 0; i < n; i ++ )
+        if ( ! isdigit ( buff[i] ) && buff[i] != '\0' ) {
+            delete buff;
             return -1;
-    return atoi ( buff );
-    // printw ( "Entered: %d \n", loadedNumber );
-    // printw ( "Res: %d \n", res );
+        }
+    int x = atoi ( buff );
+    delete buff;
+    return x;
 }
 
 bool CMenu::isValidDeckSize ( int number ) {
@@ -170,13 +163,10 @@ bool CMenu::isValidDeckSize ( int number ) {
     }
     return true;
 }
-//  nechcem iba breaknut on click v menu?
-// Spravit ako simple string vector bez paru, hodnoty citat iba zo settings
 bool CMenu::handleSettings ( void ) {
     drawMenu ( "Settings" );
-    
     vector<pair<string, bool>> menuItems = { {"Two-player game", m_Settings.isTwoPlayerGame() },
-                                             {"Dick size:", false},
+                                             {"Deck size:", false},
                                              {"-Return-", false} };
     m_Highlight = 0;
     while ( m_Highlight != 2 ) {
@@ -187,16 +177,14 @@ bool CMenu::handleSettings ( void ) {
             m_Settings.toggleSP();
         }
         if ( m_Highlight == 1 ) {
-            mvwprintw ( m_Win, 2, 3 + menuItems[m_Highlight].first.size(), "   " ); // clear 3 spaces 
-            int num = readNumber ( 2, 3 + menuItems[m_Highlight].first.size() );
+            clearSpaces ( 2, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
+            int num = readNumber ( 2, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
             if ( isValidDeckSize ( num ) )
                 m_Settings.setMaxDeckSize ( num );
             drawMenu ( "Settings" );
             wrefresh ( m_Win );
         }
     }
-    
-    // printw ("Your choice was : %s\n",menuItems[m_Highlight].first.c_str() );
     refresh();
     return true;
 }
@@ -266,18 +254,6 @@ shared_ptr<CCharacter> CMenu::chooseCharacter ( vector<shared_ptr<CCharacter>> &
     if ( ! chooseCharacterMovement ( characters ) )
         return nullptr;
     return characters[m_Highlight];
-}
-
-string CMenu::readString ( const size_t & y, const size_t & x, const size_t & n ) {
-    curs_set ( 1 );
-    echo();
-    char * buff = new char [ n + 1 ];
-    mvwgetnstr ( m_Win, y, x, buff, n );
-    noecho();
-    curs_set ( 0 );
-    string str ( buff );
-    delete buff;
-    return str;
 }
 
 shared_ptr<CPlayer> CMenu::createPlayer ( vector<shared_ptr<CCharacter>> & loadedCharacters, const char * menuHeader ) {

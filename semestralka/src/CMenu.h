@@ -17,8 +17,14 @@ class CMenu {
     void drawMenu ( const char * menuHeader  );
     bool handleSettings ( void );
     bool handleMainMenu ( void );
-    int  handleNavigation ( const size_t & menuSize );
-    int  readNumber ( size_t yCoord, size_t xCoord );
+    /**
+    * @brief reads a number at given coords
+    * 
+    * @param yCoord 
+    * @param xCoord 
+    * @return int 
+    */
+    int readNumber ( const size_t & yCoord, const size_t & xCoord, const & size_t n );
     string readString ( const size_t & y, const size_t & x, const size_t & n );
 
     bool handleCreateMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters );
@@ -28,8 +34,22 @@ class CMenu {
     shared_ptr<CPlayer> createPlayer ( vector<shared_ptr<CCharacter>> & loadedCharacters, const char * menuHeader );
     
   protected:
+    /**
+    * @brief handle navigating the menu using arrow keys
+    * 
+    * @param menuSize count of menu items
+    * @param highlight currently highlighted menu item
+    * @return 1 on enter, 0 on normal navigation, -1 on CTRL-D
+    */
+    int  handleNavigation ( const size_t & menuSize );
     bool chooseCharacterMovement ( vector<shared_ptr<CCharacter>> & characters );
     void clearSpaces ( const size_t & y, const size_t & x, const size_t & nSpaces );
+    /**
+    * @brief toggle enabled/disabled color 
+    * 
+    * @param itemIndex index of menuItem
+    * @param menuItems vector with menuItems
+    */
     void toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & menuItems );
     bool handleMenuMovement ( vector<string> & menuItems );
     bool handleSettingsMovement ( vector<pair<string,bool>> & menuItems );
