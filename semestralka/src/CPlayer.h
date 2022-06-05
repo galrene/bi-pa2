@@ -1,17 +1,13 @@
 #pragma once
 #include "CCharacter.h"
 #include "CDeck.h"
+#include <ncurses.h>
 #include <string>
 using namespace std;
  
 // ! spravit abstraktne
 
 class CPlayer {
-  protected:
-    string m_Name;
-    CCharacter m_LoadedCharacter; // character representing default state
-    CDeck m_Deck;
-    CDeck m_Hand;
   public:
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
 
@@ -22,6 +18,14 @@ class CPlayer {
     void playCard ( void );
     void save ( string path );
     void load ( string path );
+
+    void renderStats ( WINDOW * win );
+  protected:
+    string m_Name;
+    CCharacter m_LoadedCharacter; // character representing default state
+    CDeck m_Deck;
+    CDeck m_Hand;
+    bool m_Turn;
 };
 /*
 class CComputerPlayerAtt : public CPlayer {

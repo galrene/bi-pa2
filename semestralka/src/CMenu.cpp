@@ -1,7 +1,10 @@
 #include "CMenu.h"
 
 CMenu::CMenu ( void ) {
-    initCurses();
+    if ( ! initCurses() ) {
+        cerr << "Your terminal doesn't support colors" << endl;
+        return;
+    }
     getmaxyx ( stdscr, m_YMax, m_XMax );
     m_Cols = m_YMax / 2 + 15;
     m_Lines = m_YMax / 3;
@@ -51,6 +54,7 @@ bool CMenu::initCurses ( void ) {
     #define ON_PAIR COLOR_PAIR(2)
     #define ON_SELECTED_PAIR COLOR_PAIR(4)
     #define OFF_SELECTED_PAIR COLOR_PAIR(1)
+    clear();
     refresh();
     return true;
 }
@@ -130,7 +134,7 @@ bool CMenu::handleSettingsMovement (  vector<pair<string,bool>> & menuItems ) {
             
             mvwprintw ( m_Win, i+1, 2, "%s", menuItems[i].first.c_str() );
             if ( i == 1 )
-                wprintw ( m_Win, " %d", m_Settings.getMaxDeckSize() );
+                wprintw ( m_Win, " %ld", m_Settings.getMaxDeckSize() );
             wattroff ( m_Win, OFF_PAIR );
             wattroff ( m_Win, OFF_PAIR );
             wattroff ( m_Win, ON_SELECTED_PAIR );
@@ -149,6 +153,8 @@ int CMenu::readNumber ( const size_t & yCoord, const size_t & xCoord, const size
     curs_set ( 1 );
     echo();
     char * buff = new char [ n + 1 ];
+    for ( size_t i = 0; i < n+1; i++ )
+        buff[i] = 0;
     mvwgetnstr ( m_Win, yCoord, xCoord, buff, n );
     noecho();
     curs_set ( 0 );
@@ -162,10 +168,9 @@ int CMenu::readNumber ( const size_t & yCoord, const size_t & xCoord, const size
     return x;
 }
 
-bool CMenu::isValidDeckSize ( int number ) {
+bool CMenu::isValidDeckSize ( int & number ) {
     if ( number <= 0 ) {
-        printw ( "ERROR: %d Must be a number\n", number );
-        refresh();
+        printError ( "Must be a number" );
         return false;
     }
     return true;
@@ -242,7 +247,7 @@ bool CMenu::chooseCharacterMovement ( vector<shared_ptr<CCharacter>> & character
     return true;
 }
 
-string CMenu::chooseName ( const char * menuHeader ) {
+string CMenu::chooseNameMenu ( const char * menuHeader ) {
     drawMenu ( menuHeader );
     string str;
     while ( 1 ) {
@@ -286,13 +291,19 @@ bool CMenu::chooseDeckMovement ( vector<CDeck> & decks ) {
 CDeck CMenu::chooseDeckMenu ( vector<CDeck> & decks ) {
     m_Highlight = 0;
     drawMenu ( "Choose a deck:" );
-    if ( ! chooseDeckMovement ( decks ) )
-        return CDeck ("");
+    while ( 1 ) {
+        if ( ! chooseDeckMovement ( decks ) )
+            return CDeck ("");
+        if ( decks[m_Highlight].size() > m_Settings.getMaxDeckSize() )
+            printError ( "Selected deck is too large" );
+        else
+            break;
+    }
     return decks[m_Highlight];
 }
 
 shared_ptr<CPlayer> CMenu::createPlayerMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters, vector<CDeck> & decks, const char * menuHeader ) {
-    string p_name = chooseName ( menuHeader );
+    string p_name = chooseNameMenu ( menuHeader );
     string header = p_name + "'s character:";
     shared_ptr<CCharacter> playerCharacter = chooseCharacter ( loadedCharacters, header.c_str() );
     if ( ! playerCharacter )
@@ -333,58 +344,59 @@ bool CMenu::loadingScreen ( vector<shared_ptr<CCharacter>> & characters, map<str
     wgetch ( m_Win );
     return false;
 }
-
-bool CMenu::handleCreateMenu ( void ) {
+/**
+ * @return -1 on requested exit, 1 on successfuly creating a game 0 on game creation failure 
+ */
+int CMenu::handleCreateMenu ( CGameStateManager & gsm ) {
     vector<shared_ptr<CCharacter>> characters;
     map<string,shared_ptr<CCard>> cards;
     vector<CDeck> decks;
     if ( ! loadingScreen ( characters, cards, decks ) )
-        return true;
+        return 0;
     shared_ptr<CPlayer> p1;
     shared_ptr<CPlayer> p2;
     p1 = createPlayerMenu ( characters, decks, "Player 1 name:" );
     if ( ! p1 )
-        return false;
+        return -1;
     if ( m_Settings.isTwoPlayerGame() ) {
         p2 = createPlayerMenu ( characters, decks, "Player 2 name:" );
         if ( ! p2 )
-            return false;
+            return -1;
     }
-    // construct an AI Player with random character
+    //! construct an AI Player with random character and deck
     // else if ( ! m_Settings.isTwoPlayerGame() )
         // p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *characters[random() % (characters.size () + 1)] ) );
         // create random deck for the bot
-    CGameStateManager gsm ( p1, p2, m_Settings );
-    if ( ! gsm.beginGame() )
-        return false;
-    return true;
+    gsm = CGameStateManager ( p1, p2, m_Settings );
+    return 1;
 }
 
-bool CMenu::handleMainMenu ( void ) {
-    drawMenu ( "Main menu" );
+bool CMenu::handleMainMenu ( CGameStateManager & gsm ) {
     vector<string> menuItems = { "New game", "Load saved game", "Settings", "-Quit-" };
-    m_Highlight = 0;
-    if ( ! handleMenuMovement ( menuItems ) )
-        return false;
-    switch ( m_Highlight ) {
-    case 0:
-        if ( ! handleCreateMenu () )
+    int res;
+    while ( 1 ) {
+        m_Highlight = 0;
+        drawMenu ( "Main menu" );
+        if ( ! handleMenuMovement ( menuItems ) )
             return false;
-        break;
-    case 1:
-        printError ( "Selected 1\n");
-        break;
-    case 2:
-        if ( ! handleSettings () )
+        if ( m_Highlight == 0 ) {
+            if ( res = handleCreateMenu ( gsm ); res == -1 )
+                return false;
+            else if ( res == 1 )
+                return true;
+        }    
+        else if ( m_Highlight == 1 ) {
+            printError ( "loading the game not in yet\n");
+        }
+        else if ( m_Highlight == 2 ) {
+            if ( ! handleSettings () )
+                return false;
+        }
+        else if ( m_Highlight == 3 ) {
             return false;
-        break;
-    case 3:
-        return false;
-        break;
-    default:
-        break;
-    }
+        }
 
+    }
     // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
     refresh();
     return true;

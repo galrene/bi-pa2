@@ -17,3 +17,7 @@ shared_ptr<CCard> CDeck::drawCard ( void ) {
 void CDeck::shuffleCards ( void ) {
     random_shuffle ( m_Content.begin(), m_Content.end() );
 }
+
+size_t CDeck::size ( void ) {
+    return m_Content.size();
+}

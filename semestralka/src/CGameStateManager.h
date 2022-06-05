@@ -7,10 +7,10 @@ using namespace std;
 
 class CGameStateManager {
   public:
+    CGameStateManager ( void ) = default;
     CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlayer> p2, CGameSettings sett );
 
     bool beginGame  ( void );
-    bool drawGame  ( void );
     bool endGame    ( void );
     bool playCard ( CCard & card, CPlayer & user );
     bool loadCards  ( void );
@@ -18,6 +18,8 @@ class CGameStateManager {
     bool loadGame   ( void );
     bool endTurn    ( void );
     bool loadPlayer ( CPlayer & player );
+    void renderPlayerStats ( WINDOW * win, short player );
+
   protected:
     size_t m_TurnNumber;
     shared_ptr<CPlayer> m_Player1;

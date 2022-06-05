@@ -39,3 +39,27 @@ void CCharacter::dumpInfo ( ostream & os ) {
   os << "strength = " << m_Strength << endl;
   os << "defense = " << m_Defense << endl;
 }
+/**
+ * @brief Print stats to window, don't refresh, don't clear
+ * 
+ * @param win window for printing
+ */
+void CCharacter::renderStats ( WINDOW * win ) {
+  int strengthPos = 2;
+  init_pair ( 1, COLOR_WHITE, COLOR_RED ); // hp color
+  init_pair ( 2, COLOR_WHITE, COLOR_BLUE ); // mana color
+  int yMax, xMax;
+  getmaxyx ( win, yMax, xMax );
+  string strength = "Strength: " + to_string(m_Strength);
+  mvwprintw ( win, yMax/2, strengthPos, "%s", strength.c_str() );
+  string defense = "Defense: " + to_string(m_Defense);
+  mvwprintw ( win, yMax/2, strengthPos + strength.size() + 2, "%s", defense.c_str() );
+  wattron ( win, COLOR_PAIR ( 1 ) );
+  string hp = "HP: " + to_string(m_HP);
+  string mana = "Mana: " + to_string(m_Mana); 
+  mvwprintw ( win, yMax/2, xMax - 2 - mana.size() - 2 - hp.size(), "%s", hp.c_str() );
+  wattroff ( win, COLOR_PAIR ( 1 ) );
+  wattron ( win, COLOR_PAIR ( 2 ) );
+  mvwprintw ( win, yMax/2, xMax - 2 - mana.size(), "%s", mana.c_str() );
+  wattroff ( win, COLOR_PAIR ( 2 ) );
+}

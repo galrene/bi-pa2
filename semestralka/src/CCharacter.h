@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include <ncurses.h>
 
 using namespace std;
 
@@ -24,6 +25,7 @@ class CCharacter {
     bool buildCharacter ( void );
     void save ( string path );
     bool isSet ( void );
+    void renderStats ( WINDOW * win );
     string getHeader ( void );
     string getName ( void );
 };

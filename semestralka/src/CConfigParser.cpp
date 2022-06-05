@@ -1,6 +1,6 @@
 #include "CConfigParser.h"
 
-/*
+/**
  * @brief Construct a new CConfigParser at default location
  */
 CConfigParser::CConfigParser ( void )
