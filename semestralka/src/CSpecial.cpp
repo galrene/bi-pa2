@@ -36,7 +36,6 @@ void CSpecial::dumpInfo ( ostream & os ) {
 void CSpecial::render ( WINDOW * win ) {
   int yMax, xMax;
   getmaxyx ( win, yMax, xMax );
-  init_pair ( 3, COLOR_WHITE, COLOR_YELLOW ); // cost color
   mvwprintw ( win, 1, xMax / 2 - m_Name.size() / 2, "%s", m_Name.c_str() );
   mvwprintw ( win, 2, xMax / 2 - m_Type.size() / 2, "%s", m_Type.c_str() );
   wattron ( win, COLOR_PAIR(2) );
@@ -52,6 +51,6 @@ void CSpecial::render ( WINDOW * win ) {
   }
   if ( m_ManaDiff ) {
     string mana = "Mana " + to_string ( m_ManaDiff );
-    mvwprintw ( win, yMax - 3, xMax / 2 - mana.size() / 2, "%s", mana.c_str() );
+    mvwprintw ( win, yMax - 2, xMax / 2 - mana.size() / 2, "%s", mana.c_str() );
   }
 }

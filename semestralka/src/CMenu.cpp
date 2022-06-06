@@ -153,7 +153,7 @@ int CMenu::readNumber ( const size_t & yCoord, const size_t & xCoord, const size
     curs_set ( 1 );
     echo();
     char * buff = new char [ n + 1 ];
-    for ( size_t i = 0; i < n+1; i++ )
+    for ( size_t i = 0; i < n + 1; i++ )
         buff[i] = 0;
     mvwgetnstr ( m_Win, yCoord, xCoord, buff, n );
     noecho();
@@ -363,10 +363,12 @@ int CMenu::handleCreateMenu ( CGameStateManager & gsm ) {
         if ( ! p2 )
             return -1;
     }
-    //! construct an AI Player with random character and deck
-    // else if ( ! m_Settings.isTwoPlayerGame() )
-        // p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *characters[random() % (characters.size () + 1)] ) );
-        // create random deck for the bot
+    // construct an AI Player with random character and deck
+    else if ( ! m_Settings.isTwoPlayerGame() ) {
+        shared_ptr<CCharacter> randomCharacter = characters[random() % characters.size ()];
+        p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *randomCharacter, *randomCharacter, decks[ random() % decks.size () ] ) );
+    }
+
     gsm = CGameStateManager ( p1, p2, m_Settings );
     return 1;
 }

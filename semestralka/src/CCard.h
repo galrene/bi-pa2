@@ -7,6 +7,7 @@
 // #include "CPlayer.h" // ! cyklycky include s CDeck
 using namespace std;
 
+
 class CCard {
   protected:
     string m_Name;

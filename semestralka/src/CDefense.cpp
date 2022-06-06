@@ -31,7 +31,6 @@ void CDefense::dumpInfo ( ostream & os ) {
 void CDefense::render ( WINDOW * win ) {
   int yMax, xMax;
   getmaxyx ( win, yMax, xMax );
-  init_pair ( 3, COLOR_WHITE, COLOR_YELLOW ); // cost color
   mvwprintw ( win, 1, xMax / 2 - m_Name.size() / 2, "%s", m_Name.c_str() );
   mvwprintw ( win, 2, xMax / 2 - m_Type.size() / 2, "%s", m_Type.c_str() );
   wattron ( win, COLOR_PAIR(2) );
