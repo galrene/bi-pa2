@@ -15,7 +15,8 @@ deps:
 
 clean:
 	rm -f *.o *~ galrene
-
+count:
+	wc -l src/*
 build/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
