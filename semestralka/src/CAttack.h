@@ -9,6 +9,8 @@ class CAttack : public CCard {
     virtual bool containsDeps ( map <string,string> & data ) override;
     virtual bool buildCard ( void ) override;
     virtual void dumpInfo ( ostream & os ) override;
+    virtual void render ( WINDOW * win ) override;
+
   protected:
     int m_Damage;
 };

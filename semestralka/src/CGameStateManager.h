@@ -9,7 +9,11 @@ class CGameStateManager {
   public:
     CGameStateManager ( void ) = default;
     CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlayer> p2, CGameSettings sett );
-
+    /**
+     * @brief Shuffle decks, deal hands, set P1's turn 
+     * ! change name to something better ! maybe initGame()
+     * @return 
+     */
     bool beginGame  ( void );
     bool endGame    ( void );
     bool playCard ( CCard & card, CPlayer & user );
@@ -18,8 +22,9 @@ class CGameStateManager {
     bool loadGame   ( void );
     bool endTurn    ( void );
     bool loadPlayer ( CPlayer & player );
-    void renderPlayerStats ( WINDOW * win, short player );
 
+    void renderPlayerStats ( WINDOW * win, short player );
+    void renderPlayerHand ( vector<WINDOW*> p1Cards, short player );
   protected:
     size_t m_TurnNumber;
     shared_ptr<CPlayer> m_Player1;

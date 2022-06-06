@@ -19,7 +19,10 @@ class CPlayer {
     void save ( string path );
     void load ( string path );
 
+    void shuffleDeck ( void );
     void renderStats ( WINDOW * win );
+    void renderCard ( WINDOW * win, size_t & i );
+
   protected:
     string m_Name;
     CCharacter m_LoadedCharacter; // character representing default state

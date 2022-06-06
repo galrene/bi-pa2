@@ -16,4 +16,8 @@ class CGame {
     int m_CardHeight, m_CardWidth;
     int m_StatsHeight, m_StatsWidth;
     CGameStateManager m_Gsm;
+    vector<WINDOW*> m_P1Cards;
+    WINDOW * m_P1Stats;
+    vector<WINDOW*> m_P2Cards;
+    WINDOW * m_P2Stats;
 };

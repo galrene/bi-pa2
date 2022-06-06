@@ -32,3 +32,24 @@ void CPassive::dumpInfo ( ostream & os ) {
   os << "damage = " << m_Damage << endl;
   os << "duration = " << m_Duration << endl;
 }
+
+void CPassive::render ( WINDOW * win ) {
+  int yMax, xMax;
+  getmaxyx ( win, yMax, xMax );
+  init_pair ( 3, COLOR_WHITE, COLOR_YELLOW ); // cost color
+  mvwprintw ( win, 1, xMax / 2 - m_Name.size() / 2, "%s", m_Name.c_str() );
+  mvwprintw ( win, 2, xMax / 2 - m_Type.size() / 2, "%s", m_Type.c_str() );
+  wattron ( win, COLOR_PAIR(2) );
+  mvwprintw ( win, 1, xMax - 2, "%d", m_Cost );
+  wattroff ( win, COLOR_PAIR(2) );
+  if ( m_Heal ) {
+    string heal = "+" + to_string ( m_Heal ) + " health";
+    mvwprintw ( win, yMax - 4, xMax / 2 - heal.size() / 2, "%s", heal.c_str() );
+  }
+  if ( m_Damage ) {
+    string damage = "Deal " + to_string(m_Damage) + " damage";
+    mvwprintw ( win, yMax - 3, xMax / 2 - damage.size() / 2, "%s", damage.c_str() );
+  }
+  string duration = "Duration: " + to_string(m_Duration) + " rounds";
+  mvwprintw ( win, yMax - 3, xMax / 2 - duration.size() / 2, "%s", duration.c_str() );
+}

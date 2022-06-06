@@ -9,6 +9,7 @@ class CDefense : public CCard {
     virtual void dumpInfo ( ostream & os ) override;
     virtual bool buildCard ( void ) override;
     virtual bool containsDeps ( map <string,string> & data ) override;
+    virtual void render ( WINDOW * win ) override;
   protected:
     int m_Heal;
 };
