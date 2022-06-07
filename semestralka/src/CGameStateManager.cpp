@@ -46,10 +46,13 @@ void CGameStateManager::renderPlayerHand ( vector<WINDOW*> cardWindows, short pl
   }
 }
 
-void CGameStateManager::whoIsOnTurn ( int yCoord, int xCoord ) {  
-  move ( yCoord, xCoord );
-  clrtoeol ();
-  m_OnTurn->renderName ( stdscr, yCoord, xCoord );
+void CGameStateManager::whoIsOnTurn ( int yCoord, int xCoord ) {
+  // m_OnTurn->renderName ( stdscr, yCoord, xCoord );
+  // printw(" ", yCoord, xCoord );
+  if ( m_OnTurn == m_Player1 )
+    mvaddch ( yCoord, xCoord, ACS_UARROW );
+  else
+    mvaddch ( yCoord, xCoord, ACS_DARROW );
   refresh();
 }
 

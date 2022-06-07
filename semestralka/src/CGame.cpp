@@ -50,22 +50,22 @@ void CGame::beginGame ( void ) {
     drawLayout();
     int a;
     while ( ( a = getch() ) && ( a != ( 'd' & 0x1F ) ) ) {
-        m_Gsm.whoIsOnTurn ( m_yMax/2, m_xMax/2 );
-        if ( a == 9 ) 
+        if ( a == '9' ) 
             m_Gsm.endTurn();
-        else if ( a == 8 ) { // discard card
+        else if ( a == '8' ) { // discard card
             int cardIndex = getch();
-            if ( cardIndex <= 5 && cardIndex >= 0 ) {
-                m_Gsm.discardCard ( cardIndex );
+            if ( cardIndex <= '5' && cardIndex >= '0' ) {
+                m_Gsm.discardCard ( cardIndex - '0' );
                 drawLayout(); // temporary, quite ineffective to refresh everything
             }
         }
-        else if ( a <= 5 && a >= 0 ) {
-            m_Gsm.playCard ( a );
+        else if ( a <= '5' && a >= '0' ) {
+            m_Gsm.playCard ( a - '0' );
             drawLayout(); // makes more sense to refresh everything here
         }
         // if ( ! bothAlive() )
         //    break;
+        m_Gsm.whoIsOnTurn ( m_yMax/2, m_xMax/2 );
     }
     // winnerScreen ();
 }
