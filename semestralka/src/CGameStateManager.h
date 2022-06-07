@@ -17,8 +17,13 @@ class CGameStateManager {
      * @return 
      */
     bool dealCards  ( void );
-    bool endGame    ( void );
-    void playCard ( size_t i );
+    /**
+     * @brief pick who to use card on, use it if user has enough mana
+     * 
+     * @param i index of card to in hand
+     * @param win window for prompting the receiver pick
+     */
+    void playCard ( size_t i, WINDOW * win );
     /**
      * @brief Discard a card from hand and return it back into the deck
      * 
@@ -49,18 +54,18 @@ class CGameStateManager {
      */
     void renderPlayerHand ( vector<WINDOW*> cardWindows, short player );
     /**
-     * @brief prints who's turn it is at given coordinates
+     * @brief prints who's turn it is, centered in the middle
      * 
-     * @param y 
-     * @param x 
+     * @param win where to print 
      */
-    void whoIsOnTurn ( int yCoord, int xCoord );
+    void whoIsOnTurn ( WINDOW * win );
     /**
      * @brief pick one of two players ( KEY_UP = player1, KED_DOWN = player2 )
-     * 
+     *
+     * @param win window where to prompt the user to pick
      * @return shared_ptr<CPlayer> picked player
      */
-    shared_ptr<CPlayer> pickPlayer ( void );
+    shared_ptr<CPlayer> pickPlayer ( WINDOW * win );
   protected:
     size_t m_TurnNumber;
     shared_ptr<CPlayer> m_Player1;

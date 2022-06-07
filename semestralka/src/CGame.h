@@ -1,3 +1,4 @@
+#pragma once
 #ifndef CGame_H
 #define CGame_H
 #include "CGameStateManager.h"
@@ -8,7 +9,7 @@ class CGame {
     CGame ( CGameStateManager gsm );
     CGame ( void ) = default; // for testing purpouses
     ~CGame ( void );
-    void beginGame ( void );
+    bool beginGame ( void );
 
   protected:
     bool initCurses ( void );
@@ -22,5 +23,6 @@ class CGame {
     WINDOW * m_P1Stats;
     vector<WINDOW*> m_P2Cards;
     WINDOW * m_P2Stats;
+    WINDOW * m_Info;
 };
 #endif

@@ -7,10 +7,10 @@ bool CPlayer::operator == ( CPlayer & rhs ) {
   return rhs.m_Name == m_Name;
 }
 void CPlayer::renderName ( WINDOW * win, int yCoord, int xCoord ) {
-  string name = m_Name.append("'s ").append(m_PlayedCharacter.getName()) ;
+  string name = m_Name + "'s " + m_PlayedCharacter.getName();
   mvwprintw ( win, yCoord, xCoord - name.size()/2, "%s", name.c_str() );
 }
-void CPlayer::renderStats ( WINDOW * win ) {
+void CPlayer::renderPlayer ( WINDOW * win ) {
   int yMax, xMax;
   getmaxyx ( win, yMax, xMax );
   renderName ( win, yMax/2, xMax/2 );
@@ -39,6 +39,7 @@ void CPlayer::playCard ( size_t i, shared_ptr<CPlayer> & user, shared_ptr<CPlaye
   receiver->m_PlayedCharacter.applyEffect ( effs.first );
   user->m_PlayedCharacter.applyEffect ( effs.second );
   m_Deck.addCard ( m_Hand.drawCardAt ( i ) );
+  m_Hand.addCard ( m_Deck.drawCard () );
 }
 void CPlayer::fillMana ( void ) {
   m_PlayedCharacter.applyEffect ( CEffect ( 0, m_LoadedCharacter.getMana() - m_PlayedCharacter.getMana() ) );

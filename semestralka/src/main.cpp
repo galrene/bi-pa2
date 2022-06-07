@@ -9,7 +9,8 @@ int main ( int argc, char const *argv[] ) {
     CGameStateManager gsm;
     while ( startMenu ( gsm ) ) { 
         CGame game ( gsm );
-        game.beginGame();
+        if ( ! game.beginGame() )
+            return 0;
     }
     /*
     CGame game;

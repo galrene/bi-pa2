@@ -40,7 +40,7 @@ class CPlayer {
      * 
      * @param win 
      */
-    void renderStats ( WINDOW * win );
+    void renderPlayer ( WINDOW * win );
     /**
      * @brief render box, card index, card
      * 
@@ -78,7 +78,7 @@ class CPlayer {
      * @param i card index
      */
     bool tmp_hasEnoughMana ( size_t i );
-
+    string getName ( void ) { return m_Name; }
 
   protected:
     string m_Name;
