@@ -1,4 +1,6 @@
 #pragma once
+#ifndef Constants_H
+#define Constants_H
 #include <filesystem>
 #include <string>
 
@@ -41,3 +43,9 @@ const std::string defaultBotNickname = "TERMINATOR";
  * 
  */
 const int defaultInputLengthDeckSize = 3;
+/**
+ * @brief amount of cards each player plays with
+ * 
+ */
+const size_t handSize = 6;
+#endif

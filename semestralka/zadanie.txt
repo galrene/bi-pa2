@@ -35,7 +35,6 @@ Na začiatku si hráč zvolí jednu z troch postáv, každá bude mať iné poč
 Karty budú rôznych typov (polymorfismus):
  - útočná karta
  - obranná karta
- - karty na dočasné posilnenie základného útoku
  - špeciálne útočné a obranné karty
  - karty s pasívnym efektom
 Každá karta bude stáť určité množstvo many, tá sa odčítava a nemôže ísť pod 0.
@@ -43,4 +42,21 @@ Na začiatku dostanú hráči nastaviteľné množstvo kariet z balíčka.
 Hráč si ťahá karty z balíčka náhodne, odhodené karty budú vkladané naspäť do balíčka.
 Hru vyhrá hráč, ktorému sa podarí oponenta dostať na 0 HP.
 
-Akcie budú vykonávané klávesnicou ( šípkami a enterom ) alebo pomocou textového poľa (?).
+Karty budu hrane cislami na klavesnici 1-6, 7 sa zacne vyber karty na zahodenie
+e-ckom sa skonci turn
+
+Na ruke bude mat kazdy max 6 kariet
+Na konci tahu dostane karty do ruky aby mal stale 6.
+
+Karty sa daju pouzit aj na seba aj na oponenta, meni sa to sipkou hore dole (?)
+
+Card types:
+    Attack:
+     - davaju damage
+    Defense:
+     - healuju
+    Passive:
+     - healuju alebo damaguju urcity pocet kol
+    Special:
+     - menia atributy tomu na koho su pouzite
+    

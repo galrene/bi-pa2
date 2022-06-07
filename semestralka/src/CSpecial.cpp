@@ -54,3 +54,7 @@ void CSpecial::render ( WINDOW * win ) {
     mvwprintw ( win, yMax - 2, xMax / 2 - mana.size() / 2, "%s", mana.c_str() );
   }
 }
+
+pair<CEffect,CEffect> CSpecial::getEffects ( void ) {
+  return make_pair<CEffect,CEffect> ( CEffect ( 0, m_ManaDiff, m_StrengthDiff, m_DefenseDiff ), CEffect ( 0, -m_Cost ) );
+}

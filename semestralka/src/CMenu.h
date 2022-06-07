@@ -1,4 +1,6 @@
 #pragma once
+#ifndef CMenu_H
+#define CMenu_H
 #include <ncurses.h>
 #include <iostream>
 #include <vector>
@@ -71,3 +73,4 @@ class CMenu {
     size_t m_Highlight = 0;
     CGameSettings m_Settings;
 };
+#endif

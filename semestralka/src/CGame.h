@@ -1,3 +1,5 @@
+#ifndef CGame_H
+#define CGame_H
 #include "CGameStateManager.h"
 #include <ncurses.h>
 
@@ -6,11 +8,11 @@ class CGame {
     CGame ( CGameStateManager gsm );
     CGame ( void ) = default; // for testing purpouses
     ~CGame ( void );
-    bool beginGame ( void );
+    void beginGame ( void );
 
   protected:
     bool initCurses ( void );
-    bool drawLayout ( void );
+    void drawLayout ( void );
 
     int m_xMax, m_yMax;
     int m_CardHeight, m_CardWidth;
@@ -21,3 +23,4 @@ class CGame {
     vector<WINDOW*> m_P2Cards;
     WINDOW * m_P2Stats;
 };
+#endif

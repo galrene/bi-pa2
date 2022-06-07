@@ -1,10 +1,13 @@
 #pragma once
+#ifndef CCard_H
+#define CCard_H
 #include <string>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <ncurses.h>
 #include <string.h>
-// #include "CPlayer.h" // ! cyklycky include s CDeck
+#include "CEffect.h"
 using namespace std;
 
 
@@ -19,7 +22,12 @@ class CCard {
 
     CCard ( string name, string type, int cost );
     CCard ( map <string,string> & data );
-    // virtual void useCard ( CPlayer & user, CPlayer & opponent ) = 0;
+    /**
+     * @brief get card effects
+     * 
+     * @return pair<CEffect,CEffect> first = receiver effect, second = user effect
+     */
+    virtual pair<CEffect,CEffect> getEffects ( void ) = 0;
     virtual bool containsDeps ( map <string,string> & data ) = 0; 
     /**
     * @brief construct card from provided map<string,string> data source
@@ -33,7 +41,8 @@ class CCard {
     virtual string getName ( void );
     virtual void render ( WINDOW * win ) = 0;
     bool operator == ( CCard & rhs );
-    // virtual void renderCard ( win, y, x ) = 0; na vykreslenie karty
+    // ! TEMP ?
+    int getManaCost ( void ) {return m_Cost;}
     // virtual shared_ptr<CCard> create ( void ) = 0; na vytvorenie shared_ptr
-    /* for saving */
 };
+#endif

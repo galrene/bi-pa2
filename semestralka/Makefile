@@ -8,13 +8,13 @@ OBJECTS = $(SOURCES:src/%.cpp=build/%.o)
 all: galrene
 
 galrene: $(OBJECTS)
-	$(LD) -o $@ $^ -lncurses
+	$(LD) -o $@ $^ -lncurses -lstdc++fs
 
 deps:
 	$(CXX) -MM src/*cpp > Makefile.d
 
 clean:
-	rm -f *.o *~ galrene
+	rm -f build/*.o galrene
 count:
 	wc -l src/*
 build/%.o: src/%.cpp

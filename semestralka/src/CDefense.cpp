@@ -41,3 +41,6 @@ void CDefense::render ( WINDOW * win ) {
   string damage = to_string ( m_Heal ) + " Health";
   mvwprintw ( win, yMax - 2, xMax / 2 - damage.size() / 2, "%s", damage.c_str() );
 }
+pair<CEffect, CEffect> CDefense::getEffects ( void ) {
+  return make_pair <CEffect, CEffect> ( CEffect ( m_Heal ), CEffect ( 0, -m_Cost ) );
+}

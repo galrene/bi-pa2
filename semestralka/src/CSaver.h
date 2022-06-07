@@ -1,4 +1,6 @@
 #pragma once
+#ifndef CSaver_H
+#define CSaver_H
 #include <string>
 #include <filesystem>
 #include <iostream>
@@ -34,3 +36,4 @@ class CSaver {
   private:
     fs::path m_Path;
 };
+#endif

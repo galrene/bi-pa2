@@ -13,6 +13,16 @@ shared_ptr<CCard> & CDeck::drawCard ( void ) {
     m_Content.pop_front();
     return card;
 }
+shared_ptr<CCard> CDeck::drawCardAt ( size_t i ) {
+    if ( i >= m_Content.size() )
+        return nullptr;
+    shared_ptr<CCard> card = m_Content.at(i);
+    m_Content.erase( m_Content.begin() + i );
+    return card;
+}
+shared_ptr<CCard> CDeck::getCardAt ( size_t i ) {
+    return m_Content[i];
+}
 
 void CDeck::shuffleCards ( void ) {
     random_shuffle ( m_Content.begin(), m_Content.end() );

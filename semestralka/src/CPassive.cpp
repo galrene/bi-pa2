@@ -46,9 +46,13 @@ void CPassive::render ( WINDOW * win ) {
     mvwprintw ( win, yMax - 4, xMax / 2 - heal.size() / 2, "%s", heal.c_str() );
   }
   if ( m_Damage ) {
-    string damage = "Deal " + to_string(m_Damage) + " damage";
+    string damage = "Deal " + to_string ( m_Damage ) + " damage";
     mvwprintw ( win, yMax - 3, xMax / 2 - damage.size() / 2, "%s", damage.c_str() );
   }
-  string duration = "Duration: " + to_string(m_Duration) + " rounds";
+  string duration = "Duration: " + to_string ( m_Duration ) + " rounds";
   mvwprintw ( win, yMax - 2 , xMax / 2 - duration.size() / 2, "%s", duration.c_str() );
+}
+
+pair<CEffect,CEffect> CPassive::getEffects ( void ) {
+  return make_pair<CEffect,CEffect> ( CEffect ( m_Heal-m_Damage ), CEffect ( 0, -m_Cost ) );
 }

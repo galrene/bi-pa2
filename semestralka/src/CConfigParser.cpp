@@ -106,7 +106,7 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
     stringstream buffer;
     // inserts file content into stringstream
     buffer << ifs.rdbuf();
-
+    
     string header;
     string tmpKey;
     string tmpVal;

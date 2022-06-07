@@ -173,6 +173,10 @@ bool CMenu::isValidDeckSize ( int & number ) {
         printError ( "Must be a number" );
         return false;
     }
+    else if ( ( size_t ) number < handSize ) {
+        printError ( "Must be bigger or equal to hand size" );
+        return false;
+    }
     return true;
 }
 bool CMenu::handleSettings ( void ) {

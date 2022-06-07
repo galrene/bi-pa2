@@ -1,4 +1,6 @@
 #pragma once
+#ifndef CConfigParser_H
+#define CConfigParser_H
 #include <iostream>
 #include <fstream>
 #include <map>
@@ -60,3 +62,4 @@ class CConfigParser {
     set<string> loadedUniqueElements;
     fs::path m_Path;
 };
+#endif
