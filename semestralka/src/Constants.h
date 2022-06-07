@@ -29,7 +29,7 @@ const std::string defaultDeckDirectory = "decks";
  */
 const bool defaultTwoPlayerGame = true;
 /**
- * @brief Maximum player name length
+ * @brief Maximum player name length inputtable
  * 
  */
 const int maxNameLength = 20;
@@ -48,4 +48,9 @@ const int defaultInputLengthDeckSize = 3;
  * 
  */
 const size_t handSize = 6;
+/**
+ * @brief Can players see each other's hands by default?
+ * 
+ */
+const bool defaultHandVisibility = true;
 #endif

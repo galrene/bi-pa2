@@ -23,7 +23,7 @@ class CGameStateManager {
      * @param i index of card to in hand
      * @param win window for prompting the receiver pick
      */
-    void playCard ( size_t i, WINDOW * win );
+    void playCard ( size_t i );
     /**
      * @brief Discard a card from hand and return it back into the deck
      * 
@@ -40,25 +40,22 @@ class CGameStateManager {
     void endTurn    ( void );
     bool loadPlayer ( CPlayer & player );
     /**
-     * @brief clear, box, refresh window, also render given player's stats
-     * 
-     * @param win where to render
-     * @param player, whose stats to render -> 1 or 2
+     * @brief clear, box, refresh window, render both player's stats
      */
-    void renderPlayerStats ( WINDOW * win, short player );
+    void renderPlayerStats ( void );
     /**
      * @brief render player's cards on hand, clear and refresh each card window
      * 
      * @param cardWindows where to render cards
      * @param player, whose hand to render -> 1 or 2
      */
-    void renderPlayerHand ( vector<WINDOW*> cardWindows, short player );
+    void renderHands ( void );
     /**
      * @brief prints who's turn it is, centered in the middle
      * 
      * @param win where to print 
      */
-    void whoIsOnTurn ( WINDOW * win );
+    void whoIsOnTurn ( void );
     /**
      * @brief pick one of two players ( KEY_UP = player1, KED_DOWN = player2 )
      *
@@ -66,11 +63,18 @@ class CGameStateManager {
      * @return shared_ptr<CPlayer> picked player
      */
     shared_ptr<CPlayer> pickPlayer ( WINDOW * win );
+    /**
+     * @brief Set both player's windows where the will render their cards and stats
+     */
+    void setWindows ( vector<WINDOW*> & p1_cards, WINDOW * p1_stats, vector<WINDOW*> & p2_cards, WINDOW * p2_stats, WINDOW * info );
+
   protected:
     size_t m_TurnNumber;
     shared_ptr<CPlayer> m_Player1;
     shared_ptr<CPlayer> m_Player2;
     CGameSettings m_Settings;
     shared_ptr<CPlayer> m_OnTurn;
+    
+    WINDOW * m_Info;
 };
 #endif

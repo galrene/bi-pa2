@@ -10,11 +10,14 @@ void CPlayer::renderName ( WINDOW * win, int yCoord, int xCoord ) {
   string name = m_Name + "'s " + m_PlayedCharacter.getName();
   mvwprintw ( win, yCoord, xCoord - name.size()/2, "%s", name.c_str() );
 }
-void CPlayer::renderPlayer ( WINDOW * win ) {
+void CPlayer::renderPlayer ( void ) {
+  wclear ( m_StatsWin );
+  box ( m_StatsWin, 0 ,0 );
   int yMax, xMax;
-  getmaxyx ( win, yMax, xMax );
-  renderName ( win, yMax/2, xMax/2 );
-  m_PlayedCharacter.renderStats ( win );
+  getmaxyx ( m_StatsWin, yMax, xMax );
+  renderName ( m_StatsWin, yMax/2, xMax/2 );
+  m_PlayedCharacter.renderStats ( m_StatsWin );
+  wrefresh ( m_StatsWin );
 }
 void CPlayer::shuffleDeck ( void ) {
   m_Deck.shuffleCards();
@@ -27,6 +30,19 @@ void CPlayer::renderCard ( WINDOW * win, size_t & i ) {
   box ( win, 0, 0 );
   mvwprintw ( win, 1, 1, "(%ld)",i );
   m_Hand.renderCard ( win, i );
+}
+void CPlayer::renderHand ( void ) {
+  for ( size_t i = 0; i < m_HandWins.size(); i++ ) {
+      wclear ( m_HandWins[i] );
+      renderCard ( m_HandWins[i], i );
+      wrefresh ( m_HandWins[i] );
+    }
+}
+void CPlayer::hideHand ( void ) {
+  for ( size_t i = 0; i < m_HandWins.size(); i++ ) {
+      wclear ( m_HandWins[i] );
+      wrefresh ( m_HandWins[i] );
+    }
 }
 void CPlayer::fillHand ( void ) {
   drawCard ( handSize - m_Hand.size() );

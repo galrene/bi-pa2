@@ -13,7 +13,7 @@ using namespace std;
 class CPlayer {
   public:
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
-
+    
     CCharacter m_PlayedCharacter; // character representing current state
     bool operator == ( CPlayer & rhs );
     // void loadDeck ( CDeck & deck );
@@ -40,7 +40,7 @@ class CPlayer {
      * 
      * @param win 
      */
-    void renderPlayer ( WINDOW * win );
+    void renderPlayer ( void );
     /**
      * @brief render box, card index, card
      * 
@@ -56,6 +56,18 @@ class CPlayer {
      * @param xCoord 
      */
     void renderName ( WINDOW * win, int yCoord, int xCoord );
+    /**
+     * @brief Render the whole hand
+     * 
+     * @param cardWindows where to render
+     */
+    void renderHand ( void );
+    /**
+     * @brief Hides the whole hand
+     * 
+     * @param cardWindows what to hide
+     */
+    void hideHand ( void );
     /**
      * @brief Top up cards on hand to default hand size
      * 
@@ -79,12 +91,16 @@ class CPlayer {
      */
     bool tmp_hasEnoughMana ( size_t i );
     string getName ( void ) { return m_Name; }
-
+    void setStatsWin ( WINDOW * win ) { m_StatsWin = win; }
+    void setCardWins ( vector<WINDOW*> & cardWins ) { m_HandWins = cardWins; }
   protected:
     string m_Name;
     CCharacter m_LoadedCharacter; // character representing default state
     CDeck m_Deck;
     CDeck m_Hand;
+
+    vector<WINDOW*> m_HandWins;
+    WINDOW* m_StatsWin;
 };
 /*
 class CComputerPlayerAtt : public CPlayer {

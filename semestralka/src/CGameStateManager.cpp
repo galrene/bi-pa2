@@ -11,62 +11,46 @@ bool CGameStateManager::dealCards ( void ) {
   m_OnTurn = m_Player1;
   return true;
 }
-void CGameStateManager::renderPlayerStats ( WINDOW * win, short player ) {
-  wclear ( win );
-  box ( win, 0 ,0 );
-  switch ( player ) {
-  case 1:
-    m_Player1->renderPlayer ( win );
-    break;
-  case 2:
-    m_Player2->renderPlayer ( win );
-    break;
-  default:
-    break;
-  }
-  wrefresh ( win );
+void CGameStateManager::renderPlayerStats ( void ) {
+    m_Player1->renderPlayer();
+    m_Player2->renderPlayer();
+}
+void CGameStateManager::renderHands ( void ) {
+    shared_ptr<CPlayer> offTurn = m_OnTurn == m_Player1 ? m_Player2 : m_Player1;
+    if ( m_Settings.isCheeky() )
+      offTurn->renderHand();
+    m_OnTurn->renderHand();
 }
 
-void CGameStateManager::renderPlayerHand ( vector<WINDOW*> cardWindows, short player ) {
-  switch ( player ) {
-  case 1:
-    for ( size_t i = 0; i < cardWindows.size(); i++ ) {
-      wclear ( cardWindows[i] );
-      m_Player1->renderCard ( cardWindows[i], i );
-      wrefresh ( cardWindows[i] );
-    }
-    break;
-  case 2:
-    for ( size_t i = 0; i < cardWindows.size(); i++ ) {
-      wclear ( cardWindows[i] );
-      m_Player2->renderCard ( cardWindows[i], i );
-      wrefresh ( cardWindows[i] );
-    }
-    break;
-  default:
-    break;
-  }
+void CGameStateManager::setWindows ( vector<WINDOW*> & p1_cards, WINDOW * p1_stats, vector<WINDOW*> & p2_cards, WINDOW * p2_stats, WINDOW * info ) {
+  m_Player1->setCardWins ( p1_cards );
+  m_Player1->setStatsWin ( p1_stats );
+  m_Player2->setCardWins ( p2_cards );
+  m_Player2->setStatsWin ( p2_stats );
+  m_Info = info;
 }
 
-void CGameStateManager::whoIsOnTurn ( WINDOW * win ) {
+void CGameStateManager::whoIsOnTurn () {
   int yMax, xMax;
-  getmaxyx ( win, yMax, xMax );
-  wclear ( win );
+  getmaxyx ( m_Info, yMax, xMax );
+  wclear ( m_Info );
   string str = m_OnTurn->getName() + "'s turn";;
   if ( m_OnTurn == m_Player1 ) {
-    mvwaddch ( win, yMax/2, xMax/2, ACS_UARROW );
-    mvwprintw  ( win, yMax/2 - 1, xMax/2 - str.size() / 2, "%s", str.c_str() );
+    mvwaddch ( m_Info, yMax/2, xMax/2, ACS_UARROW );
+    mvwprintw  ( m_Info, yMax/2 - 1, xMax/2 - str.size() / 2, "%s", str.c_str() );
   }
   else {
-    mvwaddch ( win, yMax/2, xMax/2, ACS_DARROW );
-    mvwprintw  ( win, yMax/2 + 1, xMax/2 - str.size() / 2, "%s", str.c_str() );
+    mvwaddch ( m_Info, yMax/2, xMax/2, ACS_DARROW );
+    mvwprintw  ( m_Info, yMax/2 + 1, xMax/2 - str.size() / 2, "%s", str.c_str() );
   }
-  wrefresh(win);
+  wrefresh ( m_Info );
 }
 
 void CGameStateManager::endTurn ( void ) {
   m_OnTurn->fillHand();
   m_OnTurn->fillMana();
+  if ( ! m_Settings.isCheeky () )
+    m_OnTurn->hideHand();
   m_OnTurn == m_Player1
   ? m_OnTurn = m_Player2
   : m_OnTurn = m_Player1;
@@ -99,10 +83,10 @@ shared_ptr<CPlayer> CGameStateManager::pickPlayer ( WINDOW * win ) {
   return nullptr;
 }
 // should display some message if not enough mana
-void CGameStateManager::playCard ( size_t i, WINDOW * win ) {
+void CGameStateManager::playCard ( size_t i ) {
   if ( ! m_OnTurn->tmp_hasEnoughMana ( i ) )
     return;
-  shared_ptr<CPlayer> receiver = pickPlayer(win);
+  shared_ptr<CPlayer> receiver = pickPlayer ( m_Info );
   if ( ! receiver )
     return;
   m_OnTurn->playCard ( i, m_OnTurn, receiver );
