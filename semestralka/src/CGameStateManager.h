@@ -34,8 +34,7 @@ class CGameStateManager {
     bool saveGame   ( void );
     bool loadGame   ( void );
     /**
-     * @brief Increment turn count, fill up current player's hand, switch turns.
-     * 
+     * @brief Fill up current player's hand, switch turns, hide hand if cheeky mode is off, prompt for continuing.
      */
     void endTurn    ( void );
     bool loadPlayer ( CPlayer & player );
@@ -62,14 +61,13 @@ class CGameStateManager {
      * @param win window where to prompt the user to pick
      * @return shared_ptr<CPlayer> picked player
      */
-    shared_ptr<CPlayer> pickPlayer ( WINDOW * win );
+    shared_ptr<CPlayer> pickPlayer ( void );
     /**
      * @brief Set both player's windows where the will render their cards and stats
      */
     void setWindows ( vector<WINDOW*> & p1_cards, WINDOW * p1_stats, vector<WINDOW*> & p2_cards, WINDOW * p2_stats, WINDOW * info );
 
   protected:
-    size_t m_TurnNumber;
     shared_ptr<CPlayer> m_Player1;
     shared_ptr<CPlayer> m_Player2;
     CGameSettings m_Settings;

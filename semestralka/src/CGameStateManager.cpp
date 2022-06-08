@@ -1,7 +1,7 @@
 #include "CGameStateManager.h"
 
 CGameStateManager::CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlayer> p2, CGameSettings sett )
-: m_Player1 ( p1 ), m_Player2 ( p2 ), m_Settings ( sett ) {}
+: m_Player1 ( p1 ), m_Player2 ( p2 ), m_Settings ( sett ), m_OnTurn ( nullptr ), m_Info ( nullptr ) {}
 
 bool CGameStateManager::dealCards ( void ) {
   m_Player1->shuffleDeck();
@@ -54,7 +54,11 @@ void CGameStateManager::endTurn ( void ) {
   m_OnTurn == m_Player1
   ? m_OnTurn = m_Player2
   : m_OnTurn = m_Player1;
-  m_TurnNumber++;
+  wclear ( m_Info );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2-1, (getmaxx(m_Info)/2) - 5 ,"Turn ended." );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2, (getmaxx(m_Info)/2) - 13 ,"Press any key to continue." );
+  wrefresh ( m_Info );
+  wgetch ( m_Info );
 }
 
 void CGameStateManager::discardCard ( size_t i ) {
@@ -62,13 +66,13 @@ void CGameStateManager::discardCard ( size_t i ) {
   endTurn();
 }
 
-shared_ptr<CPlayer> CGameStateManager::pickPlayer ( WINDOW * win ) {
-  wclear ( win );
+shared_ptr<CPlayer> CGameStateManager::pickPlayer ( void ) {
+  wclear ( m_Info );
   string str = "Pick a player";
   string str2 = "(UP/DOWN ARROW)";
-  mvwprintw ( win, getmaxy(win)/2 - 1, getmaxx(win)/2 - str.size()/2, "%s", str.c_str() );
-  mvwprintw ( win, getmaxy(win)/2, getmaxx(win)/2 - str2.size()/2, "%s", str2.c_str() );
-  wrefresh ( win );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2 - 1, getmaxx(m_Info)/2 - str.size()/2, "%s", str.c_str() );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2, getmaxx(m_Info)/2 - str2.size()/2, "%s", str2.c_str() );
+  wrefresh ( m_Info );
   keypad ( stdscr, TRUE );
   int a = getch();
   keypad ( stdscr, FALSE );
@@ -86,7 +90,7 @@ shared_ptr<CPlayer> CGameStateManager::pickPlayer ( WINDOW * win ) {
 void CGameStateManager::playCard ( size_t i ) {
   if ( ! m_OnTurn->tmp_hasEnoughMana ( i ) )
     return;
-  shared_ptr<CPlayer> receiver = pickPlayer ( m_Info );
+  shared_ptr<CPlayer> receiver = pickPlayer();
   if ( ! receiver )
     return;
   m_OnTurn->playCard ( i, m_OnTurn, receiver );

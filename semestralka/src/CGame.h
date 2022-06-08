@@ -7,7 +7,6 @@
 class CGame {
   public:
     CGame ( CGameStateManager gsm );
-    CGame ( void ) = default; // for testing purpouses
     ~CGame ( void );
     bool beginGame ( void );
 
