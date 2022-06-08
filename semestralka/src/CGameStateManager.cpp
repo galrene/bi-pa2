@@ -96,8 +96,15 @@ shared_ptr<CPlayer> CGameStateManager::pickPlayer ( void ) {
 }
 // should display some message if not enough mana
 void CGameStateManager::playCard ( size_t i ) {
-  if ( ! m_OnTurn->tmp_hasEnoughMana ( i ) )
+  if ( ! m_OnTurn->tmp_hasEnoughMana ( i ) ) {
+    wclear ( m_Info );
+    mvwprintw ( m_Info, getmaxy(m_Info)/2-1, (getmaxx(m_Info)/2) - 8 ,"Not enough mana." );
+    mvwprintw ( m_Info, getmaxy(m_Info)/2, (getmaxx(m_Info)/2) - 13 ,"Press any key to continue." );
+    wrefresh ( m_Info );
+    getch();
     return;
+  }
+  
   shared_ptr<CPlayer> receiver = pickPlayer();
   if ( ! receiver )
     return;
