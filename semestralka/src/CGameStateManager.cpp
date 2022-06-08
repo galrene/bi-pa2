@@ -75,7 +75,10 @@ int CGameStateManager::pickCard ( void ) {
 }
 
 void CGameStateManager::discardCard ( void ) {
-  m_OnTurn->discardCard ( pickCard () );
+  int a = pickCard ();
+  if ( a < 0 || a >= (int) handSize )
+    return;
+  m_OnTurn->discardCard ( a );
   endTurn();
 }
 
@@ -120,14 +123,14 @@ void CGameStateManager::printWinner ( shared_ptr<CPlayer> winner ) {
   wclear ( m_Info );
   wattron (m_Info, A_BLINK );
   mvwprintw ( m_Info, getmaxy(m_Info)/2-1, (getmaxx(m_Info)/2) - ( winner->getName().size() + 5 ) / 2 ,"%s WON!", winner->getName().c_str() );
+  wattroff (m_Info, A_BLINK );
+  wattron ( m_Info, A_BOLD );
   mvwprintw ( m_Info, getmaxy(m_Info)/2, (getmaxx(m_Info)/2) - 11 ,"Press any key to return" );
   mvwprintw ( m_Info, getmaxy(m_Info)/2+1, (getmaxx(m_Info)/2) - 8 ,"to the main menu." );
-  wattroff (m_Info, A_BLINK );
+  wattroff ( m_Info, A_BOLD );
   wrefresh ( m_Info );
   getch();
 }
-
-
 bool CGameStateManager::winnerDecided ( void ) {
   if ( ! m_Player1->isAlive() ) {
     printWinner ( m_Player2 );    
@@ -138,4 +141,35 @@ bool CGameStateManager::winnerDecided ( void ) {
     return true;
   }
   return false;
+}
+int CGameStateManager::handleMenu ( void ) {
+  vector<string> menuItems = { "Exit to main menu", "Save game", "Return to game" };
+  wclear ( m_Info );
+  wattron ( m_Info, A_BOLD );
+  for ( size_t i = 0; i < menuItems.size(); i++ )
+    mvwprintw ( m_Info, i+1, getmaxx(m_Info)/2 - menuItems[i].size()/2, "%s (%ld)", menuItems[i].c_str(), i );
+  wattroff ( m_Info, A_BOLD );
+  int a;
+  wrefresh ( m_Info );
+  switch ( (a = getch()) ) {
+  case '0':
+    return 0;
+    break;
+  case '1':
+    return 1;
+    break;
+  case '2':
+    return 2;
+    break;
+  case ('d' & 0x1F):
+    return -1;
+    break;
+  default:
+    break;
+  }
+  return 2;
+}
+
+bool CGameStateManager::saveGame   ( void ) {
+  
 }

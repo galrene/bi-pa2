@@ -39,8 +39,8 @@ bool CGame::initCurses ( void ) {
 
 void CGame::drawLayout ( void ) {
     attron ( A_STANDOUT );
-    mvprintw ( m_yMax / 2, 1, "DISCARD A CARD (8)" );
-    mvprintw ( m_yMax / 2, m_xMax - 13, "END TURN (9)" );
+    mvprintw ( m_yMax / 2, 1, "DISCARD A CARD (%c)", defaultDiscardButton );
+    mvprintw ( m_yMax / 2, m_xMax - 13, "END TURN (%c)", defaultEndTurnButton );
     attroff ( A_STANDOUT );
     refresh();
     m_Gsm.renderPlayerStats ();
@@ -52,20 +52,29 @@ bool CGame::beginGame ( void ) {
     drawLayout();
     m_Gsm.whoIsOnTurn ();
     int a;
-    while ( ( a = getch() ) ) {
-        if ( a == '9' )
+    while ( (a = getch()) ) {
+        if ( a == defaultEndTurnButton )
             m_Gsm.endTurn();
-        else if ( a == '8' )
+        else if ( a == defaultDiscardButton )
             m_Gsm.discardCard();
         else if ( a <= (int) handSize - 1 + '0' && a >= '0' )
             m_Gsm.playCard ( a - '0' );
+        else if ( a == defaultMenuButton ) {
+            int b = m_Gsm.handleMenu();
+            if ( b == 0 )
+                return true;
+            else if ( b == -1 )
+                return false;
+            // else if ( a == 1 )
+                //m_Gsm.saveGame();
+        }
         // ctrl - d
         else if ( a == ( 'd' & 0x1F ) )
             return false;
-        if ( m_Gsm.winnerDecided() )
-           break;
         drawLayout(); // temporary, quite ineffective to refresh everything
         m_Gsm.whoIsOnTurn ();
+        if ( m_Gsm.winnerDecided() )
+           break;
     }
     return true;
 }

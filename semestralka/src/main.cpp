@@ -12,9 +12,5 @@ int main ( int argc, char const *argv[] ) {
         if ( ! game.beginGame() )
             return 0;
     }
-    /*
-    CGame game;
-    game.beginGame();
-    */
     return 0;
 }

@@ -24,14 +24,12 @@ CMenu::~CMenu ( void ) {
     delwin ( m_Win );
     endwin();
 }
-
 void CMenu::printError ( const char * errorMessage ) {
     move (0,0);
     clrtoeol ();
     printw ( "ERROR: %s", errorMessage );
     refresh();
 }
-
 void CMenu::drawMenu ( const char * menuHeader  ) {
     wclear ( m_Win );
     /* lines, colons, beginY, beginX */
@@ -63,7 +61,6 @@ void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & 
     wmove ( m_Win, 1+itemIndex,2 );
     wclrtoeol(m_Win);
     drawMenu ( "Settings" );
-    wrefresh(m_Win);
     if ( ! menuItems[itemIndex].second ) {
         wattron ( m_Win, ON_PAIR );
         menuItems[itemIndex].second = true;
@@ -75,11 +72,14 @@ void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & 
     mvwprintw ( m_Win , 1+itemIndex, 2, "%s", menuItems[itemIndex].first.c_str() );
     wattroff ( m_Win, ON_PAIR );
     wattroff ( m_Win, OFF_PAIR );
+    wrefresh(m_Win);
 }
 string CMenu::readString ( const size_t & y, const size_t & x, const size_t & n ) {
     curs_set ( 1 );
     echo();
     char * buff = new char [ n + 1 ];
+    for ( size_t i = 0; i < n + 1; i++ )
+        buff[i] = 0;
     mvwgetnstr ( m_Win, y, x, buff, n );
     noecho();
     curs_set ( 0 );
@@ -117,31 +117,34 @@ int CMenu::handleNavigation ( const size_t & menuSize ) {
     return 0;
 }
 
+void CMenu::printSettings ( vector<pair<string,bool>> & menuItems ) {
+    for ( size_t i = 0; i < menuItems.size(); i++ ) {
+        if ( i == m_Highlight && ! menuItems[i].second && (i == 0 || i == 1) )
+            wattron ( m_Win, OFF_SELECTED_PAIR );
+        else if ( i == m_Highlight && menuItems[i].second && (i == 0 || i == 1) )
+            wattron ( m_Win, ON_SELECTED_PAIR );
+        else if ( (i == 0 || i == 1) && ! menuItems[i].second )
+            wattron ( m_Win, OFF_PAIR );
+        else if ( (i == 0 || i == 1) && menuItems[i].second )
+            wattron ( m_Win, ON_PAIR );
+        if ( i == m_Highlight && i != 0 && i != 1 )
+            wattron ( m_Win, A_REVERSE );
+        
+        mvwprintw ( m_Win, i+1, 2, "%s", menuItems[i].first.c_str() );
+        if ( i == 2 )
+            wprintw ( m_Win, " %ld", m_Settings.getMaxDeckSize() );
+        wattroff ( m_Win, OFF_PAIR );
+        wattroff ( m_Win, OFF_PAIR );
+        wattroff ( m_Win, ON_SELECTED_PAIR );
+        wattroff ( m_Win, OFF_SELECTED_PAIR );
+        wattroff ( m_Win, A_REVERSE );
+    }
+}
+
 bool CMenu::handleSettingsMovement (  vector<pair<string,bool>> & menuItems ) {
-    // SIMPLIFY
     while ( 1 ) {
         // draw menu and highlight currently selected
-        for ( size_t i = 0; i < menuItems.size(); i++ ) {
-            if ( i == m_Highlight && ! menuItems[i].second && i == 0 )
-                wattron ( m_Win, OFF_SELECTED_PAIR );
-            else if ( i == m_Highlight && menuItems[i].second && i == 0 )
-                wattron ( m_Win, ON_SELECTED_PAIR );
-            else if ( i == 0 && ! menuItems[i].second )
-                wattron ( m_Win, OFF_PAIR );
-            else if ( i == 0 && menuItems[i].second )
-                wattron ( m_Win, ON_PAIR );
-            if ( i == m_Highlight && i != 0 )
-                wattron ( m_Win, A_REVERSE );
-            
-            mvwprintw ( m_Win, i+1, 2, "%s", menuItems[i].first.c_str() );
-            if ( i == 1 )
-                wprintw ( m_Win, " %ld", m_Settings.getMaxDeckSize() );
-            wattroff ( m_Win, OFF_PAIR );
-            wattroff ( m_Win, OFF_PAIR );
-            wattroff ( m_Win, ON_SELECTED_PAIR );
-            wattroff ( m_Win, OFF_SELECTED_PAIR );
-            wattroff ( m_Win, A_REVERSE );
-        }
+        printSettings ( menuItems );
         int res = handleNavigation ( menuItems.size() );
         if ( res == 1 )
             break;
@@ -182,11 +185,12 @@ bool CMenu::isValidDeckSize ( int & number ) {
 }
 bool CMenu::handleSettings ( void ) {
     drawMenu ( "Settings" );
-    vector<pair<string, bool>> menuItems = { {"Two-player game", m_Settings.isTwoPlayerGame() },
-                                             {"Deck size:", false},
-                                             {"-Return-", false} };
+    vector<pair<string, bool>> menuItems = { { "Two-player game", m_Settings.isTwoPlayerGame() },
+                                             { "Cheeky mode", m_Settings.isCheeky() },
+                                             { "Deck size:", false },
+                                             { "-Return-", false } };
     m_Highlight = 0;
-    while ( m_Highlight != 2 ) {
+    while ( m_Highlight != 3 ) {
         if ( ! handleSettingsMovement ( menuItems ) )
             return false;
         if ( m_Highlight == 0 ) {
@@ -194,15 +198,18 @@ bool CMenu::handleSettings ( void ) {
             m_Settings.toggleSP();
         }
         if ( m_Highlight == 1 ) {
-            clearSpaces ( 2, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
-            int num = readNumber ( 2, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
+            toggleColor ( 1, menuItems );
+            m_Settings.toggleCheeky();
+        }
+        if ( m_Highlight == 2 ) {
+            clearSpaces ( 3, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
+            int num = readNumber ( 3, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
             if ( isValidDeckSize ( num ) )
                 m_Settings.setMaxDeckSize ( num );
             drawMenu ( "Settings" );
             wrefresh ( m_Win );
         }
     }
-    refresh();
     return true;
 }
 
@@ -392,16 +399,14 @@ bool CMenu::handleMainMenu ( CGameStateManager & gsm ) {
             else if ( res == 1 )
                 return true;
         }    
-        else if ( m_Highlight == 1 ) {
+        else if ( m_Highlight == 1 )
             printError ( "loading the game not in yet\n");
-        }
         else if ( m_Highlight == 2 ) {
             if ( ! handleSettings () )
                 return false;
         }
-        else if ( m_Highlight == 3 ) {
+        else if ( m_Highlight == 3 )
             return false;
-        }
 
     }
     // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );

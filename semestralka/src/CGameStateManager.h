@@ -37,6 +37,7 @@ class CGameStateManager {
      */
     int pickCard ( void );
     bool loadCards  ( void );
+    
     bool saveGame   ( void );
     bool loadGame   ( void );
     /**
@@ -84,6 +85,12 @@ class CGameStateManager {
      * @param winner Player who won.
      */
     void printWinner ( shared_ptr<CPlayer> winner );
+    /**
+     * @brief Draw in-game menu
+     * 
+     * @return 0 = exit to menu, 1 = save game, 2 or any other unused button = return to game, -1 = CTRL-D
+     */
+    int handleMenu ( void );
     
   protected:
     shared_ptr<CPlayer> m_Player1;

@@ -2,7 +2,7 @@
 #ifndef CGame_H
 #define CGame_H
 #include "CGameStateManager.h"
-#include <ncurses.h>
+#include "CWindow.h"
 
 class CGame {
   public:

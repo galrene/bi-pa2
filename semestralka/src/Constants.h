@@ -44,8 +44,7 @@ const std::string defaultBotNickname = "TERMINATOR";
  */
 const int defaultInputLengthDeckSize = 3;
 /**
- * @brief amount of cards each player plays with
- * 
+ * @brief amount of cards each player plays with ( won't be able to play more than 10 because of current controls )
  */
 const size_t handSize = 6;
 /**
@@ -53,4 +52,10 @@ const size_t handSize = 6;
  * 
  */
 const bool defaultHandVisibility = false;
+
+// keybindings
+const int defaultDiscardButton = 'd';
+const int defaultEndTurnButton = 'e';
+
+const int defaultMenuButton = 27; // ESC
 #endif

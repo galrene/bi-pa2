@@ -66,6 +66,7 @@ class CMenu {
 
     void printDecks ( vector<CDeck> & decks );
     void printCharacters ( vector<shared_ptr<CCharacter>> & characters );
+    void printSettings ( vector<pair<string,bool>> & menuItems );
 
     int m_XMax, m_YMax;
     int m_Lines, m_Cols;

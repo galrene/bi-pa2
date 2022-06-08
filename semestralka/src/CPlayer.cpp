@@ -1,11 +1,13 @@
 #include "CPlayer.h"
 
 CPlayer::CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck )
-: m_PlayedCharacter ( currentCharacter ), m_Name ( name ), m_LoadedCharacter ( defaultCharacter ), m_Deck ( deck ) {}
+: m_PlayedCharacter ( currentCharacter ), m_Name ( name ), m_LoadedCharacter ( defaultCharacter ), m_Deck ( deck ), m_StatsWin ( nullptr ) {}
 
 CPlayer::~CPlayer ( void ) {
-  for ( size_t i = 0; i < m_HandWins.size(); i++ )
-    delwin(m_HandWins[i]);
+  if ( ! m_HandWins.empty() ) {
+    for ( size_t i = 0; i < m_HandWins.size(); i++ )
+      delwin(m_HandWins[i]);
+  }
   delwin ( m_StatsWin );
 }
 
