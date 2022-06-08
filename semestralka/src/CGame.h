@@ -15,8 +15,9 @@ class CGame {
     void drawLayout ( void );
 
     int m_xMax, m_yMax;
+    CGameStateManager m_Gsm;
     int m_CardHeight, m_CardWidth;
     int m_StatsHeight, m_StatsWidth;
-    CGameStateManager m_Gsm;
+    int m_InfoWidth;
 };
 #endif

@@ -7,23 +7,17 @@ CGame::CGame ( CGameStateManager gsm )
         return;
     }
     vector<WINDOW*> m_P1Cards;
-    WINDOW * m_P1Stats;
     vector<WINDOW*> m_P2Cards;
-    WINDOW * m_P2Stats;
-    WINDOW * m_Info;
     m_CardHeight = m_yMax/4, m_CardWidth = m_xMax/handSize;
     m_StatsHeight = 1+m_yMax/8, m_StatsWidth = m_xMax-1;
-    m_P1Stats = newwin ( m_StatsHeight, m_StatsWidth, m_CardHeight, 0 );
-    m_P2Stats = newwin ( m_StatsHeight, m_StatsWidth, m_yMax - m_CardHeight - m_StatsHeight, 0 );
+    m_InfoWidth = maxNameLength+15+1; // 15 = reserve for unknown max character name length
     for ( size_t i = 0; i < handSize; i++ ) {
         m_P1Cards.push_back ( newwin ( m_CardHeight, m_CardWidth,  0, 0+(i*m_CardWidth) ) );
         m_P2Cards.push_back ( newwin ( m_CardHeight, m_CardWidth,  m_yMax - m_CardHeight, 0+(i*m_CardWidth) ) );
     }
-
-    int rows = maxNameLength+15+1; // 15 = reserve for unknown max character name length
-    m_Info = newwin ( 5, rows, (m_yMax/2) - 2, m_xMax/2 - (rows/2)-1 );
-
-    m_Gsm.setWindows ( m_P1Cards, m_P1Stats, m_P2Cards, m_P2Stats, m_Info );
+    m_Gsm.setWindows ( m_P1Cards, newwin ( m_StatsHeight, m_StatsWidth, m_CardHeight, 0 ),
+                       m_P2Cards, newwin ( m_StatsHeight, m_StatsWidth, m_yMax - m_CardHeight - m_StatsHeight, 0 ),
+                                  newwin ( 5, m_InfoWidth, (m_yMax/2) - 2, m_xMax/2 - (m_InfoWidth/2)-1 ) );
 }
 
 CGame::~CGame ( void ) {
