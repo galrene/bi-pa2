@@ -52,10 +52,15 @@ const size_t handSize = 6;
  * 
  */
 const bool defaultHandVisibility = false;
+/**
+ * @brief TRUE = Player1, FALSE = Player2
+ * 
+ */
+const bool defaultFirstOnTurn = true;
 
 // keybindings
+
 const int defaultDiscardButton = 'd';
 const int defaultEndTurnButton = 'e';
-
 const int defaultMenuButton = 27; // ESC
 #endif

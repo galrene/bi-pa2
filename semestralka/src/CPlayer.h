@@ -14,8 +14,9 @@ class CPlayer {
   public:
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
     ~CPlayer ( void );
+
     CCharacter m_PlayedCharacter; // character representing current state
-    bool operator == ( CPlayer & rhs );
+    bool operator == ( CPlayer & rhs ) { return rhs.m_Name == m_Name; }
     // void loadDeck ( CDeck & deck );
     /**
      * @brief draw cards from deck to hand
@@ -31,7 +32,6 @@ class CPlayer {
      * @param receiver receiver of effects
      */
     void playCard ( size_t i, shared_ptr<CPlayer> & user, shared_ptr<CPlayer> & receiver );
-    void save ( string path );
     void load ( string path );
     /**
      * @brief Shuffle the loaded deck.
@@ -93,6 +93,16 @@ class CPlayer {
      * @param i card index
      */
     bool tmp_hasEnoughMana ( size_t i );
+    /**
+     * @brief Save player info
+     * 
+     * @param dirName Where to save
+     * @return true 
+     * @return false 
+     */
+    bool save ( const string & dirName );
+
+
     string getName ( void ) { return m_Name; }
     void setStatsWin ( WINDOW * win ) { m_StatsWin = win; }
     void setCardWins ( vector<WINDOW*> & cardWins ) { m_HandWins = cardWins; }

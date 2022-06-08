@@ -16,13 +16,28 @@ class CGameSettings {
      */
     size_t m_MaxDeckSize;
     bool m_CheekyMode;
+    /**
+     * @brief Who is first on turn -> true = Player1, false = Player2
+     * 
+     */
+    bool m_FirstOnTurn;
   public:
     CGameSettings ( void );
-    // switch from single player to 1v1 and vice versa
+    /**
+     * @brief Dumps settings inside filestream
+     * 
+     * @param os 
+     */
+    void dumpInfo ( ostream & os );
+    /**
+     * @brief Switch from 1v1 vs 1vBOT and vice versa
+     * 
+     */
     void toggleSP ( void ) { m_TwoPlayerGame == true ? m_TwoPlayerGame = false : m_TwoPlayerGame = true;}
     void toggleCheeky ( void ) { m_CheekyMode == true ? m_CheekyMode = false : m_CheekyMode = true; }
     bool isTwoPlayerGame ( void ) { return m_TwoPlayerGame; }
     bool isCheeky ( void ) { return m_CheekyMode; }
     void setMaxDeckSize ( size_t newSize ) { m_MaxDeckSize = newSize; }
+    bool firstOnTurn ( void ) { return m_FirstOnTurn; }
     size_t getMaxDeckSize ( void ) { return m_MaxDeckSize; }
 };

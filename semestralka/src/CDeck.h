@@ -8,6 +8,7 @@
 #include <ncurses.h>
 
 #include "CCard.h"
+#include "CSaver.h"
 using namespace std;
 
 class CDeck {
@@ -24,7 +25,12 @@ class CDeck {
     void renderCard ( WINDOW * win, size_t & i );
     
     // void load ( string path );
-    // void save ( string path );
+    /**
+     * @brief Save deck inside directory named after the deck itself
+     * 
+     * @param dirName save directory name
+     */
+    void save ( const string & dirName );
   protected:
     deque<shared_ptr<CCard>> m_Content;
     string m_Name;

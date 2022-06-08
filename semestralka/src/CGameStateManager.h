@@ -4,6 +4,7 @@
 #include <memory>
 #include "CGameSettings.h"
 #include "CPlayer.h"
+#include "CSaver.h"
 #include "ncurses.h"
 using namespace std;
 
@@ -37,7 +38,12 @@ class CGameStateManager {
      */
     int pickCard ( void );
     bool loadCards  ( void );
-    
+    /**
+     * @brief Save the game.
+     * ! redo with logfile instead of cerr
+     * @return true success
+     * @return false failure
+     */
     bool saveGame   ( void );
     bool loadGame   ( void );
     /**

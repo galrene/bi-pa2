@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <deque>
+#include "CCard.h"
 #include "Constants.h"
 
 using namespace std;
@@ -23,16 +25,16 @@ class CSaver {
      * @return true saved successfully
      * @return false couldnt create requested directory
      */
-    template < typename C >
-    bool save ( C & elements, string dirName );
+    // template < typename C >
+    bool save ( deque<shared_ptr<CCard>> & elements, const string & dirName );
     /**
      * @brief should try catch this i think
-     * 
+     *  
      * @param dirName 
      * @return true 
      * @return false 
      */
-    bool createDirectory ( string & dirName );
+    bool createDirectory ( const string & dirName );
   private:
     fs::path m_Path;
 };

@@ -10,10 +10,6 @@ CPlayer::~CPlayer ( void ) {
   }
   delwin ( m_StatsWin );
 }
-
-bool CPlayer::operator == ( CPlayer & rhs ) {
-  return rhs.m_Name == m_Name;
-}
 void CPlayer::renderName ( WINDOW * win, int yCoord, int xCoord ) {
   string name = m_Name + "'s " + m_PlayedCharacter.getName();
   mvwprintw ( win, yCoord, xCoord - name.size()/2, "%s", name.c_str() );
@@ -68,7 +64,28 @@ void CPlayer::playCard ( size_t i, shared_ptr<CPlayer> & user, shared_ptr<CPlaye
 void CPlayer::fillMana ( void ) {
   m_PlayedCharacter.applyEffect ( CEffect ( 0, m_LoadedCharacter.getMana() - m_PlayedCharacter.getMana() ) );
 }
-// ! TEMPORARY
 bool CPlayer::tmp_hasEnoughMana ( size_t i ) {
   return m_PlayedCharacter.getMana() >= m_Hand.getCardAt(i)->getManaCost();
+}
+bool CPlayer::save ( const string & dirName ) {
+  CSaver s;
+  string cardsDir = dirName + "/cards";
+  try {
+        if ( ! s.createDirectory ( dirName ) || ! s.createDirectory ( cardsDir ) )
+            return false;
+    }
+  catch ( const exception & e ) {
+        cerr << e.what() << '\n';
+        return false;
+  }
+  string str = defaultSaveLocation.generic_string() + "/" + dirName;
+  ofstream ofs_played ( str + "/character_played.ini" );
+  ofstream ofs_loaded ( str + "/character_loaded.ini" );
+  if ( ! ofs_loaded.good() || ! ofs_played.good() )
+    return false;
+  m_PlayedCharacter.dumpInfo ( ofs_played );
+  m_LoadedCharacter.dumpInfo ( ofs_loaded );
+  m_Deck.save ( dirName + "/card_definitions" );
+  m_Hand.save ( dirName + "/hand" );
+  return true;
 }

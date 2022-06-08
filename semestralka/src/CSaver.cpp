@@ -1,5 +1,4 @@
 #include "CSaver.h"
-
 CSaver::CSaver ( void )
 : m_Path ( defaultSaveLocation ) {}
 
@@ -7,7 +6,7 @@ CSaver::CSaver ( fs::path p )
 : m_Path ( p ) {}
 
 
-bool CSaver::createDirectory ( string & dirName ) {
+bool CSaver::createDirectory ( const string & dirName ) {
     fs::path tmpPath = m_Path;
     tmpPath.append ( dirName );
     if ( fs::exists ( tmpPath ) && fs::is_directory ( tmpPath ) && fs::is_empty ( tmpPath ) )
@@ -30,12 +29,12 @@ bool CSaver::createDirectory ( string & dirName ) {
         cerr << "Unable to create savefile directory" << endl;
         return false;
     }
-    dirName = tmpPath.filename();
+    // dirName = tmpPath.filename();
     return true;
 }
 
-template < typename C >
-bool CSaver::save ( C & elements, string dirName ) {
+// template < typename C >
+bool CSaver::save ( deque<shared_ptr<CCard>> & elements, const string & dirName ) {
     try {
         if ( ! createDirectory ( dirName ) )
             return false;

@@ -65,8 +65,8 @@ bool CGame::beginGame ( void ) {
                 return true;
             else if ( b == -1 )
                 return false;
-            // else if ( a == 1 )
-                //m_Gsm.saveGame();
+            else if ( b == 1 )
+                m_Gsm.saveGame();
         }
         // ctrl - d
         else if ( a == ( 'd' & 0x1F ) )

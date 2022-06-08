@@ -29,12 +29,33 @@ class CCharacter {
     
     // maybe could return if char is alive after apllying effect or sum
     int applyEffect ( CEffect eff );
-
+    /**
+     * @brief Dump all atributes to stream
+     * 
+     * @param os output stream where to dump
+     */
     void dumpInfo ( ostream & os );
+    /**
+     * @brief Check if data source contains all required data to crate the character
+     * 
+     * @param data data source
+     * @return true contains all that's needed
+     * @return false doesn't contain all that's needed
+     */
     bool containsDeps ( map <string,string> & data );
+    /**
+     * @brief Set attributes from m_DataSource
+     * 
+     * @return true success
+     * @return false data source doesn't donctain necessary data
+     */
     bool buildCharacter ( void );
-    void save ( string path );
     bool isSet ( void );
+    /**
+     * @brief Print attributes to window, centered
+     * 
+     * @param win window for printing
+     */
     void renderStats ( WINDOW * win );
 
     int getHP ( void ) { return m_HP; }

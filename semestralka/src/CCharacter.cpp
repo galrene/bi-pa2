@@ -17,7 +17,6 @@ bool CCharacter::containsDeps ( map <string,string> & data ) {
     return false;
   return true;
 }
-
 bool CCharacter::buildCharacter ( void ) {
   if ( ! containsDeps ( m_DataSource ) )
     return false;
@@ -29,7 +28,6 @@ bool CCharacter::buildCharacter ( void ) {
   m_Defense = stoi(m_DataSource["defense"]);
   return true;
 }
-
 void CCharacter::dumpInfo ( ostream & os ) {
   os << "[character]" << endl;
   os << "name = " << m_Name << endl;
@@ -39,11 +37,6 @@ void CCharacter::dumpInfo ( ostream & os ) {
   os << "strength = " << m_Strength << endl;
   os << "defense = " << m_Defense << endl;
 }
-/**
- * @brief Print stats to window, don't refresh, don't clear
- * 
- * @param win window for printing
- */
 void CCharacter::renderStats ( WINDOW * win ) {
   int strengthPos = 2;
   init_pair ( 1, COLOR_WHITE, COLOR_RED ); // hp color
@@ -79,6 +72,7 @@ int CCharacter::applyEffect ( CEffect eff ) {
   return 1;
 }
 */
+
 int CCharacter::applyEffect ( CEffect eff ) {
   m_HP += eff.m_HPDiff;
   m_Mana += eff.m_ManaDiff;

@@ -35,3 +35,8 @@ size_t CDeck::size ( void ) {
 void CDeck::renderCard ( WINDOW * win, size_t & i ) {
     m_Content[i]->render ( win );
 }
+
+void CDeck::save ( const string & dirName ) {
+    CSaver s;
+    s.save ( m_Content, dirName );
+}

@@ -13,7 +13,10 @@ bool CGameStateManager::dealCards ( void ) {
   m_Player2->shuffleDeck();
   m_Player1->drawCard(handSize);
   m_Player2->drawCard(handSize);
-  m_OnTurn = m_Player1;
+  if ( m_Settings.firstOnTurn() )
+    m_OnTurn = m_Player1;
+  else
+    m_OnTurn = m_Player2;
   return true;
 }
 void CGameStateManager::renderPlayerStats ( void ) {
@@ -170,6 +173,25 @@ int CGameStateManager::handleMenu ( void ) {
   return 2;
 }
 
-bool CGameStateManager::saveGame   ( void ) {
+bool CGameStateManager::saveGame ( void ) {
+  CSaver saver;
+  string dirName = "save_game_" + m_Player1->getName() + "-" + m_Player2->getName();
+  try {
+    saver.createDirectory ( dirName );
+  }
+  catch ( const std::exception& e ) {
+    cerr << e.what() << '\n';
+    cerr << "Unable to create the save game directory" << endl;
+    return false;
+  }
+  // saver.save<> ( dirName );
+  if ( ! m_Player1->save ( dirName + "/p1_" + m_Player1->getName() ) || ! m_Player2->save ( dirName + "/p2_" + m_Player2->getName() ) )
+    return false;
   
+  string str = defaultSaveLocation;
+  ofstream ofs ( str + "/" + dirName + "/settings.ini" );
+  if ( ! ofs.good() )
+    return false;
+  m_Settings.dumpInfo ( ofs );
+  return true;
 }
