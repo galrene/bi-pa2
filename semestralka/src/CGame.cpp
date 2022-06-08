@@ -63,8 +63,7 @@ bool CGame::beginGame ( void ) {
             m_Gsm.endTurn();
         else if ( a == '8' ) { // discard card
             // card choice
-            if ( int cardIndex = getch(); cardIndex <= (int) handSize - 1 + '0' && cardIndex >= '0' )
-                m_Gsm.discardCard ( cardIndex - '0' );
+            m_Gsm.discardCard();
         }
         else if ( a <= (int) handSize - 1 + '0' && a >= '0' ) {
             m_Gsm.playCard ( a - '0' );

@@ -29,7 +29,8 @@ class CGameStateManager {
      * 
      * @param i index of the card in hand
      */
-    void discardCard ( size_t i );
+    void discardCard ( void );
+    int pickCard ( void );
     bool loadCards  ( void );
     bool saveGame   ( void );
     bool loadGame   ( void );

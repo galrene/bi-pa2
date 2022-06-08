@@ -52,5 +52,5 @@ const size_t handSize = 6;
  * @brief Can players see each other's hands by default?
  * 
  */
-const bool defaultHandVisibility = true;
+const bool defaultHandVisibility = false;
 #endif

@@ -22,7 +22,8 @@ void CGameStateManager::renderHands ( void ) {
     m_OnTurn->renderHand();
 }
 
-void CGameStateManager::setWindows ( vector<WINDOW*> & p1_cards, WINDOW * p1_stats, vector<WINDOW*> & p2_cards, WINDOW * p2_stats, WINDOW * info ) {
+void CGameStateManager::setWindows ( vector<WINDOW*> & p1_cards, WINDOW * p1_stats,
+                                     vector<WINDOW*> & p2_cards, WINDOW * p2_stats, WINDOW * info ) {
   m_Player1->setCardWins ( p1_cards );
   m_Player1->setStatsWin ( p1_stats );
   m_Player2->setCardWins ( p2_cards );
@@ -61,8 +62,15 @@ void CGameStateManager::endTurn ( void ) {
   wgetch ( m_Info );
 }
 
-void CGameStateManager::discardCard ( size_t i ) {
-  m_OnTurn->discardCard ( i );
+int CGameStateManager::pickCard ( void ) {
+  wclear ( m_Info );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2, (getmaxx(m_Info)/2) - 13 ,"Pick a card to throw away." );
+  wrefresh ( m_Info );
+  return getch() - '0';
+}
+
+void CGameStateManager::discardCard ( void ) {
+  m_OnTurn->discardCard ( pickCard () );
   endTurn();
 }
 
