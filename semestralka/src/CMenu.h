@@ -16,7 +16,7 @@ using namespace std;
 class CMenu {
   public:
     CMenu ( void );
-    ~ CMenu ( void );    
+    ~CMenu ( void );    
     void drawMenu ( const char * menuHeader  );
     bool handleSettings ( void );
     bool handleMainMenu ( CGameStateManager & gsm );

@@ -3,6 +3,11 @@
 CGameStateManager::CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlayer> p2, CGameSettings sett )
 : m_Player1 ( p1 ), m_Player2 ( p2 ), m_Settings ( sett ), m_OnTurn ( nullptr ), m_Info ( nullptr ) {}
 
+CGameStateManager::~CGameStateManager ( void ) {
+  delwin ( m_Info );
+}
+
+
 bool CGameStateManager::dealCards ( void ) {
   m_Player1->shuffleDeck();
   m_Player2->shuffleDeck();
@@ -109,4 +114,28 @@ void CGameStateManager::playCard ( size_t i ) {
   if ( ! receiver )
     return;
   m_OnTurn->playCard ( i, m_OnTurn, receiver );
+}
+
+void CGameStateManager::printWinner ( shared_ptr<CPlayer> winner ) {
+  wclear ( m_Info );
+  wattron (m_Info, A_BLINK );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2-1, (getmaxx(m_Info)/2) - ( winner->getName().size() + 5 ) / 2 ,"%s WON!", winner->getName().c_str() );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2, (getmaxx(m_Info)/2) - 11 ,"Press any key to return" );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2+1, (getmaxx(m_Info)/2) - 8 ,"to the main menu." );
+  wattroff (m_Info, A_BLINK );
+  wrefresh ( m_Info );
+  getch();
+}
+
+
+bool CGameStateManager::winnerDecided ( void ) {
+  if ( ! m_Player1->isAlive() ) {
+    printWinner ( m_Player2 );    
+    return true;
+  }
+  else if ( ! m_Player2->isAlive() ) {
+    printWinner ( m_Player1 );
+    return true;
+  }
+  return false;
 }

@@ -11,7 +11,7 @@ class CGameStateManager {
   public:
     CGameStateManager ( void ) = default;
     CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlayer> p2, CGameSettings sett );
-    
+    ~CGameStateManager ( void );
     /**
      * @brief Shuffle decks, deal hands, set P1's turn 
      * @return 
@@ -30,6 +30,11 @@ class CGameStateManager {
      * @param i index of the card in hand
      */
     void discardCard ( void );
+    /**
+     * @brief Prompt the user to pick a card for throwing away
+     * 
+     * @return int picked card index
+     */
     int pickCard ( void );
     bool loadCards  ( void );
     bool saveGame   ( void );
@@ -67,7 +72,19 @@ class CGameStateManager {
      * @brief Set both player's windows where the will render their cards and stats
      */
     void setWindows ( vector<WINDOW*> & p1_cards, WINDOW * p1_stats, vector<WINDOW*> & p2_cards, WINDOW * p2_stats, WINDOW * info );
-
+    /**
+     * @brief Check if one of the players is dead
+     * 
+     * @return false = winner undecided yet, true = winner decided
+     */
+    bool winnerDecided ( void );
+    /**
+     * @brief Prints who won inside the m_Info window.
+     * 
+     * @param winner Player who won.
+     */
+    void printWinner ( shared_ptr<CPlayer> winner );
+    
   protected:
     shared_ptr<CPlayer> m_Player1;
     shared_ptr<CPlayer> m_Player2;

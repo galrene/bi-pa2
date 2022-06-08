@@ -3,6 +3,12 @@
 CPlayer::CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck )
 : m_PlayedCharacter ( currentCharacter ), m_Name ( name ), m_LoadedCharacter ( defaultCharacter ), m_Deck ( deck ) {}
 
+CPlayer::~CPlayer ( void ) {
+  for ( size_t i = 0; i < m_HandWins.size(); i++ )
+    delwin(m_HandWins[i]);
+  delwin ( m_StatsWin );
+}
+
 bool CPlayer::operator == ( CPlayer & rhs ) {
   return rhs.m_Name == m_Name;
 }

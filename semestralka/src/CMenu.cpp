@@ -21,6 +21,7 @@ CMenu::CMenu ( void ) {
     m_Settings = CGameSettings(); // might not be necessary
 }
 CMenu::~CMenu ( void ) {
+    delwin ( m_Win );
     endwin();
 }
 

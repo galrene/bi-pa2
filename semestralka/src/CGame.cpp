@@ -61,21 +61,17 @@ bool CGame::beginGame ( void ) {
     while ( ( a = getch() ) ) {
         if ( a == '9' )
             m_Gsm.endTurn();
-        else if ( a == '8' ) { // discard card
-            // card choice
+        else if ( a == '8' )
             m_Gsm.discardCard();
-        }
-        else if ( a <= (int) handSize - 1 + '0' && a >= '0' ) {
+        else if ( a <= (int) handSize - 1 + '0' && a >= '0' )
             m_Gsm.playCard ( a - '0' );
-        }
         // ctrl - d
         else if ( a == ( 'd' & 0x1F ) )
             return false;
-        // if ( ! bothAlive() )
-        //    break;
+        if ( m_Gsm.winnerDecided() )
+           break;
         drawLayout(); // temporary, quite ineffective to refresh everything
         m_Gsm.whoIsOnTurn ();
     }
-    // winnerScreen ();
     return true;
 }

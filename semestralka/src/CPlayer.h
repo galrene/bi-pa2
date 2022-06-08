@@ -13,7 +13,7 @@ using namespace std;
 class CPlayer {
   public:
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
-    
+    ~CPlayer ( void );
     CCharacter m_PlayedCharacter; // character representing current state
     bool operator == ( CPlayer & rhs );
     // void loadDeck ( CDeck & deck );
@@ -33,7 +33,10 @@ class CPlayer {
     void playCard ( size_t i, shared_ptr<CPlayer> & user, shared_ptr<CPlayer> & receiver );
     void save ( string path );
     void load ( string path );
-
+    /**
+     * @brief Shuffle the loaded deck.
+     * 
+     */
     void shuffleDeck ( void );
     /**
      * @brief render player name, character stats
@@ -57,35 +60,35 @@ class CPlayer {
      */
     void renderName ( WINDOW * win, int yCoord, int xCoord );
     /**
-     * @brief Render the whole hand
+     * @brief Render the whole hand.
      * 
      * @param cardWindows where to render
      */
     void renderHand ( void );
     /**
-     * @brief Hides the whole hand
+     * @brief Hide the whole hand.
      * 
      * @param cardWindows what to hide
      */
     void hideHand ( void );
     /**
-     * @brief Top up cards on hand to default hand size
+     * @brief Top up cards on hand to default hand size.
      * 
      */
     void fillHand ( void );
     /**
-     * @brief Top up mana
+     * @brief Top up mana.
      * 
      */
     void fillMana ( void );
     /**
-     * @brief discard a card and draw a new one
+     * @brief Discard a card and draw a new one.
      * 
      * @param i index of the discarded card
      */
     void discardCard ( size_t i );
     /**
-     * @brief check if player has enough mana to play card
+     * @brief Check if player has enough mana to play card
      * 
      * @param i card index
      */
@@ -93,6 +96,7 @@ class CPlayer {
     string getName ( void ) { return m_Name; }
     void setStatsWin ( WINDOW * win ) { m_StatsWin = win; }
     void setCardWins ( vector<WINDOW*> & cardWins ) { m_HandWins = cardWins; }
+    bool isAlive ( void ) { return m_PlayedCharacter.getHP() > 0; }
   protected:
     string m_Name;
     CCharacter m_LoadedCharacter; // character representing default state

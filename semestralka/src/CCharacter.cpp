@@ -63,6 +63,7 @@ void CCharacter::renderStats ( WINDOW * win ) {
   mvwprintw ( win, yMax/2, xMax - 2 - mana.size(), "%s", mana.c_str() );
   wattroff ( win, COLOR_PAIR ( 2 ) );
 }
+/*
 int CCharacter::applyEffect ( CEffect eff ) {
   if ( eff.m_HPDiff >= 0 )
     m_HP += eff.m_HPDiff;
@@ -72,6 +73,14 @@ int CCharacter::applyEffect ( CEffect eff ) {
     else
     m_HP += eff.m_HPDiff + m_Defense;
   }
+  m_Mana += eff.m_ManaDiff;
+  m_Strength += eff.m_StrengthDiff;
+  m_Defense += eff.m_DefenseDiff;
+  return 1;
+}
+*/
+int CCharacter::applyEffect ( CEffect eff ) {
+  m_HP += eff.m_HPDiff;
   m_Mana += eff.m_ManaDiff;
   m_Strength += eff.m_StrengthDiff;
   m_Defense += eff.m_DefenseDiff;
