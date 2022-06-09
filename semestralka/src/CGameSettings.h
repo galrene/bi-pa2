@@ -38,6 +38,7 @@ class CGameSettings {
     bool isTwoPlayerGame ( void ) { return m_TwoPlayerGame; }
     bool isCheeky ( void ) { return m_CheekyMode; }
     void setMaxDeckSize ( size_t newSize ) { m_MaxDeckSize = newSize; }
+    void p1OnTurn ( bool p1onTurn ) { m_FirstOnTurn = p1onTurn; }
     bool firstOnTurn ( void ) { return m_FirstOnTurn; }
     size_t getMaxDeckSize ( void ) { return m_MaxDeckSize; }
 };

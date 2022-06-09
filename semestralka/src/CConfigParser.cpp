@@ -263,6 +263,7 @@ bool CConfigParser::isDeckValid ( const fs::directory_entry & entry, CDeck & dec
         for ( size_t i = 0; i < count; i++ )
             deck.addCard ( card );
     }
+    deck.setData ( loadedData ); // pass the deck it's card count info
     return true;
 }
 

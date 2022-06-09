@@ -6,8 +6,33 @@ CGameStateManager::CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlaye
 CGameStateManager::~CGameStateManager ( void ) {
   delwin ( m_Info );
 }
-
-
+int CGameStateManager::handleMenu ( void ) {
+  vector<string> menuItems = { "Exit to main menu", "Save game", "Return to game" };
+  wclear ( m_Info );
+  wattron ( m_Info, A_BOLD );
+  for ( size_t i = 0; i < menuItems.size(); i++ )
+    mvwprintw ( m_Info, i+1, getmaxx(m_Info)/2 - menuItems[i].size()/2, "%s (%ld)", menuItems[i].c_str(), i );
+  wattroff ( m_Info, A_BOLD );
+  int a;
+  wrefresh ( m_Info );
+  switch ( (a = getch()) ) {
+  case '0':
+    return 0;
+    break;
+  case '1':
+    return 1;
+    break;
+  case '2':
+    return 2;
+    break;
+  case ('d' & 0x1F):
+    return -1;
+    break;
+  default:
+    break;
+  }
+  return 2;
+}
 bool CGameStateManager::dealCards ( void ) {
   m_Player1->shuffleDeck();
   m_Player2->shuffleDeck();
@@ -105,7 +130,6 @@ shared_ptr<CPlayer> CGameStateManager::pickPlayer ( void ) {
   }
   return nullptr;
 }
-// should display some message if not enough mana
 void CGameStateManager::playCard ( size_t i ) {
   if ( ! m_OnTurn->tmp_hasEnoughMana ( i ) ) {
     wclear ( m_Info );
@@ -145,53 +169,43 @@ bool CGameStateManager::winnerDecided ( void ) {
   }
   return false;
 }
-int CGameStateManager::handleMenu ( void ) {
-  vector<string> menuItems = { "Exit to main menu", "Save game", "Return to game" };
+void CGameStateManager::printMess ( const string & mess  ) {
   wclear ( m_Info );
-  wattron ( m_Info, A_BOLD );
-  for ( size_t i = 0; i < menuItems.size(); i++ )
-    mvwprintw ( m_Info, i+1, getmaxx(m_Info)/2 - menuItems[i].size()/2, "%s (%ld)", menuItems[i].c_str(), i );
-  wattroff ( m_Info, A_BOLD );
-  int a;
+  mvwprintw ( m_Info, getmaxy(m_Info)/2, getmaxx(m_Info)/2 - mess.size()/2, "%s", mess.c_str() );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2+1, getmaxx(m_Info)/2 - 13, "Press any key to continue." );
   wrefresh ( m_Info );
-  switch ( (a = getch()) ) {
-  case '0':
-    return 0;
-    break;
-  case '1':
-    return 1;
-    break;
-  case '2':
-    return 2;
-    break;
-  case ('d' & 0x1F):
-    return -1;
-    break;
-  default:
-    break;
-  }
-  return 2;
+  getch();
 }
-
-bool CGameStateManager::saveGame ( void ) {
+bool CGameStateManager::savePlayers ( fs::path & saveDir ) {
   CSaver saver;
-  string dirName = "save_game_" + m_Player1->getName() + "-" + m_Player2->getName();
   try {
-    saver.createDirectory ( dirName );
+    saver.createDirectory ( saveDir );
+    fs::path p1SaveLocation = saveDir.generic_string() + "/P1_" + m_Player1->getName();
+    fs::path p2SaveLocation = saveDir.generic_string() + "/P2_" + m_Player2->getName();
+    saver.createDirectory ( p1SaveLocation );
+    saver.createDirectory ( p2SaveLocation );
+    if ( ! m_Player1->save ( p1SaveLocation ) || ! m_Player2->save ( p2SaveLocation ) )
+      return false;
   }
-  catch ( const std::exception& e ) {
-    cerr << e.what() << '\n';
-    cerr << "Unable to create the save game directory" << endl;
+  catch ( const exception & e ) {
+    printMess ( e.what() );
     return false;
   }
-  // saver.save<> ( dirName );
-  if ( ! m_Player1->save ( dirName + "/p1_" + m_Player1->getName() ) || ! m_Player2->save ( dirName + "/p2_" + m_Player2->getName() ) )
-    return false;
-  
-  string str = defaultSaveLocation;
-  ofstream ofs ( str + "/" + dirName + "/settings.ini" );
+  return true;
+}
+bool CGameStateManager::saveSettings ( fs::path & saveDir ) {
+  ofstream ofs ( saveDir.generic_string() + "/settings.ini" );
   if ( ! ofs.good() )
     return false;
+  m_Settings.p1OnTurn ( m_OnTurn == m_Player1 ? true : false );
   m_Settings.dumpInfo ( ofs );
   return true;
+}
+void CGameStateManager::saveGame ( void ) {
+  fs::path saveDir = defaultSaveLocation.generic_string() +  "/save_game_" + m_Player1->getName() + "-" + m_Player2->getName();
+  if ( ! savePlayers ( saveDir ) || ! saveSettings ( saveDir ) ) {
+    printMess ( "Failed to save." );
+    fs::remove (saveDir);
+  }
+  printMess ( "Game saved." );
 }

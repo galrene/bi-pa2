@@ -14,28 +14,23 @@ namespace fs = filesystem;
 
 class CSaver {
   public:
-    CSaver ( void );
-    CSaver ( fs::path p );
+    CSaver (void ) = default;
     /**
-     * @brief save elements inside a directory in .ini format files
+     * @brief Save cards inside a directory
      * 
-     * @tparam C CCard or Character
-     * @param elements Cards or Characters
-     * @param dirName directory in which to save
+     * @param dirName Directory in which to save
      * @return true saved successfully
-     * @return false couldnt create requested directory
+     * @return false couldn't create requested directory
      */
-    // template < typename C >
-    bool save ( deque<shared_ptr<CCard>> & elements, const string & dirName );
+    bool saveCards ( deque<shared_ptr<CCard>> & cards, fs::path & dirPath );
     /**
-     * @brief should try catch this i think
+     * @brief Create a directory at defaultSaveLocation, if alredy exists, create "dirname_n"
      *  
-     * @param dirName 
-     * @return true 
-     * @return false 
+     * @param dirName Name of the create directory
+     * @return true Sucess
+     * @return false Couldn't create directory
      */
-    bool createDirectory ( const string & dirName );
-  private:
-    fs::path m_Path;
+    bool createDirectory ( fs::path & dirPath );
+    
 };
 #endif

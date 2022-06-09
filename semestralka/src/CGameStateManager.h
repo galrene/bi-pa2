@@ -22,7 +22,6 @@ class CGameStateManager {
      * @brief pick who to use card on, use it if user has enough mana
      * 
      * @param i index of card to in hand
-     * @param win window for prompting the receiver pick
      */
     void playCard ( size_t i );
     /**
@@ -40,11 +39,11 @@ class CGameStateManager {
     bool loadCards  ( void );
     /**
      * @brief Save the game.
-     * ! redo with logfile instead of cerr
-     * @return true success
-     * @return false failure
      */
-    bool saveGame   ( void );
+    void saveGame   ( void );
+    bool savePlayers ( fs::path & saveDir );
+    bool saveSettings ( fs::path & saveDir );
+
     bool loadGame   ( void );
     /**
      * @brief Fill up current player's hand, switch turns, hide hand if cheeky mode is off, prompt for continuing.
@@ -52,26 +51,23 @@ class CGameStateManager {
     void endTurn    ( void );
     bool loadPlayer ( CPlayer & player );
     /**
-     * @brief clear, box, refresh window, render both player's stats
+     * @brief Clear, box, refresh window, render both player's stats
      */
     void renderPlayerStats ( void );
     /**
-     * @brief render player's cards on hand, clear and refresh each card window
+     * @brief Render player's cards on hand, clear and refresh each card window
      * 
      * @param cardWindows where to render cards
      * @param player, whose hand to render -> 1 or 2
      */
     void renderHands ( void );
     /**
-     * @brief prints who's turn it is, centered in the middle
-     * 
-     * @param win where to print 
+     * @brief Print who's turn it is, centered in the middle
      */
     void whoIsOnTurn ( void );
     /**
-     * @brief pick one of two players ( KEY_UP = player1, KED_DOWN = player2 )
+     * @brief Pick one of two players ( KEY_UP = player1, KED_DOWN = player2 )
      *
-     * @param win window where to prompt the user to pick
      * @return shared_ptr<CPlayer> picked player
      */
     shared_ptr<CPlayer> pickPlayer ( void );
@@ -86,7 +82,7 @@ class CGameStateManager {
      */
     bool winnerDecided ( void );
     /**
-     * @brief Prints who won inside the m_Info window.
+     * @brief Print who won inside the m_Info window.
      * 
      * @param winner Player who won.
      */
@@ -97,6 +93,13 @@ class CGameStateManager {
      * @return 0 = exit to menu, 1 = save game, 2 or any other unused button = return to game, -1 = CTRL-D
      */
     int handleMenu ( void );
+    /**
+     * @brief Prints a message into the info screen
+     * 
+     * @param mess message to print
+     */
+    void printMess ( const string & mess  );
+
     
   protected:
     shared_ptr<CPlayer> m_Player1;

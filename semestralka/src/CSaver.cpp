@@ -1,14 +1,6 @@
 #include "CSaver.h"
-CSaver::CSaver ( void )
-: m_Path ( defaultSaveLocation ) {}
-
-CSaver::CSaver ( fs::path p )
-: m_Path ( p ) {}
-
-
-bool CSaver::createDirectory ( const string & dirName ) {
-    fs::path tmpPath = m_Path;
-    tmpPath.append ( dirName );
+bool CSaver::createDirectory ( fs::path & dirPath ) {
+    fs::path tmpPath = dirPath;
     if ( fs::exists ( tmpPath ) && fs::is_directory ( tmpPath ) && fs::is_empty ( tmpPath ) )
         return true;
     if ( ! fs::exists ( tmpPath ) ) {
@@ -29,33 +21,32 @@ bool CSaver::createDirectory ( const string & dirName ) {
         cerr << "Unable to create savefile directory" << endl;
         return false;
     }
-    // dirName = tmpPath.filename();
+    dirPath = tmpPath;
     return true;
 }
 
-// template < typename C >
-bool CSaver::save ( deque<shared_ptr<CCard>> & elements, const string & dirName ) {
+bool CSaver::saveCards ( deque<shared_ptr<CCard>> & cards, fs::path & dirPath ) {
     try {
-        if ( ! createDirectory ( dirName ) )
+        if ( ! createDirectory ( dirPath ) )
             return false;
     }
     catch ( const exception & e ) {
         cerr << e.what() << '\n';
         return false;
     }
-    m_Path.append ( dirName );
-    for ( const auto & x : elements ) {
+    for ( const auto & x : cards ) {
         string fileName = x->getHeader();
         fileName += ".ini";
-        m_Path.append ( fileName );
-        ofstream ofs ( m_Path );
+        dirPath.append ( fileName );
+        ofstream ofs ( dirPath );
         if ( ! ofs.good() ) {
-            cerr << "Failed to access file " << m_Path << endl;
+            cerr << "Failed to access file " << dirPath << endl;
+            dirPath = dirPath.parent_path();
             continue;
         }
         x->dumpInfo ( ofs );
-        m_Path = m_Path.parent_path();
+        dirPath = dirPath.parent_path();
     }
-    m_Path = m_Path.parent_path();
+    // dirPath = dirPath.parent_path(); // shouldn't be here i think
     return true;
 }

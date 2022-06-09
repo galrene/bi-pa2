@@ -100,7 +100,7 @@ class CPlayer {
      * @return true 
      * @return false 
      */
-    bool save ( const string & dirName );
+    bool save ( fs::path & playerDir );
 
 
     string getName ( void ) { return m_Name; }

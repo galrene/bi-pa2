@@ -67,25 +67,18 @@ void CPlayer::fillMana ( void ) {
 bool CPlayer::tmp_hasEnoughMana ( size_t i ) {
   return m_PlayedCharacter.getMana() >= m_Hand.getCardAt(i)->getManaCost();
 }
-bool CPlayer::save ( const string & dirName ) {
-  CSaver s;
-  string cardsDir = dirName + "/cards";
-  try {
-        if ( ! s.createDirectory ( dirName ) || ! s.createDirectory ( cardsDir ) )
-            return false;
-    }
-  catch ( const exception & e ) {
-        cerr << e.what() << '\n';
-        return false;
-  }
-  string str = defaultSaveLocation.generic_string() + "/" + dirName;
-  ofstream ofs_played ( str + "/character_played.ini" );
-  ofstream ofs_loaded ( str + "/character_loaded.ini" );
-  if ( ! ofs_loaded.good() || ! ofs_played.good() )
+bool CPlayer::save ( fs::path & playerDir ) {
+  ofstream ofs_played ( playerDir.generic_string() + "/character_played.ini" );
+  ofstream ofs_loaded ( playerDir.generic_string() + "/character_loaded.ini" );
+  ofstream ofs_deckInfo ( playerDir.generic_string() + "/deck.ini" );
+  ofstream ofs_handInfo ( playerDir.generic_string() + "/hand.ini" );
+  if ( ! ofs_loaded.good() || ! ofs_played.good() || ! ofs_handInfo.good() || ! ofs_deckInfo.good() )
     return false;
   m_PlayedCharacter.dumpInfo ( ofs_played );
   m_LoadedCharacter.dumpInfo ( ofs_loaded );
-  m_Deck.save ( dirName + "/card_definitions" );
-  m_Hand.save ( dirName + "/hand" );
+  fs::path deckSaveDir = playerDir /= "card_definitions";
+  m_Deck.saveDefinitions ( deckSaveDir );
+  m_Deck.printData ( ofs_deckInfo );
+  m_Hand.printHand ( ofs_handInfo );
   return true;
 }

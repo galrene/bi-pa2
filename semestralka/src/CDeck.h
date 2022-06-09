@@ -14,7 +14,7 @@ using namespace std;
 class CDeck {
   public:
     CDeck ( string name );
-    CDeck ( void ) {}
+    CDeck ( void ) = default;
     void addCard ( const shared_ptr<CCard> & card );
     shared_ptr<CCard> & drawCard ( void );
     shared_ptr<CCard> getCardAt ( size_t i );
@@ -26,13 +26,21 @@ class CDeck {
     
     // void load ( string path );
     /**
-     * @brief Save deck inside directory named after the deck itself
+     * @brief Save deck inside directory
      * 
-     * @param dirName save directory name
+     * @param dirName Save directory name
      */
-    void save ( const string & dirName );
+    void saveDefinitions ( fs::path & cardDefinitionDir );
+    void setData ( map<string,string> & data ) { m_Data = data; }
+    /**
+     * @brief Send raw data from m_Data into filestream
+     */
+    void printData ( ofstream & ofs );
+    void printHand ( ofstream & ofs );
+
   protected:
     deque<shared_ptr<CCard>> m_Content;
+    map<string,string> m_Data;
     string m_Name;
 };
 #endif

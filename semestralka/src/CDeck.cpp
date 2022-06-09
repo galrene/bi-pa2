@@ -36,7 +36,21 @@ void CDeck::renderCard ( WINDOW * win, size_t & i ) {
     m_Content[i]->render ( win );
 }
 
-void CDeck::save ( const string & dirName ) {
+void CDeck::printHand ( ofstream & ofs ) {
+    map<string,int> hand;
+    for ( const auto & card : m_Content )
+        hand[card->getName()]++;
+    ofs << "[deck]" << endl;
+    for ( const auto & [ def, cnt ] : hand )
+        ofs << def << " = " << cnt << endl;
+}
+void CDeck::printData ( ofstream & ofs ) {
+    ofs << "[deck]" << endl;
+    for ( const auto & [ def, cnt ] : m_Data )
+        ofs << def << " = " << cnt << endl;
+}
+
+void CDeck::saveDefinitions ( fs::path & cardDefinitionDir ) {
     CSaver s;
-    s.save ( m_Content, dirName );
+    s.saveCards ( m_Content, cardDefinitionDir ); // saves card definitions
 }
