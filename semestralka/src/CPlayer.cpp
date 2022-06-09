@@ -3,6 +3,9 @@
 CPlayer::CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck )
 : m_PlayedCharacter ( currentCharacter ), m_Name ( name ), m_LoadedCharacter ( defaultCharacter ), m_Deck ( deck ), m_StatsWin ( nullptr ) {}
 
+CPlayer::CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck, const CDeck & hand )
+: m_PlayedCharacter ( currentCharacter ), m_Name ( name ), m_LoadedCharacter ( defaultCharacter ), m_Deck ( deck ), m_Hand ( hand ), m_StatsWin ( nullptr ) {}
+
 CPlayer::~CPlayer ( void ) {
   if ( ! m_HandWins.empty() ) {
     for ( size_t i = 0; i < m_HandWins.size(); i++ )
@@ -49,6 +52,9 @@ void CPlayer::hideHand ( void ) {
     }
 }
 void CPlayer::fillHand ( void ) {
+  //m_Hand.printData (cerr);
+  //m_Hand.printHand (cerr);
+  //cerr << m_Hand.size() << " = mhand.size"<< endl;
   drawCard ( handSize - m_Hand.size() );
 }
 void CPlayer::discardCard ( size_t i ) {

@@ -314,10 +314,14 @@ CDeck CMenu::chooseDeckMenu ( vector<CDeck> & decks ) {
     return decks[m_Highlight];
 }
 
-shared_ptr<CPlayer> CMenu::createPlayerMenu ( vector<shared_ptr<CCharacter>> & loadedCharacters, vector<CDeck> & decks, const char * menuHeader ) {
+shared_ptr<CPlayer> CMenu::createPlayerMenu ( map<string,shared_ptr<CCharacter>> & loadedCharacters, vector<CDeck> & decks, const char * menuHeader ) {
     string p_name = chooseNameMenu ( menuHeader );
     string header = p_name + "'s character:";
-    shared_ptr<CCharacter> playerCharacter = chooseCharacter ( loadedCharacters, header.c_str() );
+    vector<shared_ptr<CCharacter>> charactersVec;
+    for ( const auto & x : loadedCharacters )
+        charactersVec.push_back ( x.second );
+
+    shared_ptr<CCharacter> playerCharacter = chooseCharacter ( charactersVec, header.c_str() );
     if ( ! playerCharacter )
         return nullptr;
     CDeck deck = chooseDeckMenu ( decks );
@@ -326,7 +330,7 @@ shared_ptr<CPlayer> CMenu::createPlayerMenu ( vector<shared_ptr<CCharacter>> & l
     return make_shared<CPlayer> ( CPlayer ( p_name, *playerCharacter, *playerCharacter, deck ) );
 }
 
-bool CMenu::loadNecessities ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
+bool CMenu::loadNecessities ( map<string,shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
     CConfigParser parser;
     if (  characters = parser.loadCharacters ( defaultCharacterDirectory ); characters.empty() ) {
             printError ( "No characters loaded, check log for more info.\n" );
@@ -343,7 +347,7 @@ bool CMenu::loadNecessities ( vector<shared_ptr<CCharacter>> & characters, map<s
     return true;
 }
 
-bool CMenu::loadingScreen ( vector<shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
+bool CMenu::loadingScreen ( map<string,shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
     drawMenu ( "Loading screen" );
     if ( loadNecessities ( characters, cards, decks ) ) {
         mvwprintw ( m_Win, m_Lines/2-1, m_Cols/2 - strlen("Loading successful.")/2, "Loading successful." );
@@ -356,11 +360,8 @@ bool CMenu::loadingScreen ( vector<shared_ptr<CCharacter>> & characters, map<str
     wgetch ( m_Win );
     return false;
 }
-/**
- * @return -1 on requested exit, 1 on successfuly creating a game 0 on game creation failure 
- */
 int CMenu::handleCreateMenu ( CGameStateManager & gsm ) {
-    vector<shared_ptr<CCharacter>> characters;
+    map<string,shared_ptr<CCharacter>> characters;
     map<string,shared_ptr<CCard>> cards;
     vector<CDeck> decks;
     if ( ! loadingScreen ( characters, cards, decks ) )
@@ -375,41 +376,86 @@ int CMenu::handleCreateMenu ( CGameStateManager & gsm ) {
         if ( ! p2 )
             return -1;
     }
-    // construct an AI Player with random character and deck
+    // construct an AI Player with random deck
     else if ( ! m_Settings.isTwoPlayerGame() ) {
-        shared_ptr<CCharacter> randomCharacter = characters[random() % characters.size ()];
+        shared_ptr<CCharacter> randomCharacter = characters.begin()->second;
         p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *randomCharacter, *randomCharacter, decks[ random() % decks.size () ] ) );
     }
 
     gsm = CGameStateManager ( p1, p2, m_Settings );
     return 1;
 }
+void CMenu::printSaves ( vector<fs::directory_entry> & saves ) {
+    for ( size_t i = 0; i < saves.size(); i++ ) {
+        if ( i == m_Highlight )
+            wattron ( m_Win, A_REVERSE );
+        mvwprintw ( m_Win, 1+i, 1, "%s", saves[i].path().filename().c_str() );
+        wattroff ( m_Win, A_REVERSE );
+    }
+}
+vector<fs::directory_entry> CMenu::loadSaves ( fs::path savePath ) {
+    vector<fs::directory_entry> saves;
+    for ( const auto & entry : fs::directory_iterator ( savePath ) ) {
+        string fileName = entry.path().filename().generic_string();
+        if ( entry.is_directory() && fileName.find("save_game") != fileName.npos )
+            saves.push_back ( entry );
+    }
+    return saves;
+}
+bool CMenu::loadMenuMovement ( vector<fs::directory_entry> & saves ) {
+    while ( 1 ) {
+        printSaves ( saves );
+        int res = handleNavigation ( saves.size() );
+        if ( res == 1 )
+            break;
+        else if ( res == -1 )
+            return false;
+    }
+    return true;
+}
+int CMenu::handleLoadGameMenu ( CGameStateManager & gsm ) {
+    m_Highlight = 0;
+    drawMenu ( "Choose a save:" );
+    vector<fs::directory_entry> saves = loadSaves ( defaultSaveLocation );
+    if ( ! loadMenuMovement ( saves ) )
+        return -1;
+    CConfigParser parser;
+    fs::path saveGamePath = defaultSaveLocation;
+    saveGamePath /= saves[m_Highlight];
+    if ( ! parser.loadSave ( gsm, saveGamePath ) ) {
+        printError ( "Unable to load game from save." );
+        return 0;
+    }
+    return 1;
+}
 
-bool CMenu::handleMainMenu ( CGameStateManager & gsm ) {
+int CMenu::handleMainMenu ( CGameStateManager & gsm ) {
     vector<string> menuItems = { "New game", "Load saved game", "Settings", "-Quit-" };
     int res;
     while ( 1 ) {
         m_Highlight = 0;
         drawMenu ( "Main menu" );
         if ( ! handleMenuMovement ( menuItems ) )
-            return false;
+            return -1;
         if ( m_Highlight == 0 ) {
             if ( res = handleCreateMenu ( gsm ); res == -1 )
-                return false;
+                return -1;
             else if ( res == 1 )
-                return true;
+                return 1;
         }    
-        else if ( m_Highlight == 1 )
-            printError ( "loading the game not in yet\n");
+        else if ( m_Highlight == 1 ) {
+            if ( res = handleLoadGameMenu ( gsm ); res == -1 )
+                return -1;
+            else if ( res == 1 )
+                return 2;
+        }
         else if ( m_Highlight == 2 ) {
             if ( ! handleSettings () )
-                return false;
+                return -1;
         }
         else if ( m_Highlight == 3 )
-            return false;
+            return -1;
 
     }
-    // printw ("Your choice was : %s\n",menuItems[highlight].c_str() );
-    refresh();
-    return true;
+    return -1;
 }

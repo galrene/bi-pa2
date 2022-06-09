@@ -58,6 +58,8 @@ const bool defaultHandVisibility = false;
  */
 const bool defaultFirstOnTurn = true;
 
+const std::string defaultSettingsFileName = "settings.ini";
+
 // keybindings
 
 const int defaultDiscardButton = 'd';

@@ -17,7 +17,7 @@ class CGameStateManager {
      * @brief Shuffle decks, deal hands, set P1's turn 
      * @return 
      */
-    bool dealCards  ( void );
+    void dealCards  ( void );
     /**
      * @brief pick who to use card on, use it if user has enough mana
      * 
@@ -99,6 +99,10 @@ class CGameStateManager {
      * @param mess message to print
      */
     void printMess ( const string & mess  );
+    /**
+     * @brief Decides who is on next on turn
+     */
+    void decideTurn ( void );
 
     
   protected:

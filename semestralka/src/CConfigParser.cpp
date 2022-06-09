@@ -128,7 +128,7 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
             cerr << "A key value pair in " << iniPath << " is invalid" << endl;
             return "";
         }
-        loadedData[tmpKey] = tmpVal;
+        m_LoadedData[tmpKey] = tmpVal;
     }
     if ( header == "" ) {
         cerr << "Missing header in " << iniPath << endl;
@@ -138,16 +138,15 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
 }
 
 bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
-                                         vector<shared_ptr<CCharacter>> & loadedCharacters ) {
-    CCharacter character ( loadedData );
-    if ( loadedUniqueElements.find ( loadedData["name"] ) != loadedUniqueElements.end() ) {
-        cerr << "Character with name \"" << loadedData["name"] << "\" already exists" << endl;
+                                         map<string,shared_ptr<CCharacter>> & loadedCharacters ) {
+    CCharacter character ( m_LoadedData );
+    if ( loadedCharacters.count ( m_LoadedData["name"] ) != 0 ) {
+        cerr << "Character with name \"" << m_LoadedData["name"] << "\" already exists" << endl;
         return false;
     }
     if ( ! character.buildCharacter() )
         return false;
-    loadedCharacters.emplace_back ( make_shared<CCharacter> ( character ) );
-    loadedUniqueElements.insert ( loadedData["name"] );
+    loadedCharacters [ m_LoadedData["name"] ] = make_shared<CCharacter> ( character );
     return true;
 }
 /**
@@ -158,66 +157,73 @@ bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
  * @return true if successful
  * @return false if ini file is invalid
  */
-bool CConfigParser::loadCharacterFromIni ( const fs::directory_entry & entry, vector<shared_ptr<CCharacter>> & loadedCharacters ) {
+bool CConfigParser::loadCharacterFromIni ( const fs::directory_entry & entry, map<string,shared_ptr<CCharacter>> & loadedCharacters ) {
     if ( ! isIni ( entry ) ) {
         cerr << entry.path().generic_string() << "isn't a .ini" << endl;
         return false;
     }
     string header = readIni ( entry.path().generic_string() );
-    if ( header == "" ) 
+    if ( header == "" ) {
+        m_LoadedData.clear();
         return false;
+    }
     if ( header != "character" ) {
         cerr << "No [character] section found in" << entry.path().generic_string() << endl;
+        m_LoadedData.clear();
         return false;
     }
     try {
-        if ( ! constructCharacter ( entry, loadedCharacters ) )
+        if ( ! constructCharacter ( entry, loadedCharacters ) ) {
             cerr << "Failed to set all of the required character attributes" << endl;
+            m_LoadedData.clear();
+            return false;
+        }
     }
     catch ( const exception & e ) {
         std::cerr << e.what() << '\n';
         cerr << "Bad character that should be an integer or an invalid attribute name in " << entry.path() << '\n';
+        m_LoadedData.clear();
         return false;
     }
-    
+    m_LoadedData.clear();
     return true;
 }
 
 bool CConfigParser::constructCard ( const fs::directory_entry & entry, map<string,shared_ptr<CCard>> & loadedCards ) {
-    if ( loadedData["type"] == "" ) {
+    if ( m_LoadedData["type"] == "" ) {
         cerr << "Missing type atribute in card " << entry << endl;
         return false;
     }
-    if ( loadedCards.find ( loadedData["name"] ) != loadedCards.end() ) {
-        cerr << "Card with name \"" << loadedData["name"] << "\" already exists" << endl;
+    if ( loadedCards.find ( m_LoadedData["name"] ) != loadedCards.end() ) {
+        cerr << "Card with name \"" << m_LoadedData["name"] << "\" already exists" << endl;
         return false;
     }
-    else if ( loadedData["type"] == "attack" ) {
-        CAttack att ( loadedData );
+    else if ( m_LoadedData["type"] == "attack" ) {
+        CAttack att ( m_LoadedData );
         if ( ! att.buildCard() )
             return false;
-        loadedCards[ loadedData["name"] ] = make_shared<CAttack> ( att );
+        loadedCards[ m_LoadedData["name"] ] = make_shared<CAttack> ( att );
     }
-    else if ( loadedData["type"] == "defense" ) {
-        CDefense def ( loadedData );
+    else if ( m_LoadedData["type"] == "defense" ) {
+        CDefense def ( m_LoadedData );
         if ( ! def.buildCard() )
             return false;
-        loadedCards[ loadedData["name"] ] = make_shared<CDefense> ( def );
+        loadedCards[ m_LoadedData["name"] ] = make_shared<CDefense> ( def );
     }
-    else if ( loadedData["type"] == "passive" ) {
-        CPassive pass ( loadedData );
+    else if ( m_LoadedData["type"] == "passive" ) {
+        CPassive pass ( m_LoadedData );
         if ( ! pass.buildCard() )
             return false;
-        loadedCards[ loadedData["name"] ] = make_shared<CPassive> ( pass );
+        loadedCards[ m_LoadedData["name"] ] = make_shared<CPassive> ( pass );
     }
-    else if ( loadedData["type"] == "special" ) {
-        CSpecial spec ( loadedData );
+    else if ( m_LoadedData["type"] == "special" ) {
+        CSpecial spec ( m_LoadedData );
         if ( ! spec.buildCard() )
             return false;
-        loadedCards[ loadedData["name"] ] = make_shared<CSpecial> ( spec );
+        loadedCards[ m_LoadedData["name"] ] = make_shared<CSpecial> ( spec );
     }
     else {
-        cerr << "Unidentified card type \"" << loadedData["type"] << "\"" << endl;
+        cerr << "Unidentified card type \"" << m_LoadedData["type"] << "\"" << endl;
         return false;
     }
     return true;
@@ -229,26 +235,34 @@ bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, map<str
         return false;
     }
     string header = readIni ( entry.path().generic_string() );
-    if ( header == "" ) 
+    if ( header == "" ) {
+        m_LoadedData.clear();
         return false;
+    }
     if ( header != "card" ) {
         cerr << "No [card] section found in" << entry.path().generic_string() << endl;
+        m_LoadedData.clear();
         return false;
     }
     try {
-        if ( ! constructCard ( entry, loadedCards ) )
+        if ( ! constructCard ( entry, loadedCards ) ) {
             cerr << "Failed to set all of the required card attributes" << endl;
+            m_LoadedData.clear();
+            return false;
+        }
     }
     catch ( const exception & e ) {
         cerr << e.what() << '\n';
         cerr << "Bad character that should be an integer or an invalid attibute name in " << entry << endl;
+        m_LoadedData.clear();
         return false;
     }
+    m_LoadedData.clear();
     return true;
 }
 
 bool CConfigParser::isDeckValid ( const fs::directory_entry & entry, CDeck & deck, map<string,shared_ptr<CCard>> & cardDefinitions ) {
-    for ( const auto & cardAndCount : loadedData ) {
+    for ( const auto & cardAndCount : m_LoadedData ) {
         if ( cardDefinitions.count ( cardAndCount.first ) == 0 ) {
             cerr << "Card " << cardAndCount.first << " in deck " << entry.path().filename() << " is undefined." << endl;
             return false;
@@ -263,7 +277,7 @@ bool CConfigParser::isDeckValid ( const fs::directory_entry & entry, CDeck & dec
         for ( size_t i = 0; i < count; i++ )
             deck.addCard ( card );
     }
-    deck.setData ( loadedData ); // pass the deck it's card count info
+    deck.setData ( m_LoadedData ); // pass the deck it's card count info
     return true;
 }
 
@@ -274,15 +288,21 @@ bool CConfigParser::loadDeckFromIni ( const fs::directory_entry & entry, vector<
     }
     CDeck deck ( entry.path().stem() );
     string header = readIni ( entry.path().generic_string() );
-    if ( header == "" ) 
-        return false;
-    if ( header != "deck" ) {
-        cerr << "No [deck] section found in" << entry.path().generic_string() << endl;
+    if ( header == "" ) {
+        m_LoadedData.clear();
         return false;
     }
-    if ( ! isDeckValid ( entry, deck, cardDefinitions ) )
+    if ( header != "deck" ) {
+        cerr << "No [deck] section found in" << entry.path().generic_string() << endl;
+        m_LoadedData.clear();
         return false;
+    }
+    if ( ! isDeckValid ( entry, deck, cardDefinitions ) ) {
+        m_LoadedData.clear();
+        return false;
+    }
     loadedDecks.push_back ( deck );
+    m_LoadedData.clear();
     return true;
 }
 
@@ -292,17 +312,17 @@ vector<CDeck> CConfigParser::loadDecks ( const string & dirName, map<string,shar
         return {};
     for ( const auto & entry : fs::directory_iterator ( m_Path ) ) {
         if ( ! loadDeckFromIni ( entry, loadedDecks, cardDefinitions ) )
-            failedToLoad.push_back ( entry.path().generic_string() );
-        loadedData.clear();
+            m_FailedToLoad.push_back ( entry.path().generic_string() );
+        m_LoadedData.clear();
     }
-    if ( ! failedToLoad.empty() ) {
+    if ( ! m_FailedToLoad.empty() ) {
         cerr << "Failed to load files: " << endl;
-        for ( const auto & x : failedToLoad )
+        for ( const auto & x : m_FailedToLoad )
             cerr << "\t" << x << endl;
     }
     if ( loadedDecks.empty() )
         cerr << "No decks loaded." << endl;
-    failedToLoad.clear();
+    m_FailedToLoad.clear();
     m_Path = m_Path.parent_path();
     return loadedDecks;
 }
@@ -313,40 +333,155 @@ map<string,shared_ptr<CCard>> CConfigParser::loadCards ( const string & dirName 
         return {};
     for ( const auto & entry : fs::directory_iterator ( m_Path ) ) {
         if ( ! loadCardFromIni ( entry, loadedCards ) )
-            failedToLoad.push_back ( entry.path().generic_string() );
-        loadedData.clear();
+            m_FailedToLoad.push_back ( entry.path().generic_string() );
+        m_LoadedData.clear();
     }
-    if ( ! failedToLoad.empty() ) {
+    if ( ! m_FailedToLoad.empty() ) {
         cerr << "Failed to load files: " << endl;
-        for ( const auto & x : failedToLoad )
+        for ( const auto & x : m_FailedToLoad )
             cerr << "\t" << x << endl;
     }
     if ( loadedCards.empty() )
         cerr << "No cards loaded." << endl;
-    failedToLoad.clear();
+    m_FailedToLoad.clear();
     m_Path = m_Path.parent_path();
     return loadedCards;
 }
 
-vector<shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & dirName ) {
-    vector<shared_ptr<CCharacter>> loadedCharacters;
+map<string,shared_ptr<CCharacter>> CConfigParser::loadCharacters ( const string & dirName ) {
+    map<string,shared_ptr<CCharacter>> loadedCharacters;
 
     if ( ! enterDirectory ( dirName ) )
         return {}; 
     for ( const auto & chEntry : fs::directory_iterator ( m_Path ) ) {
         if ( ! loadCharacterFromIni ( chEntry, loadedCharacters ) )
-            failedToLoad.push_back ( chEntry.path().generic_string() );
-        loadedData.clear();
+            m_FailedToLoad.push_back ( chEntry.path().generic_string() );
+        m_LoadedData.clear();
     }
-    if ( ! failedToLoad.empty() ) {
+    if ( ! m_FailedToLoad.empty() ) {
         cerr << "Failed to load files: " << endl;
-        for ( const auto & x : failedToLoad )
+        for ( const auto & x : m_FailedToLoad )
             cerr << "\t" << x << endl;
     }
     if ( loadedCharacters.empty() )
         cerr << "No characters loaded." << endl;
-    failedToLoad.clear();
+    m_FailedToLoad.clear();
     m_Path = m_Path.parent_path();
-    loadedUniqueElements.clear();
     return loadedCharacters;
+}
+
+bool CConfigParser::loadSettingsFromIni ( const fs::directory_entry & entry, CGameSettings & sett ) {
+    if ( ! isIni ( entry ) ) {
+        cerr << entry.path().generic_string() << " isn't a .ini" << endl;
+        return false;
+    }
+    string header = readIni ( entry.path().generic_string() );
+    if ( header == "" ) 
+        return false;
+    if ( header != "settings" ) {
+        cerr << "No [settings] section found in" << entry.path().generic_string() << endl;
+        return false;
+    }
+    try {
+        if ( ! sett.load ( m_LoadedData ) )
+            cerr << "Failed to set all of the required settings" << endl;
+    }
+    catch ( const exception & e ) {
+        cerr << e.what() << '\n';
+        cerr << "Bad character that should be an integer or an invalid attibute name in " << entry << endl;
+        return false;
+    }
+    return true;
+}
+
+bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string & playerName ) {
+    fs::directory_entry card_definitons;
+    fs::directory_entry char_played;
+    fs::directory_entry char_loaded;
+    fs::directory_entry deck;
+    fs::directory_entry hand;
+    for ( const auto & entry : fs::directory_iterator ( m_Path ) ) {
+        string fileName = entry.path().stem();
+        if ( entry.is_directory() && fileName == "card_definitions" )
+            card_definitons = entry;
+        else if ( entry.is_regular_file() && fileName == "character_loaded" )
+            char_loaded = entry;
+        else if ( entry.is_regular_file() && fileName == "character_played" )
+            char_played = entry;
+        else if ( entry.is_regular_file() && fileName == "deck" )
+            deck = entry;
+        else if ( entry.is_regular_file() && fileName == "hand" )
+            hand = entry;
+    }
+    if ( ! card_definitons.exists() || ! char_played.exists() || ! char_loaded.exists() || ! deck.exists() || ! hand.exists() ) {   
+        cerr << "Necessary player files not found in  " << m_Path << endl;
+        return false;
+    }
+    map<string,shared_ptr<CCard>> cards = loadCards ( card_definitons.path().filename().generic_string() );
+    // 0th == deck, 1st == hand
+    vector<CDeck> loadedDecks;
+    map<string,shared_ptr<CCharacter>> loadedCharacter;
+    map<string,shared_ptr<CCharacter>> playedCharacter;
+    if ( cards.empty() || ! loadDeckFromIni ( deck, loadedDecks, cards ) ||
+         ! loadDeckFromIni ( hand, loadedDecks, cards ) || ! loadCharacterFromIni ( char_loaded, loadedCharacter ) ||
+         ! loadCharacterFromIni ( char_played, playedCharacter ) )
+        return false;
+    player = make_shared<CPlayer> ( CPlayer ( playerName, *loadedCharacter.begin()->second, *playedCharacter.begin()->second, loadedDecks[0], loadedDecks[1] ) );
+    return true;
+}
+
+bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, fs::path & savePath ) {
+    fs::directory_entry p1Dir;
+    fs::directory_entry p2Dir;
+    for ( const auto & entry : fs::directory_iterator ( savePath ) ) {
+        string fileName = entry.path().filename();
+        if ( entry.is_directory() && fileName.find("P1_") != fileName.npos )
+            p1Dir = entry;
+        else if ( entry.is_directory() && fileName.find("P2_") != fileName.npos )
+            p2Dir = entry;
+    }
+    if ( ! p2Dir.exists() || ! p1Dir.exists() ) {
+        cerr << "Player directories not found in " << savePath << endl;
+        return false;
+    }
+    if ( ! enterDirectory ( p1Dir.path().filename() ) ) {
+        cerr << "Cannot enter " << savePath << endl;
+        return false;
+    }
+    string p1Name = p1Dir.path().filename().generic_string(); p1Name = p1Name.substr ( p1Name.find ( "P1_" ) + 3 );
+    if ( ! constructPlayer ( p1, p1Name ) )
+        return false;
+    m_Path = m_Path.parent_path(); // leave p1Dir
+    if ( ! enterDirectory ( p2Dir.path().filename() ) ) {
+        cerr << "Cannot enter " << savePath << endl;
+        return false;
+    }
+    string p2Name = p2Dir.path().filename().generic_string(); p2Name = p2Name.substr ( p2Name.find ( "P2_" ) + 3 );
+    if ( ! constructPlayer ( p2, p2Name ) )
+        return false;
+    m_Path = m_Path.parent_path(); // leave p2Dir
+    return true;
+}
+
+bool CConfigParser::loadSave ( CGameStateManager & gsm, fs::path & savePath ) {
+    if ( ! enterDirectory ( savePath.filename() ) ) // might not work, since its a directory not a file
+        return false;
+    CGameSettings settings;
+    fs::path settingsPath = savePath; settingsPath /= defaultSettingsFileName;
+    if ( ! fs::directory_entry ( settingsPath ).exists() )
+        return false;
+    if ( ! loadSettingsFromIni ( fs::directory_entry ( settingsPath ), settings ) ) {
+        m_LoadedData.clear();
+        return false;
+    }
+    m_LoadedData.clear();
+    shared_ptr<CPlayer> p1;
+    shared_ptr<CPlayer> p2;
+    if ( ! loadPlayers ( p1, p2, savePath ) ) {
+        m_LoadedData.clear();
+        return false;
+    }
+    m_LoadedData.clear();
+    gsm = CGameStateManager ( p1, p2, settings );
+    return true;
 }

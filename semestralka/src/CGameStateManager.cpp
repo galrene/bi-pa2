@@ -4,7 +4,8 @@ CGameStateManager::CGameStateManager ( shared_ptr<CPlayer> p1, shared_ptr<CPlaye
 : m_Player1 ( p1 ), m_Player2 ( p2 ), m_Settings ( sett ), m_OnTurn ( nullptr ), m_Info ( nullptr ) {}
 
 CGameStateManager::~CGameStateManager ( void ) {
-  delwin ( m_Info );
+  if ( m_Info )
+    delwin ( m_Info );
 }
 int CGameStateManager::handleMenu ( void ) {
   vector<string> menuItems = { "Exit to main menu", "Save game", "Return to game" };
@@ -33,17 +34,16 @@ int CGameStateManager::handleMenu ( void ) {
   }
   return 2;
 }
-bool CGameStateManager::dealCards ( void ) {
+void CGameStateManager::dealCards ( void ) {
   m_Player1->shuffleDeck();
   m_Player2->shuffleDeck();
   m_Player1->drawCard(handSize);
   m_Player2->drawCard(handSize);
-  if ( m_Settings.firstOnTurn() )
-    m_OnTurn = m_Player1;
-  else
-    m_OnTurn = m_Player2;
-  return true;
 }
+void CGameStateManager::decideTurn ( void ) {
+   m_Settings.firstOnTurn() ? m_OnTurn = m_Player1 : m_OnTurn = m_Player2;
+}
+
 void CGameStateManager::renderPlayerStats ( void ) {
     m_Player1->renderPlayer();
     m_Player2->renderPlayer();
@@ -194,7 +194,7 @@ bool CGameStateManager::savePlayers ( fs::path & saveDir ) {
   return true;
 }
 bool CGameStateManager::saveSettings ( fs::path & saveDir ) {
-  ofstream ofs ( saveDir.generic_string() + "/settings.ini" );
+  ofstream ofs ( saveDir.generic_string() + "/" + defaultSettingsFileName );
   if ( ! ofs.good() )
     return false;
   m_Settings.p1OnTurn ( m_OnTurn == m_Player1 ? true : false );

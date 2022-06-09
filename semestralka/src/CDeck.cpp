@@ -5,11 +5,11 @@ CDeck::CDeck ( string name )
 
 string CDeck::getName ( void ) { return m_Name; }
 
-void CDeck::addCard ( const shared_ptr<CCard> & card ) {
+void CDeck::addCard ( shared_ptr<CCard> card ) {
     m_Content.push_back ( card );
 }
-shared_ptr<CCard> & CDeck::drawCard ( void ) {
-    shared_ptr<CCard> & card = m_Content.front();
+shared_ptr<CCard> CDeck::drawCard ( void ) {
+    shared_ptr<CCard> card = m_Content.front();
     m_Content.pop_front();
     return card;
 }
@@ -36,18 +36,18 @@ void CDeck::renderCard ( WINDOW * win, size_t & i ) {
     m_Content[i]->render ( win );
 }
 
-void CDeck::printHand ( ofstream & ofs ) {
+void CDeck::printHand ( ostream & os ) {
     map<string,int> hand;
     for ( const auto & card : m_Content )
         hand[card->getName()]++;
-    ofs << "[deck]" << endl;
+    os << "[deck]" << endl;
     for ( const auto & [ def, cnt ] : hand )
-        ofs << def << " = " << cnt << endl;
+        os << def << " = " << cnt << endl;
 }
-void CDeck::printData ( ofstream & ofs ) {
-    ofs << "[deck]" << endl;
+void CDeck::printData ( ostream & os ) {
+    os << "[deck]" << endl;
     for ( const auto & [ def, cnt ] : m_Data )
-        ofs << def << " = " << cnt << endl;
+        os << def << " = " << cnt << endl;
 }
 
 void CDeck::saveDefinitions ( fs::path & cardDefinitionDir ) {

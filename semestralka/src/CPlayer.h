@@ -13,6 +13,7 @@ using namespace std;
 class CPlayer {
   public:
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
+    CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck, const CDeck & hand );
     ~CPlayer ( void );
 
     CCharacter m_PlayedCharacter; // character representing current state
@@ -107,11 +108,11 @@ class CPlayer {
     void setStatsWin ( WINDOW * win ) { m_StatsWin = win; }
     void setCardWins ( vector<WINDOW*> & cardWins ) { m_HandWins = cardWins; }
     bool isAlive ( void ) { return m_PlayedCharacter.getHP() > 0; }
-  protected:
     string m_Name;
     CCharacter m_LoadedCharacter; // character representing default state
     CDeck m_Deck;
     CDeck m_Hand;
+  protected:
 
     vector<WINDOW*> m_HandWins;
     WINDOW* m_StatsWin;

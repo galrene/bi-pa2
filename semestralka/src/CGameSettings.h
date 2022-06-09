@@ -23,6 +23,7 @@ class CGameSettings {
     bool m_FirstOnTurn;
   public:
     CGameSettings ( void );
+    CGameSettings ( bool twoPlayerGame, size_t maxDeckSize, bool cheeky, bool firstOnTurn );
     /**
      * @brief Dumps settings inside filestream
      * 
@@ -36,9 +37,14 @@ class CGameSettings {
     void toggleSP ( void ) { m_TwoPlayerGame == true ? m_TwoPlayerGame = false : m_TwoPlayerGame = true;}
     void toggleCheeky ( void ) { m_CheekyMode == true ? m_CheekyMode = false : m_CheekyMode = true; }
     bool isTwoPlayerGame ( void ) { return m_TwoPlayerGame; }
+    /**
+     * @brief Can players see into each other's hands? 
+     */
     bool isCheeky ( void ) { return m_CheekyMode; }
     void setMaxDeckSize ( size_t newSize ) { m_MaxDeckSize = newSize; }
     void p1OnTurn ( bool p1onTurn ) { m_FirstOnTurn = p1onTurn; }
     bool firstOnTurn ( void ) { return m_FirstOnTurn; }
     size_t getMaxDeckSize ( void ) { return m_MaxDeckSize; }
+
+    bool load ( map<string,string> & data );
 };

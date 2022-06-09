@@ -5,14 +5,16 @@
 
 class CGame {
   public:
-    CGame ( CGameStateManager gsm );
+    CGame ( CGameStateManager & gsm );
     ~CGame ( void );
     bool beginGame ( void );
+    bool continueGame ( void );
 
   protected:
     bool initCurses ( void );
     void drawLayout ( void );
-
+    bool handleGame ( void );
+  
     int m_xMax, m_yMax;
     CGameStateManager m_Gsm;
     int m_CardHeight, m_CardWidth;

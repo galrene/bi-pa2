@@ -1,6 +1,6 @@
 #include "CGame.h"
 
-CGame::CGame ( CGameStateManager gsm )
+CGame::CGame ( CGameStateManager & gsm )
 : m_Gsm ( gsm) {
     if ( ! initCurses() ) {
         cerr << "Your terminal doesn't support colors" << endl;
@@ -47,10 +47,7 @@ void CGame::drawLayout ( void ) {
     m_Gsm.renderHands ();
 }
 
-bool CGame::beginGame ( void ) {
-    m_Gsm.dealCards();
-    drawLayout();
-    m_Gsm.whoIsOnTurn ();
+bool CGame::handleGame ( void ) {
     int a;
     while ( (a = getch()) ) {
         if ( a == defaultEndTurnButton )
@@ -77,4 +74,17 @@ bool CGame::beginGame ( void ) {
            break;
     }
     return true;
+}
+bool CGame::continueGame ( void ) {
+    m_Gsm.decideTurn();
+    drawLayout();
+    m_Gsm.whoIsOnTurn ();
+    return handleGame();
+}
+bool CGame::beginGame ( void ) {
+    m_Gsm.dealCards();
+    m_Gsm.decideTurn();
+    drawLayout();
+    m_Gsm.whoIsOnTurn ();
+    return handleGame();
 }
