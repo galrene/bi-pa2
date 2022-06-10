@@ -7,7 +7,7 @@ USERNAME = galrene
 SOURCES = $(wildcard src/*.cpp)
 OBJECTS = $(SOURCES:src/%.cpp=build/%.o)
 
-all: compile
+all: compile doc
 
 run: compile
 	@./$(USERNAME)
@@ -22,7 +22,7 @@ deps:
 	$(CXX) -MM src/*.cpp | sed -r 's|^(.*\.o)|build/\1|' > Makefile.d
 
 clean:
-	rm -f build/*.o $(USERNAME) Makefile.d
+	rm -rf build/*.o $(USERNAME) Makefile.d doc/
 
 count:
 	@wc -l src/*
@@ -30,5 +30,10 @@ count:
 build/%.o: src/%.cpp
 	@mkdir -p build/
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+doc: doc/index.html
+
+doc/index.html: Doxyfile DOCUMENTATION.md $(wildcard src/*)
+	doxygen Doxyfile
 
 -include Makefile.d
