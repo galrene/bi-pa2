@@ -15,38 +15,21 @@ Attribute order doesn't matter.
 Extra unnecessary atributes don't matter.
 ConfigParser berie aj 1b ako 1 pri intovych atributoch
 =========================================================
---??--
-skip turn, throw away card mechanika
-vykreslovat obidva decky a skryvat
 sila utoku sa bude pocitat ako ( karta DMG + strength - Opponent defense )
 
 
 IDEAS:    
-    Config parser by sa dal rozsekat na cardLoader characterLoader a deckLoader ktore by boli skonstruovane
-    s nacitanymi datami?
-
     Handlovanie settings môžem dať do settings clasy etc.
     
 TODO  {
-    Togglable setting ze ci si vidia do kariet alebo nie
-    Aplikovanie efektov kariet
-    Z kazeho menu nech sa 'Q'ckom vies vratit back to main menu
+    Z kazeho menu nech sa 'Q'ckom alebo 'ESC' hmm vies vratit back to main menu
 
     CPassive asi prerobit na nejake extra damage karty ktore ti ujebu zo zivota or some
     lebo damage over time cez nejaky bleed by bol celkom hassle.
 
-    Check ci hrac ma dost many na danu kartu == zatial je spravene iba pre manu.    
-        Karticka potrebuje dalsiu metodu, ktora checkuje ci hrac vie zahrat danu kartu,
-        nestaci iba pre manu, lebo niektore karty mozu byt napriklad tak spravene, ze zeru aj ine staty
-
-        alebo mozno staci lebo taky health cost sa zachyti pri checkovani ci niekto nema <= 0 HP
-        a neviem jaky iny cost by som mal ked nie health cost
-
-    check ci niekto nevyhral
-
-nacitavanie savefilu
-spravit AI
-    CPLayer polymofrne
+    vypocet damage and shit zo statov
+    rozdelit nacitanie hraca na viacero funkcii
+    
 }
 
 ISSUES: {
@@ -54,14 +37,12 @@ ISSUES: {
     vela opakovaneho kodu v CMenu a CConfigParser
     
     vsetky cerr hlasky jebat do logu instead
-    prerobit nacitane charaktery na mapu nech sa tam nemusim jebat s tym setom
 
-    stack smashing detected when changing deckSize and quitting the game ? don't know when
+    Makefile nedetekuje zmeny v constants.h, ignoruje make deps kompletne
+
+    ! zariad unikatne player names
+
+    ! sprav character ako shared ptr i guess a potom v CPlayer::save odjeb make_shared
+
+    Terminator sa selfharmuje special kartami, zostane mu ich vela v ruke
 }
-
-mam CPlayer -> CDeck -> CCard -> CPlayer
-    CPlayer -> CDeck -> CPlayer
-
-spravim CPlayer -> CEffect
-                -> CDeck -> CCard -> CEffect
-        CPlayer -> CDeck -> CEffect

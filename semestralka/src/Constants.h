@@ -9,12 +9,12 @@ const int defaultDeckSize = 30;
  * @brief Parent directory where ConfigParser looks for card, deck and character directories
  * 
  */
-const std::filesystem::path defaultPath = std::filesystem::current_path() /= "example";
+const std::filesystem::path defaultPath = std::filesystem::current_path() /= "examples";
 /**
  * @brief Parent directory where CSaver saves card, deck and character directories
  * 
  */
-const std::filesystem::path defaultSaveLocation = std::filesystem::current_path() /= "example";
+const std::filesystem::path defaultSaveLocation = std::filesystem::current_path() /= "examples";
 /**
  * @brief For loading, located in defaultPath directory
  * 
