@@ -17,3 +17,4 @@
 *.o
 # Ignore makefile dependencies
 *.d
+build/
