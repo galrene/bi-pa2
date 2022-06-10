@@ -1,0 +1,59 @@
+# Zadanie z progtestu:
+
+## Naprogramujte engine pro hraní karetního RPG
+
+### Váš engine:
+
+    1. ze souboru nahraje definici karet (jejich typ, atributy, efekty), balíčku (seznam karet v balíčku)
+    2. umožní vytvořit a hrát samotnou karetní hru
+    3. implementuje variantu pro jednoho hráče proti počítači (náhodné tahy nestačí)
+    4. implementuje variantu pro dva hráče (výměna přes potvrzovací okno, aby soupeř neviděl karty, nebo naopak soupeři si celou dobu do karet vidí)
+    5. umožňuje ukládat a načítat rozehrané hry
+
+### Kde lze využít polymorfismus? (doporučené)
+
+1. Typy karet: útočné, obranné, speciální, ...
+2. Efekty akcí: síla útoku, síla obrany, vem si X karet, zahoď X karet
+3. Ovládání hráče: lokální hráč, umělá inteligence (různé druhy), síťový hráč
+4. Uživatelské rozhraní: konzole, ncurses, SDL, OpenGL (různé varianty), ...
+
+# Upresnenie zadania:
+
+Po spustení sa zobrazí menu s voliteľnými nastaveniami hry, voľbou počtu hráčov (1 alebo 2)
+
+Hra bude turn-based, ťahy sa ukončujú tlačítkom, po odhodeni karty alebo pokiaľ oponent klesne na 0 HP.
+Na konci každého ťahu sa postave obnoví mana na počiatočnú hodnotu.
+Na začiatku si zvolí postavu, každá bude mať iné počiatočné atribúty:
+
+napr.
+ - študent bude mať vyváženú manu, silu útoku a HP
+ - bitkár bude mať viacej HP, silnejší základný útok, menej many
+ - černokňažník bude mať viacej many, slabší útok, menej HP
+
+Karty budú rôznych typov (polymorfismus):
+ - útočná karta
+ - obranná karta
+ - špeciálne útočné a obranné karty
+ - karty s pasívnym efektom
+Každá karta bude stáť určité množstvo many, tá sa odčítava a nemôže ísť pod 0.
+Na začiatku dostanú hráči nastaviteľné množstvo kariet z balíčka.
+Hráč si ťahá karty z balíčka náhodne, odhodené karty budú vkladané naspäť do balíčka.
+Hru vyhrá hráč, ktorému sa podarí oponenta dostať na 0 HP.
+
+Karty budu hrane cislami na klavesnici 0-9, 'd' sa zacne vyber karty na zahodenie
+e-ckom sa skonci turn.
+
+Na ruke bude mat kazdy max 10 kariet
+Na konci tahu dostane karty do ruky aby mal stale defaultne mnozstvo.
+
+Karty sa daju pouzit aj na seba aj na oponenta, meni sa to sipkou hore dole.
+
+### Card types:
+    1. Attack:
+     - davaju damage
+    2. Defense:
+     - healuju
+    3. Passive:
+     - healuju alebo damaguju urcity pocet kol
+    4. Special:
+     - menia atributy tomu na koho su pouzite
