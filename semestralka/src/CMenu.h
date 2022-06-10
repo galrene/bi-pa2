@@ -11,6 +11,9 @@
 #include "CGameStateManager.h"
 #include "CConfigParser.h"
 #include "Constants.h"
+
+#include "CHuman.h"
+#include "CBot.h"
 using namespace std;
 
 class CMenu {

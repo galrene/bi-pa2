@@ -88,11 +88,7 @@ void CGameStateManager::endTurn ( void ) {
   m_OnTurn == m_Player1
   ? m_OnTurn = m_Player2
   : m_OnTurn = m_Player1;
-  wclear ( m_Info );
-  mvwprintw ( m_Info, getmaxy(m_Info)/2-1, (getmaxx(m_Info)/2) - 5 ,"Turn ended." );
-  mvwprintw ( m_Info, getmaxy(m_Info)/2, (getmaxx(m_Info)/2) - 13 ,"Press any key to continue." );
-  wrefresh ( m_Info );
-  wgetch ( m_Info );
+  printMess ( "Turn ended." );
 }
 
 int CGameStateManager::pickCard ( void ) {
@@ -118,7 +114,7 @@ shared_ptr<CPlayer> CGameStateManager::pickPlayer ( void ) {
   mvwprintw ( m_Info, getmaxy(m_Info)/2, getmaxx(m_Info)/2 - str2.size()/2, "%s", str2.c_str() );
   wrefresh ( m_Info );
   keypad ( stdscr, TRUE );
-  int a = getch();
+  int a = m_OnTurn->readReceiver();
   keypad ( stdscr, FALSE );
   switch ( a ) {
   case KEY_UP:
@@ -131,7 +127,7 @@ shared_ptr<CPlayer> CGameStateManager::pickPlayer ( void ) {
   return nullptr;
 }
 void CGameStateManager::playCard ( size_t i ) {
-  if ( ! m_OnTurn->tmp_hasEnoughMana ( i ) ) {
+  if ( ! m_OnTurn->hasEnoughMana ( i ) ) {
     wclear ( m_Info );
     mvwprintw ( m_Info, getmaxy(m_Info)/2-1, (getmaxx(m_Info)/2) - 8 ,"Not enough mana." );
     mvwprintw ( m_Info, getmaxy(m_Info)/2, (getmaxx(m_Info)/2) - 13 ,"Press any key to continue." );
@@ -139,11 +135,10 @@ void CGameStateManager::playCard ( size_t i ) {
     getch();
     return;
   }
-  
   shared_ptr<CPlayer> receiver = pickPlayer();
   if ( ! receiver )
     return;
-  m_OnTurn->playCard ( i, m_OnTurn, receiver );
+  m_OnTurn->playCard ( i, receiver );
 }
 
 void CGameStateManager::printWinner ( shared_ptr<CPlayer> winner ) {
@@ -171,8 +166,8 @@ bool CGameStateManager::winnerDecided ( void ) {
 }
 void CGameStateManager::printMess ( const string & mess  ) {
   wclear ( m_Info );
-  mvwprintw ( m_Info, getmaxy(m_Info)/2, getmaxx(m_Info)/2 - mess.size()/2, "%s", mess.c_str() );
-  mvwprintw ( m_Info, getmaxy(m_Info)/2+1, getmaxx(m_Info)/2 - 13, "Press any key to continue." );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2-1, getmaxx(m_Info)/2 - mess.size()/2, "%s", mess.c_str() );
+  mvwprintw ( m_Info, getmaxy(m_Info)/2, getmaxx(m_Info)/2 - 13, "Press any key to continue." );
   wrefresh ( m_Info );
   getch();
 }
@@ -208,4 +203,7 @@ void CGameStateManager::saveGame ( void ) {
     fs::remove (saveDir);
   }
   printMess ( "Game saved." );
+}
+int CGameStateManager::readUserInput ( void ) {
+  return m_OnTurn->readAction();
 }

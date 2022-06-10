@@ -12,7 +12,6 @@
 using namespace std;
 
 class CCharacter {
-  friend class CCard;
   protected:
     string m_Name;
     string m_Class;

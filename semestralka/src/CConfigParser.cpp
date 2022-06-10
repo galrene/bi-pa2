@@ -394,7 +394,7 @@ bool CConfigParser::loadSettingsFromIni ( const fs::directory_entry & entry, CGa
     return true;
 }
 
-bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string & playerName ) {
+bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string & playerName, bool isHuman ) {
     fs::directory_entry card_definitons;
     fs::directory_entry char_played;
     fs::directory_entry char_loaded;
@@ -426,11 +426,13 @@ bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string
          ! loadDeckFromIni ( hand, loadedDecks, cards ) || ! loadCharacterFromIni ( char_loaded, loadedCharacter ) ||
          ! loadCharacterFromIni ( char_played, playedCharacter ) )
         return false;
-    player = make_shared<CPlayer> ( CPlayer ( playerName, *loadedCharacter.begin()->second, *playedCharacter.begin()->second, loadedDecks[0], loadedDecks[1] ) );
+    isHuman
+    ? player = make_shared<CHuman> ( CHuman ( playerName, *loadedCharacter.begin()->second, *playedCharacter.begin()->second, loadedDecks[0], loadedDecks[1] ) )
+    : player = make_shared<CBot> ( CBot ( playerName, *loadedCharacter.begin()->second, *playedCharacter.begin()->second, loadedDecks[0], loadedDecks[1] ) );
     return true;
 }
 
-bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, fs::path & savePath ) {
+bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, fs::path & savePath, bool isTwoPlayerGame ) {
     fs::directory_entry p1Dir;
     fs::directory_entry p2Dir;
     for ( const auto & entry : fs::directory_iterator ( savePath ) ) {
@@ -449,7 +451,7 @@ bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer>
         return false;
     }
     string p1Name = p1Dir.path().filename().generic_string(); p1Name = p1Name.substr ( p1Name.find ( "P1_" ) + 3 );
-    if ( ! constructPlayer ( p1, p1Name ) )
+    if ( ! constructPlayer ( p1, p1Name, true ) )
         return false;
     m_Path = m_Path.parent_path(); // leave p1Dir
     if ( ! enterDirectory ( p2Dir.path().filename() ) ) {
@@ -457,7 +459,7 @@ bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer>
         return false;
     }
     string p2Name = p2Dir.path().filename().generic_string(); p2Name = p2Name.substr ( p2Name.find ( "P2_" ) + 3 );
-    if ( ! constructPlayer ( p2, p2Name ) )
+    if ( ! constructPlayer ( p2, p2Name, isTwoPlayerGame ) )
         return false;
     m_Path = m_Path.parent_path(); // leave p2Dir
     return true;
@@ -477,7 +479,7 @@ bool CConfigParser::loadSave ( CGameStateManager & gsm, fs::path & savePath ) {
     m_LoadedData.clear();
     shared_ptr<CPlayer> p1;
     shared_ptr<CPlayer> p2;
-    if ( ! loadPlayers ( p1, p2, savePath ) ) {
+    if ( ! loadPlayers ( p1, p2, savePath, settings.isTwoPlayerGame() ) ) {
         m_LoadedData.clear();
         return false;
     }

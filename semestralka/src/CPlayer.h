@@ -8,15 +8,12 @@
 #include "Constants.h"
 using namespace std;
  
-// ! spravit abstraktne
-
 class CPlayer {
   public:
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck, const CDeck & hand );
-    ~CPlayer ( void );
-
-    CCharacter m_PlayedCharacter; // character representing current state
+    virtual ~CPlayer ( void );
+    
     bool operator == ( CPlayer & rhs ) { return rhs.m_Name == m_Name; }
     // void loadDeck ( CDeck & deck );
     /**
@@ -32,7 +29,7 @@ class CPlayer {
      * @param user the one who played the card
      * @param receiver receiver of effects
      */
-    void playCard ( size_t i, shared_ptr<CPlayer> & user, shared_ptr<CPlayer> & receiver );
+    void playCard ( size_t i, shared_ptr<CPlayer> & receiver );
     void load ( string path );
     /**
      * @brief Shuffle the loaded deck.
@@ -93,7 +90,7 @@ class CPlayer {
      * 
      * @param i card index
      */
-    bool tmp_hasEnoughMana ( size_t i );
+    bool hasEnoughMana ( size_t i );
     /**
      * @brief Save player info
      * 
@@ -102,25 +99,25 @@ class CPlayer {
      * @return false 
      */
     bool save ( fs::path & playerDir );
-
-
+    /**
+     * @brief Read input from player
+     * 
+     * @return int received input
+     */
+    virtual int readAction ( void ) = 0;
+    virtual int readReceiver ( void ) = 0;
     string getName ( void ) { return m_Name; }
     void setStatsWin ( WINDOW * win ) { m_StatsWin = win; }
     void setCardWins ( vector<WINDOW*> & cardWins ) { m_HandWins = cardWins; }
     bool isAlive ( void ) { return m_PlayedCharacter.getHP() > 0; }
+  protected:
+    CCharacter m_PlayedCharacter; // character representing current state
     string m_Name;
     CCharacter m_LoadedCharacter; // character representing default state
     CDeck m_Deck;
     CDeck m_Hand;
-  protected:
 
     vector<WINDOW*> m_HandWins;
     WINDOW* m_StatsWin;
 };
-/*
-class CComputerPlayerAtt : public CPlayer {
-  protected:
-  public:
-};
-*/
 #endif

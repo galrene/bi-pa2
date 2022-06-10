@@ -21,6 +21,9 @@
 #include "CPassive.h"
 #include "CSaver.h"
 
+#include "CHuman.h"
+#include "CBot.h"
+
 using namespace std;
 namespace fs = filesystem;
 
@@ -38,7 +41,7 @@ class CConfigParser {
     map<string,shared_ptr<CCard>> loadCards ( const string & dirName );
     vector<CDeck> loadDecks ( const string & dirName, map<string,shared_ptr<CCard>> & cardDefinitions );
     bool loadSave ( CGameStateManager & gsm, fs::path & savePath );
-    bool loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, fs::path & savePath );
+    bool loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, fs::path & savePath, bool isTwoPlayerGame );
 
     bool setPath ( const fs::path & location );
   private:
@@ -46,7 +49,7 @@ class CConfigParser {
                               map<string,shared_ptr<CCharacter>> & loadedCharacters );
     bool constructCard ( const fs::directory_entry & entry,
                          map<string,shared_ptr<CCard>> & loadedCards );
-    bool constructPlayer ( shared_ptr<CPlayer> & player, const string & playerName );
+    bool constructPlayer ( shared_ptr<CPlayer> & player, const string & playerName, bool isBot );
     bool loadCharacterFromIni ( const fs::directory_entry & entry,
                                 map<string,shared_ptr<CCharacter>> & loadedCharacters );
     bool loadCardFromIni ( const fs::directory_entry & entry,

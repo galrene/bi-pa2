@@ -320,14 +320,13 @@ shared_ptr<CPlayer> CMenu::createPlayerMenu ( map<string,shared_ptr<CCharacter>>
     vector<shared_ptr<CCharacter>> charactersVec;
     for ( const auto & x : loadedCharacters )
         charactersVec.push_back ( x.second );
-
     shared_ptr<CCharacter> playerCharacter = chooseCharacter ( charactersVec, header.c_str() );
     if ( ! playerCharacter )
         return nullptr;
     CDeck deck = chooseDeckMenu ( decks );
     if ( deck.getName() == "" )
         return nullptr;
-    return make_shared<CPlayer> ( CPlayer ( p_name, *playerCharacter, *playerCharacter, deck ) );
+    return make_shared<CHuman> ( CHuman ( p_name, *playerCharacter, *playerCharacter, deck ) );
 }
 
 bool CMenu::loadNecessities ( map<string,shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
@@ -379,7 +378,7 @@ int CMenu::handleCreateMenu ( CGameStateManager & gsm ) {
     // construct an AI Player with random deck
     else if ( ! m_Settings.isTwoPlayerGame() ) {
         shared_ptr<CCharacter> randomCharacter = characters.begin()->second;
-        p2 = make_shared<CPlayer> ( CPlayer ( defaultBotNickname, *randomCharacter, *randomCharacter, decks[ random() % decks.size () ] ) );
+        p2 = make_shared<CBot> ( CBot ( defaultBotNickname, *randomCharacter, *randomCharacter, decks[ random() % decks.size () ] ) );
     }
 
     gsm = CGameStateManager ( p1, p2, m_Settings );

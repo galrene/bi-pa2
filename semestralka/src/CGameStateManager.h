@@ -94,15 +94,21 @@ class CGameStateManager {
      */
     int handleMenu ( void );
     /**
-     * @brief Prints a message into the info screen
+     * @brief Print a blocking message to the info screen
      * 
      * @param mess message to print
      */
     void printMess ( const string & mess  );
     /**
-     * @brief Decides who is on next on turn
+     * @brief Decide who is on next on turn
      */
     void decideTurn ( void );
+    /**
+     * @brief Read input from the currently on turn player
+     * 
+     * @return int received input
+     */
+    int readUserInput ( void );
 
     
   protected:

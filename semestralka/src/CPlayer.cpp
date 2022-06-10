@@ -7,10 +7,8 @@ CPlayer::CPlayer ( const string & name, const CCharacter & defaultCharacter, con
 : m_PlayedCharacter ( currentCharacter ), m_Name ( name ), m_LoadedCharacter ( defaultCharacter ), m_Deck ( deck ), m_Hand ( hand ), m_StatsWin ( nullptr ) {}
 
 CPlayer::~CPlayer ( void ) {
-  if ( ! m_HandWins.empty() ) {
-    for ( size_t i = 0; i < m_HandWins.size(); i++ )
-      delwin(m_HandWins[i]);
-  }
+  for ( size_t i = 0; i < m_HandWins.size(); i++ )
+    delwin( m_HandWins[i] );
   delwin ( m_StatsWin );
 }
 void CPlayer::renderName ( WINDOW * win, int yCoord, int xCoord ) {
@@ -52,25 +50,22 @@ void CPlayer::hideHand ( void ) {
     }
 }
 void CPlayer::fillHand ( void ) {
-  //m_Hand.printData (cerr);
-  //m_Hand.printHand (cerr);
-  //cerr << m_Hand.size() << " = mhand.size"<< endl;
   drawCard ( handSize - m_Hand.size() );
 }
 void CPlayer::discardCard ( size_t i ) {
   m_Deck.addCard ( m_Hand.drawCardAt(i) );
 }
-void CPlayer::playCard ( size_t i, shared_ptr<CPlayer> & user, shared_ptr<CPlayer> & receiver ) {
+void CPlayer::playCard ( size_t i, shared_ptr<CPlayer> & receiver ) {
   pair<CEffect,CEffect> effs = m_Hand.getCardAt ( i )->getEffects();
   receiver->m_PlayedCharacter.applyEffect ( effs.first );
-  user->m_PlayedCharacter.applyEffect ( effs.second );
+  m_PlayedCharacter.applyEffect ( effs.second );
   m_Deck.addCard ( m_Hand.drawCardAt ( i ) );
   m_Hand.addCard ( m_Deck.drawCard () );
 }
 void CPlayer::fillMana ( void ) {
   m_PlayedCharacter.applyEffect ( CEffect ( 0, m_LoadedCharacter.getMana() - m_PlayedCharacter.getMana() ) );
 }
-bool CPlayer::tmp_hasEnoughMana ( size_t i ) {
+bool CPlayer::hasEnoughMana ( size_t i ) {
   return m_PlayedCharacter.getMana() >= m_Hand.getCardAt(i)->getManaCost();
 }
 bool CPlayer::save ( fs::path & playerDir ) {

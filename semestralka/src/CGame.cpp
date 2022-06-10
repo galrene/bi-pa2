@@ -49,7 +49,7 @@ void CGame::drawLayout ( void ) {
 
 bool CGame::handleGame ( void ) {
     int a;
-    while ( (a = getch()) ) {
+    while ( ( a = m_Gsm.readUserInput() ) ) {
         if ( a == defaultEndTurnButton )
             m_Gsm.endTurn();
         else if ( a == defaultDiscardButton )
@@ -58,11 +58,11 @@ bool CGame::handleGame ( void ) {
             m_Gsm.playCard ( a - '0' );
         else if ( a == defaultMenuButton ) {
             int b = m_Gsm.handleMenu();
-            if ( b == 0 )
+            if ( b == 0 ) // exit to main menu
                 return true;
-            else if ( b == -1 )
+            else if ( b == -1 ) // exit game
                 return false;
-            else if ( b == 1 )
+            else if ( b == 1 ) // save game
                 m_Gsm.saveGame();
         }
         // ctrl - d

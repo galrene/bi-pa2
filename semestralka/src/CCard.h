@@ -12,16 +12,10 @@ using namespace std;
 
 
 class CCard {
-  protected:
-    string m_Name;
-    string m_Type;
-    map<string,string> m_Data;
-    int m_Cost;
   public:
-    virtual ~CCard ( void ) noexcept = default;
-
     CCard ( string name, string type, int cost );
     CCard ( map <string,string> & data );
+    virtual ~CCard ( void ) noexcept = default;
     /**
      * @brief get card effects
      * 
@@ -37,12 +31,15 @@ class CCard {
     */
     virtual bool buildCard ( void ) = 0;
     virtual void dumpInfo ( ostream & os ) = 0;
-    virtual string getHeader ( void );
-    virtual string getName ( void );
     virtual void render ( WINDOW * win ) = 0;
     bool operator == ( CCard & rhs );
-    // ! TEMP ?
-    int getManaCost ( void ) {return m_Cost;}
-    // virtual shared_ptr<CCard> create ( void ) = 0; na vytvorenie shared_ptr
+    virtual string getHeader ( void );
+    virtual string getName ( void );
+    int getManaCost ( void ) {return m_Cost; }
+  protected:
+    string m_Name;
+    string m_Type;
+    map<string,string> m_Data;
+    int m_Cost;
 };
 #endif
