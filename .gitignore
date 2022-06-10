@@ -21,3 +21,4 @@
 # Ignore makefile dependencies
 *.d
 build/
+doc/
