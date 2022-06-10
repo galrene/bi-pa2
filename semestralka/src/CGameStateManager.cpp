@@ -10,9 +10,10 @@ CGameStateManager::~CGameStateManager ( void ) {
 int CGameStateManager::handleMenu ( void ) {
   vector<string> menuItems = { "Exit to main menu", "Save game", "Return to game" };
   wclear ( m_Info );
+  box ( m_Info, 0, 0 );
   wattron ( m_Info, A_BOLD );
   for ( size_t i = 0; i < menuItems.size(); i++ )
-    mvwprintw ( m_Info, i+1, getmaxx(m_Info)/2 - menuItems[i].size()/2, "%s (%ld)", menuItems[i].c_str(), i );
+    mvwprintw ( m_Info, i+1, getmaxx(m_Info)/2 - ( menuItems[i].size() + 4 )/2, "%s (%ld)", menuItems[i].c_str(), i );
   wattroff ( m_Info, A_BOLD );
   int a;
   wrefresh ( m_Info );
@@ -40,7 +41,7 @@ void CGameStateManager::dealCards ( void ) {
   m_Player1->drawCard(handSize);
   m_Player2->drawCard(handSize);
 }
-void CGameStateManager::decideTurn ( void ) {
+void CGameStateManager::decideTurnFromSettings ( void ) {
    m_Settings.firstOnTurn() ? m_OnTurn = m_Player1 : m_OnTurn = m_Player2;
 }
 
@@ -192,7 +193,7 @@ bool CGameStateManager::saveSettings ( fs::path & saveDir ) {
   ofstream ofs ( saveDir.generic_string() + "/" + defaultSettingsFileName );
   if ( ! ofs.good() )
     return false;
-  m_Settings.p1OnTurn ( m_OnTurn == m_Player1 ? true : false );
+  m_Settings.setFirstOnTurn ( m_OnTurn == m_Player1 ? true : false );
   m_Settings.dumpInfo ( ofs );
   return true;
 }

@@ -11,11 +11,11 @@ CPlayer::~CPlayer ( void ) {
     delwin( m_HandWins[i] );
   delwin ( m_StatsWin );
 }
-void CPlayer::renderName ( WINDOW * win, int yCoord, int xCoord ) {
+void CPlayer::renderName ( WINDOW * win, int yCoord, int xCoord ) const {
   string name = m_Name + "'s " + m_PlayedCharacter.getName();
   mvwprintw ( win, yCoord, xCoord - name.size()/2, "%s", name.c_str() );
 }
-void CPlayer::renderPlayer ( void ) {
+void CPlayer::renderPlayer ( void ) const {
   wclear ( m_StatsWin );
   box ( m_StatsWin, 0 ,0 );
   int yMax, xMax;
@@ -31,19 +31,19 @@ void CPlayer::drawCard ( size_t cnt ) {
   for ( size_t i = 0; i < cnt; i++ )
     m_Hand.addCard ( m_Deck.drawCard() );
 }
-void CPlayer::renderCard ( WINDOW * win, size_t & i ) {
+void CPlayer::renderCard ( WINDOW * win, size_t & i ) const {
   box ( win, 0, 0 );
   mvwprintw ( win, 1, 1, "(%ld)",i );
   m_Hand.renderCard ( win, i );
 }
-void CPlayer::renderHand ( void ) {
+void CPlayer::renderHand ( void ) const {
   for ( size_t i = 0; i < m_HandWins.size(); i++ ) {
       wclear ( m_HandWins[i] );
       renderCard ( m_HandWins[i], i );
       wrefresh ( m_HandWins[i] );
     }
 }
-void CPlayer::hideHand ( void ) {
+void CPlayer::hideHand ( void ) const {
   for ( size_t i = 0; i < m_HandWins.size(); i++ ) {
       wclear ( m_HandWins[i] );
       wrefresh ( m_HandWins[i] );
@@ -65,7 +65,7 @@ void CPlayer::playCard ( size_t i, shared_ptr<CPlayer> & receiver ) {
 void CPlayer::fillMana ( void ) {
   m_PlayedCharacter.applyEffect ( CEffect ( 0, m_LoadedCharacter.getMana() - m_PlayedCharacter.getMana() ) );
 }
-bool CPlayer::hasEnoughMana ( size_t i ) {
+bool CPlayer::hasEnoughMana ( size_t i ) const {
   return m_PlayedCharacter.getMana() >= m_Hand.getCardAt(i)->getManaCost();
 }
 bool CPlayer::save ( fs::path & playerDir ) {

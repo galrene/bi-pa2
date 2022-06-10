@@ -1,6 +1,4 @@
 #pragma once
-#ifndef CSaver_H
-#define CSaver_H
 #include <string>
 #include <filesystem>
 #include <iostream>
@@ -22,7 +20,7 @@ class CSaver {
      * @return true saved successfully
      * @return false couldn't create requested directory
      */
-    bool saveCards ( deque<shared_ptr<CCard>> & cards, fs::path & dirPath );
+    bool saveCards ( const deque<shared_ptr<CCard>> & cards, fs::path & dirPath ) const;
     /**
      * @brief Create a directory at defaultSaveLocation, if alredy exists, create "dirname_n"
      *  
@@ -30,7 +28,5 @@ class CSaver {
      * @return true Sucess
      * @return false Couldn't create directory
      */
-    bool createDirectory ( fs::path & dirPath );
-    
+    bool createDirectory ( fs::path & dirPath ) const;
 };
-#endif

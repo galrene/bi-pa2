@@ -1,16 +1,17 @@
 #include "CAttack.h"
 
-CAttack::CAttack ( string name, string type, int cost, int dmg )
+CAttack::CAttack ( const string & name, const string & type, int cost, int dmg )
 : CCard ( name, type, cost ), m_Damage ( dmg ) {}
 
 CAttack::CAttack ( map <string,string> & data )
 : CCard ( data ) {}
 
-bool CAttack::containsDeps ( map <string,string> & data ) {
+bool CAttack::containsDeps ( map <string,string> & data ) const {
   if ( data["name"] == "" || data["type"] == "" || data["manaCost"] == "" || data["damage"] == "" )
     return false;
   return true;
 }
+
 bool CAttack::buildCard ( void ) {
   if ( ! containsDeps ( m_Data ) )
     return false;
@@ -21,18 +22,15 @@ bool CAttack::buildCard ( void ) {
   return true;
 }
 
-void CAttack::dumpInfo ( ostream & os ) {
+void CAttack::dumpInfo ( ostream & os ) const {
   os << "[card]" << endl;
   os << "type = " << m_Type << endl;
   os << "name = " << m_Name << endl;
   os << "manaCost = " << m_Cost << endl;
   os << "damage = " << m_Damage << endl;
 }
-// void CAttack::useCard ( CPlayer & user, CPlayer & opponent ) {
-//  opponent.m_PlayedCharacter
-// }
 
-void CAttack::render ( WINDOW * win ) {
+void CAttack::render ( WINDOW * win ) const {
   int yMax, xMax;
   getmaxyx ( win, yMax, xMax );
   mvwprintw ( win, 1, xMax / 2 - m_Name.size() / 2, "%s", m_Name.c_str() );
@@ -40,12 +38,11 @@ void CAttack::render ( WINDOW * win ) {
   wattron ( win, COLOR_PAIR(2) );
   mvwprintw ( win, 1, xMax - 2, "%d", m_Cost );
   wattroff ( win, COLOR_PAIR(2) );
-
-  mvwprintw ( win, yMax - 3, xMax / 2 - strlen("Deals:") / 2, "Deals:" );
+  mvwprintw ( win, yMax - 3, xMax / 2 - 3, "Deals:" );
   string damage = to_string ( m_Damage ) + " Damage";
   mvwprintw ( win, yMax - 2, xMax / 2 - damage.size() / 2, "%s", damage.c_str() );
 }
 
- pair<CEffect,CEffect> CAttack::getEffects ( void ) {
+pair<CEffect,CEffect> CAttack::getEffects ( void ) const {
   return make_pair<CEffect,CEffect> ( CEffect ( -m_Damage ), CEffect ( 0, -m_Cost ) );
 }

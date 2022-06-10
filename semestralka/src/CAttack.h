@@ -1,19 +1,15 @@
 #pragma once
 #include "CCard.h"
-#ifndef CAttack_H
-#define CAttack_H
 class CAttack : public CCard {
   public:
-    CAttack ( string name, string type, int cost, int dmg );
+    CAttack ( const string & name, const string & type, int cost, int dmg );
     CAttack ( map <string,string> & data );
 
-    virtual pair<CEffect,CEffect> getEffects ( void ) override;
-    virtual bool containsDeps ( map <string,string> & data ) override;
+    virtual pair<CEffect,CEffect> getEffects ( void ) const override;
+    virtual bool containsDeps ( map <string,string> & data ) const override;
     virtual bool buildCard ( void ) override;
-    virtual void dumpInfo ( ostream & os ) override;
-    virtual void render ( WINDOW * win ) override;
-
+    virtual void dumpInfo ( ostream & os ) const override;
+    virtual void render ( WINDOW * win ) const override;
   protected:
     int m_Damage;
 };
-#endif

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef CPlayer_H
-#define CPlayer_H
 #include <ncurses.h>
 #include <string>
 #include "CCharacter.h"
@@ -13,70 +11,64 @@ class CPlayer {
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
     CPlayer ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck, const CDeck & hand );
     virtual ~CPlayer ( void );
-    
-    bool operator == ( CPlayer & rhs ) { return rhs.m_Name == m_Name; }
-    // void loadDeck ( CDeck & deck );
     /**
-     * @brief draw cards from deck to hand
+     * @brief Compare two players by their names.
+     * 
+     * @param rhs 
+     */
+    bool operator == ( CPlayer & rhs ) const { return rhs.m_Name == m_Name; }
+    /**
+     * @brief Draw cards from deck to hand.
      * 
      * @param cnt amount of cards to draw
      */
     void drawCard ( size_t cnt );
     /**
-     * @brief play a card from hand at index i
+     * @brief Play a card from hand at index i.
      * 
      * @param i card index
-     * @param user the one who played the card
      * @param receiver receiver of effects
      */
     void playCard ( size_t i, shared_ptr<CPlayer> & receiver );
-    void load ( string path );
     /**
      * @brief Shuffle the loaded deck.
-     * 
      */
     void shuffleDeck ( void );
     /**
-     * @brief render player name, character stats
-     * 
-     * @param win 
+     * @brief Render player name, character stats.
      */
-    void renderPlayer ( void );
+    void renderPlayer ( void ) const ;
     /**
-     * @brief render box, card index, card
+     * @brief Render box, card index, card.
      * 
      * @param win where to render
      * @param i card index
      */
-    void renderCard ( WINDOW * win, size_t & i );
+    void renderCard ( WINDOW * win, size_t & i ) const ;
     /**
-     * @brief render player name
+     * @brief Render player name.
      * 
      * @param win where to render
      * @param yCoord 
      * @param xCoord 
      */
-    void renderName ( WINDOW * win, int yCoord, int xCoord );
+    void renderName ( WINDOW * win, int yCoord, int xCoord ) const ;
     /**
      * @brief Render the whole hand.
      * 
      * @param cardWindows where to render
      */
-    void renderHand ( void );
+    void renderHand ( void ) const ;
     /**
      * @brief Hide the whole hand.
-     * 
-     * @param cardWindows what to hide
      */
-    void hideHand ( void );
+    void hideHand ( void ) const ;
     /**
      * @brief Top up cards on hand to default hand size.
-     * 
      */
     void fillHand ( void );
     /**
      * @brief Top up mana.
-     * 
      */
     void fillMana ( void );
     /**
@@ -86,38 +78,47 @@ class CPlayer {
      */
     void discardCard ( size_t i );
     /**
-     * @brief Check if player has enough mana to play card
+     * @brief Check if player has enough mana to play card.
      * 
      * @param i card index
      */
-    bool hasEnoughMana ( size_t i );
+    bool hasEnoughMana ( size_t i ) const ;
     /**
-     * @brief Save player info
+     * @brief Save player info.
      * 
      * @param dirName Where to save
-     * @return true 
-     * @return false 
+     * @return true saved succesfully
+     * @return false couldn't create some of the required files
      */
     bool save ( fs::path & playerDir );
     /**
-     * @brief Read input from player
+     * @brief Read player input.
      * 
-     * @return int received input
+     * @return int input
      */
     virtual int readAction ( void ) = 0;
-    virtual int readReceiver ( void ) = 0;
+    /**
+     * @brief Read which player should receive a picked card's effects.
+     * 
+     * @return int KEY_UP == Player1, KEY_DOWN == Player2
+     */
+    virtual int readReceiver ( void ) const = 0;
     string getName ( void ) { return m_Name; }
     void setStatsWin ( WINDOW * win ) { m_StatsWin = win; }
     void setCardWins ( vector<WINDOW*> & cardWins ) { m_HandWins = cardWins; }
     bool isAlive ( void ) { return m_PlayedCharacter.getHP() > 0; }
   protected:
-    CCharacter m_PlayedCharacter; // character representing current state
+    /**
+     * @brief Character representing current state
+     */
+    CCharacter m_PlayedCharacter;
     string m_Name;
-    CCharacter m_LoadedCharacter; // character representing default state
+    /**
+     * @brief Character representing default state with attributes loaded by default
+     */
+    CCharacter m_LoadedCharacter;
     CDeck m_Deck;
     CDeck m_Hand;
-
     vector<WINDOW*> m_HandWins;
-    WINDOW* m_StatsWin;
+    WINDOW * m_StatsWin;
 };
-#endif

@@ -9,6 +9,6 @@ CHuman::CHuman ( const string & name, const CCharacter & defaultCharacter, const
 int CHuman::readAction ( void ) {
   return getch();
 }
-int CHuman::readReceiver ( void ) {
+int CHuman::readReceiver ( void ) const {
   return getch();
 }

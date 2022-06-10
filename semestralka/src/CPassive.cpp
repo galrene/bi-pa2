@@ -1,12 +1,12 @@
 #include "CPassive.h"
 
-CPassive::CPassive ( string name, string type, int cost, int heal, int dmg, size_t dur )
+CPassive::CPassive ( const string & name, const string & type, int cost, int heal, int dmg, size_t dur )
 : CCard ( name, type, cost ), m_Heal ( heal ), m_Damage ( dmg ), m_Duration ( dur ) {}
 
 CPassive::CPassive ( map <string,string> & data )
 : CCard ( data ) {}
 
-bool CPassive::containsDeps ( map <string,string> & data ) {
+bool CPassive::containsDeps ( map <string,string> & data ) const {
   if ( data["name"] == "" || data["type"] == "" || data["manaCost"] == "" || data["heal"] == ""
       || data["damage"] == "" || data["duration"] == "" )
     return false;
@@ -23,7 +23,7 @@ bool CPassive::buildCard ( void ) {
   m_Duration = stoi(m_Data["duration"]);
   return true;
 }
-void CPassive::dumpInfo ( ostream & os ) {
+void CPassive::dumpInfo ( ostream & os ) const {
   os << "[card]" << endl;
   os << "type = " << m_Type << endl;
   os << "name = " << m_Name << endl;
@@ -33,7 +33,7 @@ void CPassive::dumpInfo ( ostream & os ) {
   os << "duration = " << m_Duration << endl;
 }
 
-void CPassive::render ( WINDOW * win ) {
+void CPassive::render ( WINDOW * win ) const {
   int yMax, xMax;
   getmaxyx ( win, yMax, xMax );
   mvwprintw ( win, 1, xMax / 2 - m_Name.size() / 2, "%s", m_Name.c_str() );
@@ -53,6 +53,6 @@ void CPassive::render ( WINDOW * win ) {
   mvwprintw ( win, yMax - 2 , xMax / 2 - duration.size() / 2, "%s", duration.c_str() );
 }
 
-pair<CEffect,CEffect> CPassive::getEffects ( void ) {
+pair<CEffect,CEffect> CPassive::getEffects ( void ) const {
   return make_pair<CEffect,CEffect> ( CEffect ( m_Heal-m_Damage ), CEffect ( 0, -m_Cost ) );
 }

@@ -7,7 +7,7 @@ class CHuman : public CPlayer {
     CHuman ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck, const CDeck & hand );
 
     virtual int readAction ( void ) override;
-    virtual int readReceiver ( void ) override;
+    virtual int readReceiver ( void ) const override;
 
   protected:
 };

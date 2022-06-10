@@ -10,13 +10,6 @@ CMenu::CMenu ( void ) {
     m_Lines = m_YMax / 3;
     /* lines, cols, int begin_y, int begin_x */
     m_Win = newwin ( m_Lines, m_Cols, ( m_YMax/2 - m_Lines/2 ), (m_XMax/2 - m_Cols/2) );
-    // m_Win = newwin ( m_Lines, m_Cols, m_YMax/4, (m_XMax/2 - m_Cols/2) );
-    /* for centering
-    move ( m_YMax/2 , 0);
-    hline ( '-', m_XMax );
-    move ( 0, m_XMax/2 );
-    vline ( '|', m_YMax );
-    */
     keypad ( m_Win, TRUE ); // enable keypad inputs
     m_Settings = CGameSettings(); // might not be necessary
 }

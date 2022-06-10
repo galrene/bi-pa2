@@ -1,12 +1,12 @@
 #include "CSpecial.h"
 
-CSpecial::CSpecial ( string name, string type, int cost, int strDiff, int defDiff, int manaDiff )
+CSpecial::CSpecial ( const string & name, const string & type, int cost, int strDiff, int defDiff, int manaDiff )
 : CCard ( name, type, cost ), m_StrengthDiff ( strDiff ), m_DefenseDiff ( defDiff ), m_ManaDiff ( manaDiff ) {}
 
 CSpecial::CSpecial ( map <string,string> & data )
 : CCard ( data ) {}
 
-bool CSpecial::containsDeps ( map <string,string> & data ) {
+bool CSpecial::containsDeps ( map <string,string> & data ) const {
   if ( data["name"] == "" || data["type"] == "" || data["manaCost"] == "" || data["strengthDiff"] == ""
       || data["defenseDiff"] == "" || data["manaDiff"] == "" )
     return false;
@@ -23,7 +23,7 @@ bool CSpecial::buildCard ( void ) {
   m_DefenseDiff = stoi(m_Data["defenseDiff"]);
   return true;
 }
-void CSpecial::dumpInfo ( ostream & os ) {
+void CSpecial::dumpInfo ( ostream & os ) const {
   os << "[card]" << endl;
   os << "type = " << m_Type << endl;
   os << "name = " << m_Name << endl;
@@ -33,7 +33,7 @@ void CSpecial::dumpInfo ( ostream & os ) {
   os << "defenseDiff = " << m_DefenseDiff << endl;
 }
 
-void CSpecial::render ( WINDOW * win ) {
+void CSpecial::render ( WINDOW * win ) const {
   int yMax, xMax;
   getmaxyx ( win, yMax, xMax );
   mvwprintw ( win, 1, xMax / 2 - m_Name.size() / 2, "%s", m_Name.c_str() );
@@ -55,6 +55,6 @@ void CSpecial::render ( WINDOW * win ) {
   }
 }
 
-pair<CEffect,CEffect> CSpecial::getEffects ( void ) {
+pair<CEffect,CEffect> CSpecial::getEffects ( void ) const {
   return make_pair<CEffect,CEffect> ( CEffect ( 0, m_ManaDiff, m_StrengthDiff, m_DefenseDiff ), CEffect ( 0, -m_Cost ) );
 }

@@ -1,17 +1,11 @@
 #include "CCharacter.h"
 
-CCharacter::CCharacter ( string name, string charClass, int hp, int mana, int strength, int defense )
+CCharacter::CCharacter ( const string & name, const string & charClass, int hp, int mana, int strength, int defense )
 : m_Name ( name ), m_Class ( charClass ), m_HP ( hp ), m_Mana ( mana ), m_Strength ( strength ), m_Defense ( defense ) {}
-CCharacter::CCharacter ( map <string,string> data )
+CCharacter::CCharacter ( map <string,string> & data )
 : m_DataSource ( data ) {}
 
-string CCharacter::getHeader ( void ) {
-  return m_Name + "_" + m_Class;
-}
-string CCharacter::getName ( void ) {
-  return m_Name;
-}
-bool CCharacter::containsDeps ( map <string,string> & data ) {
+bool CCharacter::containsDeps ( map <string,string> & data ) const {
   if ( data["name"] == "" || data["class"] == "" || data["mana"] == "" || data["hp"] == ""
       || data["strength"] == "" || data["defense"] == "" )
     return false;
@@ -28,7 +22,7 @@ bool CCharacter::buildCharacter ( void ) {
   m_Defense = stoi(m_DataSource["defense"]);
   return true;
 }
-void CCharacter::dumpInfo ( ostream & os ) {
+void CCharacter::dumpInfo ( ostream & os ) const {
   os << "[character]" << endl;
   os << "name = " << m_Name << endl;
   os << "class = " << m_Class << endl;
@@ -37,7 +31,7 @@ void CCharacter::dumpInfo ( ostream & os ) {
   os << "strength = " << m_Strength << endl;
   os << "defense = " << m_Defense << endl;
 }
-void CCharacter::renderStats ( WINDOW * win ) {
+void CCharacter::renderStats ( WINDOW * win ) const {
   int strengthPos = 2;
   init_pair ( 1, COLOR_WHITE, COLOR_RED ); // hp color
   init_pair ( 2, COLOR_WHITE, COLOR_BLUE ); // mana color
@@ -56,27 +50,9 @@ void CCharacter::renderStats ( WINDOW * win ) {
   mvwprintw ( win, yMax/2, xMax - 2 - mana.size(), "%s", mana.c_str() );
   wattroff ( win, COLOR_PAIR ( 2 ) );
 }
-/*
-int CCharacter::applyEffect ( CEffect eff ) {
-  if ( eff.m_HPDiff >= 0 )
-    m_HP += eff.m_HPDiff;
-  else {
-    if ( eff.m_HPDiff + m_Defense <= 0 )
-      return 1;
-    else
-    m_HP += eff.m_HPDiff + m_Defense;
-  }
-  m_Mana += eff.m_ManaDiff;
-  m_Strength += eff.m_StrengthDiff;
-  m_Defense += eff.m_DefenseDiff;
-  return 1;
-}
-*/
-
-int CCharacter::applyEffect ( CEffect eff ) {
+void CCharacter::applyEffect ( const CEffect & eff ) {
   m_HP += eff.m_HPDiff;
   m_Mana += eff.m_ManaDiff;
   m_Strength += eff.m_StrengthDiff;
   m_Defense += eff.m_DefenseDiff;
-  return 1;
 }

@@ -10,11 +10,11 @@ int main ( int argc, char const *argv[] ) {
     int res;
     while ( ( res = startMenu ( gsm ) ) != -1  ) { 
         CGame game ( gsm );
-        if ( res == 1 ) {
+        if ( res == 1 ) { // created a game
             if ( ! game.beginGame() )
                 return 0;
         }
-        else if ( res == 2 ) {
+        else if ( res == 2 ) { // loaded game from savefile
             if ( ! game.continueGame() )
                 return 0;
         }

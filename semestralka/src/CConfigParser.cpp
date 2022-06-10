@@ -1,17 +1,8 @@
 #include "CConfigParser.h"
 
-/**
- * @brief Construct a new CConfigParser at default location
- */
 CConfigParser::CConfigParser ( void )
 : m_Path ( defaultPath ) {}
-/**
- * @brief enters a directory from current working directory
- * 
- * @param dirName 
- * @return true
- * @return false 
- */
+
 bool CConfigParser::enterDirectory ( const string & dirName ) {
     fs::path tmpPath = m_Path;
     tmpPath.append ( dirName );
@@ -26,14 +17,6 @@ bool CConfigParser::enterDirectory ( const string & dirName ) {
     m_Path = tmpPath;
     return true;
 }
-
-/**
- * @brief sets the current working directory
- * 
- * @param location path which to set
- * @return true if exists
- * @return false if doesn't exists or isn't a directory
- */
 bool CConfigParser::setPath ( const fs::path & location ) {
     if ( ! fs::exists ( location ) ) {
         cerr << "Directory " << location << " doesn't exist " << endl;
@@ -45,15 +28,6 @@ bool CConfigParser::setPath ( const fs::path & location ) {
     }
     return true;
 }
-
-
-/**
- * @brief Checks if directory_entry is an .ini file
- * 
- * @param entry 
- * @return true 
- * @return false 
- */
 bool CConfigParser::isIni ( const fs::directory_entry & entry ) {
     if ( ! entry.is_regular_file() ) {
         cerr << entry << " isn't a regular file" << endl;
@@ -65,11 +39,7 @@ bool CConfigParser::isIni ( const fs::directory_entry & entry ) {
     }
     return true;
 }
-/**
- * @brief Read key = value pair from "line" into "key" and "value"
- * @return true 
- * @return false 
- */
+
 bool CConfigParser::readKeyValue ( const string & line, string & key, string & value ) {
     stringstream ss ( line );
     int readCnt = 0;
@@ -95,12 +65,6 @@ bool CConfigParser::readKeyValue ( const string & line, string & key, string & v
         return false;
     return true;
 }
-/**
- * @brief read a simplified ini file
- * 
- * @param iniPath path to ini file
- * @return header of a section inside the file
- */
 string CConfigParser::readIni ( const fs::path & iniPath ) {
     ifstream ifs ( iniPath.generic_string(), ios::binary );
     stringstream buffer;
@@ -149,14 +113,6 @@ bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
     loadedCharacters [ m_LoadedData["name"] ] = make_shared<CCharacter> ( character );
     return true;
 }
-/**
- * @brief load a single character form .ini file into a vector of shared_ptr<CCharacter>
- * 
- * @param entry file from which to load character
- * @param loadedCharacters vector of characters
- * @return true if successful
- * @return false if ini file is invalid
- */
 bool CConfigParser::loadCharacterFromIni ( const fs::directory_entry & entry, map<string,shared_ptr<CCharacter>> & loadedCharacters ) {
     if ( ! isIni ( entry ) ) {
         cerr << entry.path().generic_string() << "isn't a .ini" << endl;
@@ -273,7 +229,7 @@ bool CConfigParser::isDeckValid ( const fs::directory_entry & entry, CDeck & dec
                 cerr << "Card count of " << cardAndCount.first << " must be a positive intiger, not \"" << cardAndCount.second << "\"" << endl;
                 return false;
             }
-        size_t count = stoi(cardAndCount.second); // PLEASE NO EXCEPTIONS
+        size_t count = stoi(cardAndCount.second);
         for ( size_t i = 0; i < count; i++ )
             deck.addCard ( card );
     }

@@ -6,7 +6,7 @@ CBot::CBot ( const string & name, const CCharacter & defaultCharacter, const CCh
 CBot::CBot ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck, const CDeck & hand )
 : CPlayer ( name, defaultCharacter, currentCharacter, deck, hand ) {}
 
-vector<pair<shared_ptr<CCard>,size_t>> CBot::canPlay ( void ) {
+vector<pair<shared_ptr<CCard>,size_t>> CBot::canPlay ( void ) const {
     vector<pair<shared_ptr<CCard>,size_t>> playableCards; 
     for ( size_t i = 0; i < m_Hand.size(); i++ )
         if ( hasEnoughMana ( i ) )
@@ -14,7 +14,7 @@ vector<pair<shared_ptr<CCard>,size_t>> CBot::canPlay ( void ) {
     return playableCards;
 }
 
-int CBot::getMostDmgCard ( vector<pair<shared_ptr<CCard>,size_t>> & canPlay ) {
+int CBot::getMostDmgCard ( vector<pair<shared_ptr<CCard>,size_t>> & canPlay ) const {
     vector<int> damages;
     for ( const auto & [ card, i ] : canPlay )
         damages.push_back ( card->getEffects().first.m_HPDiff );
@@ -25,7 +25,7 @@ int CBot::getMostDmgCard ( vector<pair<shared_ptr<CCard>,size_t>> & canPlay ) {
     else
         return cardIndex;
 }
-int CBot::getMostHealCard ( vector<pair<shared_ptr<CCard>,size_t>> & canPlay ) {
+int CBot::getMostHealCard ( vector<pair<shared_ptr<CCard>,size_t>> & canPlay ) const {
     vector<int> heals;
     for ( const auto & [ card, i ] : canPlay )
         heals.push_back ( card->getEffects().first.m_HPDiff );
@@ -68,7 +68,7 @@ int CBot::readAction ( void ) {
     return (random() % playableCards.size()) + '0';
 }
 
-int CBot::readReceiver ( void ) {
+int CBot::readReceiver ( void ) const {
     if ( m_UseOnEnemy )
         return 259; // KEY_UP == USE ON ENEMY
     return 258; // KEY_DOWN == USE ON SELF

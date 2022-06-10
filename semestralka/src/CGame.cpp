@@ -8,16 +8,16 @@ CGame::CGame ( CGameStateManager & gsm )
     }
     vector<WINDOW*> m_P1Cards;
     vector<WINDOW*> m_P2Cards;
-    m_CardHeight = m_yMax/4, m_CardWidth = m_xMax/handSize;
-    m_StatsHeight = 1+m_yMax/8, m_StatsWidth = m_xMax-1;
-    m_InfoWidth = maxNameLength+15+1; // 15 = reserve for unknown max character name length
+    m_CardHeight = m_yMax / 4, m_CardWidth = m_xMax / handSize;
+    m_StatsHeight = 1 + m_yMax / 8, m_StatsWidth = m_xMax - 1;
+    m_InfoWidth = maxNameLength + 15 + 1; // 15 = reserve for unknown max character name length
     for ( size_t i = 0; i < handSize; i++ ) {
-        m_P1Cards.push_back ( newwin ( m_CardHeight, m_CardWidth,  0, 0+(i*m_CardWidth) ) );
-        m_P2Cards.push_back ( newwin ( m_CardHeight, m_CardWidth,  m_yMax - m_CardHeight, 0+(i*m_CardWidth) ) );
+        m_P1Cards.push_back ( newwin ( m_CardHeight, m_CardWidth,  0, 0 + ( i * m_CardWidth ) ) );
+        m_P2Cards.push_back ( newwin ( m_CardHeight, m_CardWidth,  m_yMax - m_CardHeight, 0 + ( i * m_CardWidth ) ) );
     }
     m_Gsm.setWindows ( m_P1Cards, newwin ( m_StatsHeight, m_StatsWidth, m_CardHeight, 0 ),
                        m_P2Cards, newwin ( m_StatsHeight, m_StatsWidth, m_yMax - m_CardHeight - m_StatsHeight, 0 ),
-                                  newwin ( 5, m_InfoWidth, (m_yMax/2) - 2, m_xMax/2 - (m_InfoWidth/2)-1 ) );
+                                  newwin ( 5, m_InfoWidth, ( m_yMax / 2 ) - 2, m_xMax / 2 - ( m_InfoWidth / 2 ) - 1 ) );
 }
 
 CGame::~CGame ( void ) {
@@ -60,12 +60,12 @@ bool CGame::handleGame ( void ) {
             int b = m_Gsm.handleMenu();
             if ( b == 0 ) // exit to main menu
                 return true;
-            else if ( b == -1 ) // exit game
+            else if ( b == -1 ) // exit game - CTRL-D
                 return false;
             else if ( b == 1 ) // save game
                 m_Gsm.saveGame();
         }
-        // ctrl - d
+        // CTRL - D
         else if ( a == ( 'd' & 0x1F ) )
             return false;
         drawLayout(); // temporary, quite ineffective to refresh everything
@@ -76,14 +76,14 @@ bool CGame::handleGame ( void ) {
     return true;
 }
 bool CGame::continueGame ( void ) {
-    m_Gsm.decideTurn();
+    m_Gsm.decideTurnFromSettings();
     drawLayout();
     m_Gsm.whoIsOnTurn ();
     return handleGame();
 }
 bool CGame::beginGame ( void ) {
     m_Gsm.dealCards();
-    m_Gsm.decideTurn();
+    m_Gsm.decideTurnFromSettings();
     drawLayout();
     m_Gsm.whoIsOnTurn ();
     return handleGame();

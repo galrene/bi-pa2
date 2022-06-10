@@ -1,5 +1,6 @@
 #include "CSaver.h"
-bool CSaver::createDirectory ( fs::path & dirPath ) {
+
+bool CSaver::createDirectory ( fs::path & dirPath ) const {
     fs::path tmpPath = dirPath;
     if ( fs::exists ( tmpPath ) && fs::is_directory ( tmpPath ) && fs::is_empty ( tmpPath ) )
         return true;
@@ -25,7 +26,7 @@ bool CSaver::createDirectory ( fs::path & dirPath ) {
     return true;
 }
 
-bool CSaver::saveCards ( deque<shared_ptr<CCard>> & cards, fs::path & dirPath ) {
+bool CSaver::saveCards ( const deque<shared_ptr<CCard>> & cards, fs::path & dirPath ) const {
     try {
         if ( ! createDirectory ( dirPath ) )
             return false;
@@ -47,6 +48,5 @@ bool CSaver::saveCards ( deque<shared_ptr<CCard>> & cards, fs::path & dirPath ) 
         x->dumpInfo ( ofs );
         dirPath = dirPath.parent_path();
     }
-    // dirPath = dirPath.parent_path(); // shouldn't be here i think
     return true;
 }

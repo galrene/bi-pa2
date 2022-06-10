@@ -19,7 +19,7 @@ using namespace std;
 class CMenu {
   public:
     CMenu ( void );
-    ~CMenu ( void );    
+    ~CMenu ( void );   
     void drawMenu ( const char * menuHeader  );
     bool handleSettings ( void );
     /**
@@ -27,7 +27,7 @@ class CMenu {
     */
     int handleMainMenu ( CGameStateManager & gsm );
     /**
-    * @return -1 on requested exit, 1 on successfuly creating a game 0 on game creation failure 
+    * @return -1 = requested exit, 1 = successfuly created a game, 0 = game creation failure
     */
     int handleCreateMenu ( CGameStateManager & gsm );
     /**
@@ -76,12 +76,10 @@ class CMenu {
     bool initCurses ( void );
     void printError ( const char * errorMessage );
     bool loadNecessities ( map<string,shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks );
-
     void printDecks ( vector<CDeck> & decks );
     void printCharacters ( vector<shared_ptr<CCharacter>> & characters );
     void printSettings ( vector<pair<string,bool>> & menuItems );
     void printSaves ( vector<fs::directory_entry> & saves );
-
     bool loadMenuMovement ( vector<fs::directory_entry> & saves );
     vector<fs::directory_entry> loadSaves ( fs::path savePath );
 
