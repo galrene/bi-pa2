@@ -40,7 +40,7 @@ int main ( void ) {
     parser.setPath ( fs::current_path() / "tests" );
     map<string,shared_ptr<CCard>> correctCards = parser.loadCards ( "correct_cards" );
     assert ( correctCards.size() == entryCnt );
-
+    
     CGameStateManager gsm;
     parser.setPath ( fs::current_path() / "tests" / "broken_saves" );
     for ( const auto & entry : fs::directory_iterator ( fs::current_path() / "tests" / "broken_saves" ) )

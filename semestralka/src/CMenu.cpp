@@ -365,6 +365,10 @@ int CMenu::handleCreateMenu ( CGameStateManager & gsm ) {
         return -1;
     if ( m_Settings.isTwoPlayerGame() ) {
         p2 = createPlayerMenu ( characters, decks, "Player 2 name:" );
+        if ( p2->getName() == p1->getName() ) {
+            printError ( "Name already taken!" );
+            return 0;
+        }
         if ( ! p2 )
             return -1;
     }
