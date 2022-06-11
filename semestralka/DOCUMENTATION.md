@@ -57,3 +57,31 @@ Karty sa daju pouzit aj na seba aj na oponenta, meni sa to sipkou hore dole.
      - healuju alebo damaguju urcity pocet kol
     4. Special:
      - menia atributy tomu na koho su pouzite
+
+## Implementation details
+
+### .ini character config file structure:
+
+Spaces between keys and values are necessary.
+Attribute order doesn't matter.
+
+- [character]
+- name = string
+- class = string
+- hp = int
+- mana = int
+- strength = int
+- defense = int
+
+### For cards check out the card template directory.
+
+
+### .ini settings config file structure:
+
+For a boolean a non-zero value = true, zero = false
+
+- [settings]
+- TwoPlayerGame = boolean
+- MaxDeckSize = int
+- CheekyMode = boolean
+- FirstOnTurn = boolean

@@ -30,14 +30,13 @@ class CConfigParser {
     * @brief Construct a new CConfigParser at default location
     */
     CConfigParser ( void );
-    explicit CConfigParser ( fs::path location );
+    CConfigParser ( const fs::path & location, const fs::path & logFilePath );
     /**
      * @brief load characters from ini files contained inside of a given directory
      * @param dirName name of directory containing character definitions, search in program main directory by default
      * @return loaded characters on success, empty vector on failing to access directory
      */
-    map<string,shared_ptr<CCharacter>> loadCharacters ( const string & dirName );
-    map<string,shared_ptr<CCard>> loadCards ( const string & dirName );
+    map<string,shared_ptr<CCharacter>> loadCharacters ( const string & dirName );    map<string,shared_ptr<CCard>> loadCards ( const string & dirName );
     vector<CDeck> loadDecks ( const string & dirName, map<string,shared_ptr<CCard>> & cardDefinitions );
     /**
      * @brief Load a savegame from file
@@ -46,7 +45,7 @@ class CConfigParser {
      * @param savePath path to savegame
      * @return true = sucessfully created a playable game, false = failed to load some component
      */
-    bool loadSave ( CGameStateManager & gsm, fs::path & savePath );
+    bool loadSave ( CGameStateManager & gsm, const fs::path & savePath );
     /**
      * @brief Load players from directory
      * 
@@ -56,7 +55,7 @@ class CConfigParser {
      * @param isTwoPlayerGame whether to create a player or bot
      * @return true = success, false = failed to enter some directory or load a player from file
      */
-    bool loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, fs::path & savePath, bool isTwoPlayerGame );
+    bool loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, const fs::path & savePath, bool isTwoPlayerGame );
     /**
      * @brief Set the current working directory
      * 
@@ -114,6 +113,17 @@ class CConfigParser {
      * @return true = success, false = key value invalid or too many values in a line
      */
     bool readKeyValue ( const string & line, string & key, string & value );
+    /**
+     * @brief Check if files and directories necessary for creating a player exits.
+     * 
+     * @param card_definitons 
+     * @param char_played 
+     * @param char_loaded 
+     * @param deck 
+     * @param hand 
+     * @return true = all exist, false = some directory doesn't exist
+     */
+    bool findPlayerFiles ( fs::directory_entry & card_definitons ,fs::directory_entry & char_played , fs::directory_entry & char_loaded ,fs::directory_entry & deck, fs::directory_entry & hand );
 
     vector<string> m_FailedToLoad;
     map<string,string> m_LoadedData;

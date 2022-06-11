@@ -1,18 +1,3 @@
-.ini character/card config file structure:
-
-[character]
-name = <string>
-class = <string>
-hp = <int>
-mana = <int>
-strength = <int>
-defense = <int>
-
-For cards check out template directory
-
-Spaces between keys and values are necessary.
-Attribute order doesn't matter.
-Extra unnecessary atributes don't matter.
 ConfigParser berie aj 1b ako 1 pri intovych atributoch
 =========================================================
 sila utoku sa bude pocitat ako ( karta DMG + strength - Opponent defense )
@@ -46,3 +31,16 @@ ISSUES: {
 
     Terminator sa selfharmuje special kartami, zostane mu ich vela v ruke
 }
+
+realny todo:
+
+Testy
+
+CPassive poriešiť na CMix keď už nič lepšie nenapadne
+
+Náznak aplikovania efektov na základe atribútov
+
+Bugfixing
+
+Okomentovať classy
+Dopísať komentáre v parseri a menu

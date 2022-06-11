@@ -1,11 +1,36 @@
 #include "CMenu.h"
 #include "CGame.h"
+#include <cassert>
+
+#ifdef TEST
+int main ( void ) {
+    CConfigParser parser ( fs::current_path() / "tests", fs::current_path() / "tests" );
+    map<string,shared_ptr<CCard>> brokenCards = parser.loadCards ( "cards_broken" );
+    assert ( brokenCards.empty() == true );
+    
+    CGameStateManager gsm;
+    parser.setPath ( fs::current_path() / "tests" / "broken_saves" );
+    for ( const auto & entry : fs::directory_iterator ( fs::current_path() / "tests" / "broken_saves" ) )
+        assert ( parser.loadSave ( gsm, entry.path() ) == false );
+    
+    parser.setPath ( fs::current_path() / "tests" / "correct_saves" );
+    for ( const auto & entry : fs::directory_iterator ( fs::current_path() / "tests" / "correct_saves" ) )
+        assert ( parser.loadSave ( gsm, entry.path() ) == true );
+    
+    
+    cout << "========================" << endl;
+    cout << "All tests were sucessful" << endl;
+    cout << "========================" << endl;
+    return 0;
+}
+#endif
+
+#ifndef TEST
 int startMenu ( CGameStateManager & gsm ) {
     CMenu menu;
     return menu.handleMainMenu ( gsm );
 }
-
-int main ( int argc, char const *argv[] ) {
+int main ( void ) {
     CGameStateManager gsm;
     int res;
     while ( ( res = startMenu ( gsm ) ) != -1  ) { 
@@ -21,3 +46,4 @@ int main ( int argc, char const *argv[] ) {
     }
     return 0;
 }
+#endif

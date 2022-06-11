@@ -5,6 +5,11 @@ CConfigParser::CConfigParser ( void )
     m_LogStream = ofstream ( m_LogFilePath.generic_string() );
 }
 
+CConfigParser::CConfigParser ( const fs::path & location, const fs::path & logFilePath )
+: m_Path ( location ), m_LogFilePath ( logFilePath / "parser_log.txt"  ) {
+    m_LogStream = ofstream ( m_LogFilePath.generic_string() );
+}
+
 bool CConfigParser::enterDirectory ( const string & dirName ) {
     fs::path tmpPath = m_Path;
     tmpPath.append ( dirName );
@@ -28,6 +33,7 @@ bool CConfigParser::setPath ( const fs::path & location ) {
         m_LogStream << location << " isn't a directory" << endl;
         return false;
     }
+    m_Path = location;
     return true;
 }
 bool CConfigParser::isIni ( const fs::directory_entry & entry ) {
@@ -341,8 +347,10 @@ bool CConfigParser::loadSettingsFromIni ( const fs::directory_entry & entry, CGa
         return false;
     }
     try {
-        if ( ! sett.load ( m_LoadedData ) )
+        if ( ! sett.load ( m_LoadedData ) ) {
             m_LogStream << "Failed to set all of the required settings" << endl;
+            return false;
+        }
     }
     catch ( const exception & e ) {
         m_LogStream << e.what() << '\n';
@@ -352,12 +360,10 @@ bool CConfigParser::loadSettingsFromIni ( const fs::directory_entry & entry, CGa
     return true;
 }
 
-bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string & playerName, bool isHuman ) {
-    fs::directory_entry card_definitons;
-    fs::directory_entry char_played;
-    fs::directory_entry char_loaded;
-    fs::directory_entry deck;
-    fs::directory_entry hand;
+bool CConfigParser::findPlayerFiles ( fs::directory_entry & card_definitons ,fs::directory_entry & char_played,
+                                      fs::directory_entry & char_loaded,
+                                      fs::directory_entry & deck,
+                                      fs::directory_entry & hand ) {
     for ( const auto & entry : fs::directory_iterator ( m_Path ) ) {
         string fileName = entry.path().stem();
         if ( entry.is_directory() && fileName == "card_definitions" )
@@ -375,6 +381,16 @@ bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string
         m_LogStream << "Necessary player files not found in  " << m_Path << endl;
         return false;
     }
+    return true;
+}
+bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string & playerName, bool isHuman ) {
+    fs::directory_entry card_definitons;
+    fs::directory_entry char_played;
+    fs::directory_entry char_loaded;
+    fs::directory_entry deck;
+    fs::directory_entry hand;
+    if ( ! findPlayerFiles ( card_definitons, char_played, char_loaded, deck, hand ) )
+        return false;
     map<string,shared_ptr<CCard>> cards = loadCards ( card_definitons.path().filename().generic_string() );
     // 0th == deck, 1st == hand
     vector<CDeck> loadedDecks;
@@ -384,13 +400,22 @@ bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string
          ! loadDeckFromIni ( hand, loadedDecks, cards ) || ! loadCharacterFromIni ( char_loaded, loadedCharacter ) ||
          ! loadCharacterFromIni ( char_played, playedCharacter ) )
         return false;
+    if ( loadedCharacter.begin()->first != playedCharacter.begin()->first ) {
+        m_LogStream << playerName << "'s characters mismatch." << endl;
+        return false;
+    }
+
+    if ( loadedDecks[1].size() != handSize ) {
+        m_LogStream << playerName << "'s hand must contain " << handSize << " cards." << endl;
+        return false;
+    }
     isHuman
     ? player = make_shared<CHuman> ( CHuman ( playerName, *loadedCharacter.begin()->second, *playedCharacter.begin()->second, loadedDecks[0], loadedDecks[1] ) )
     : player = make_shared<CBot> ( CBot ( playerName, *loadedCharacter.begin()->second, *playedCharacter.begin()->second, loadedDecks[0], loadedDecks[1] ) );
     return true;
 }
 
-bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, fs::path & savePath, bool isTwoPlayerGame ) {
+bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, const fs::path & savePath, bool isTwoPlayerGame ) {
     fs::directory_entry p1Dir;
     fs::directory_entry p2Dir;
     for ( const auto & entry : fs::directory_iterator ( savePath ) ) {
@@ -423,15 +448,18 @@ bool CConfigParser::loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer>
     return true;
 }
 
-bool CConfigParser::loadSave ( CGameStateManager & gsm, fs::path & savePath ) {
+bool CConfigParser::loadSave ( CGameStateManager & gsm, const fs::path & savePath ) {
     if ( ! enterDirectory ( savePath.filename() ) )
         return false;
     CGameSettings settings;
     fs::path settingsPath = savePath; settingsPath /= defaultSettingsFileName;
-    if ( ! fs::directory_entry ( settingsPath ).exists() )
+    if ( ! fs::directory_entry ( settingsPath ).exists() ) {
+        m_Path = savePath.parent_path();
         return false;
+    }
     if ( ! loadSettingsFromIni ( fs::directory_entry ( settingsPath ), settings ) ) {
         m_LoadedData.clear();
+        m_Path = savePath.parent_path();
         return false;
     }
     m_LoadedData.clear();
@@ -439,9 +467,11 @@ bool CConfigParser::loadSave ( CGameStateManager & gsm, fs::path & savePath ) {
     shared_ptr<CPlayer> p2;
     if ( ! loadPlayers ( p1, p2, savePath, settings.isTwoPlayerGame() ) ) {
         m_LoadedData.clear();
+        m_Path = savePath.parent_path();
         return false;
     }
     m_LoadedData.clear();
     gsm = CGameStateManager ( p1, p2, settings );
+    m_Path = savePath.parent_path();
     return true;
 }
