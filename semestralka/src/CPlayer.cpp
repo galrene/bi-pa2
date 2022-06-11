@@ -69,10 +69,10 @@ bool CPlayer::hasEnoughMana ( size_t i ) const {
   return m_PlayedCharacter.getMana() >= m_Hand.getCardAt(i)->getManaCost();
 }
 bool CPlayer::save ( fs::path & playerDir ) {
-  ofstream ofs_played ( playerDir.generic_string() + "/character_played.ini" );
-  ofstream ofs_loaded ( playerDir.generic_string() + "/character_loaded.ini" );
-  ofstream ofs_deckInfo ( playerDir.generic_string() + "/deck.ini" );
-  ofstream ofs_handInfo ( playerDir.generic_string() + "/hand.ini" );
+  ofstream ofs_played ( playerDir / "character_played.ini" );
+  ofstream ofs_loaded ( playerDir / "character_loaded.ini" );
+  ofstream ofs_deckInfo ( playerDir / "deck.ini" );
+  ofstream ofs_handInfo ( playerDir / "hand.ini" );
   if ( ! ofs_loaded.good() || ! ofs_played.good() || ! ofs_handInfo.good() || ! ofs_deckInfo.good() )
     return false;
   m_PlayedCharacter.dumpInfo ( ofs_played );

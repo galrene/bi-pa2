@@ -118,4 +118,6 @@ class CConfigParser {
     vector<string> m_FailedToLoad;
     map<string,string> m_LoadedData;
     fs::path m_Path;
+    fs::path m_LogFilePath;
+    ofstream m_LogStream;
 };

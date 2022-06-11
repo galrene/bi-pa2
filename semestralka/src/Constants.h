@@ -16,6 +16,10 @@ const std::filesystem::path defaultPath = std::filesystem::current_path() /= "ex
  */
 const std::filesystem::path defaultSaveLocation = std::filesystem::current_path() /= "examples";
 /**
+ * @brief CConfigParser log path
+ */
+const std::filesystem::path defaultLogFilePath = std::filesystem::current_path() /= "examples";
+/**
  * @brief For loading, located in defaultPath directory
  * 
  */
