@@ -68,7 +68,7 @@ bool CGame::handleGame ( void ) {
         // CTRL - D
         else if ( a == ( 'd' & 0x1F ) )
             return false;
-        drawLayout(); // temporary, quite ineffective to refresh everything
+        drawLayout();
         m_Gsm.whoIsOnTurn ();
         if ( m_Gsm.winnerDecided() )
            break;

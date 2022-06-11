@@ -1,6 +1,4 @@
 #pragma once
-#ifndef Constants_H
-#define Constants_H
 #include <filesystem>
 #include <string>
 
@@ -62,10 +60,7 @@ const bool defaultHandVisibility = false;
  */
 const bool defaultFirstOnTurn = true;
 
-const std::string defaultSettingsFileName = "settings.ini";
-
 // keybindings
 const int defaultDiscardButton = 'd';
 const int defaultEndTurnButton = 'e';
-const int defaultMenuButton = 27; // ESC
-#endif
+const int defaultMenuButton = 'q'; // ingame menu

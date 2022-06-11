@@ -6,12 +6,11 @@ CMenu::CMenu ( void ) {
         return;
     }
     getmaxyx ( stdscr, m_YMax, m_XMax );
-    m_Cols = m_YMax / 2 + 15;
-    m_Lines = m_YMax / 3;
+    m_Width = m_YMax / 2 + 15;
+    m_Height = m_YMax / 3;
     /* lines, cols, int begin_y, int begin_x */
-    m_Win = newwin ( m_Lines, m_Cols, ( m_YMax/2 - m_Lines/2 ), (m_XMax/2 - m_Cols/2) );
+    m_Win = newwin ( m_Height, m_Width, ( m_YMax/2 - m_Height/2 ), (m_XMax/2 - m_Width/2) );
     keypad ( m_Win, TRUE ); // enable keypad inputs
-    m_Settings = CGameSettings(); // might not be necessary
 }
 CMenu::~CMenu ( void ) {
     delwin ( m_Win );
@@ -23,11 +22,10 @@ void CMenu::printError ( const char * errorMessage ) {
     printw ( "ERROR: %s", errorMessage );
     refresh();
 }
-void CMenu::drawMenu ( const char * menuHeader  ) {
+void CMenu::drawMenu ( const string & menuHeader  ) {
     wclear ( m_Win );
-    /* lines, colons, beginY, beginX */
     box ( m_Win, 0, 0 );
-    mvwprintw ( m_Win, 0, (m_Cols/2 - strlen(menuHeader)/2), "%s", menuHeader );
+    mvwprintw ( m_Win, 0, (m_Width/2) - (menuHeader.size()/2), "%s", menuHeader.c_str() );
     wrefresh (m_Win);
 }
 bool CMenu::initCurses ( void ) {
@@ -51,9 +49,7 @@ bool CMenu::initCurses ( void ) {
     return true;
 }
 void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & menuItems ) {
-    wmove ( m_Win, 1+itemIndex,2 );
-    wclrtoeol(m_Win);
-    drawMenu ( "Settings" );
+    clearSpaces ( 1+itemIndex, 2, menuItems[itemIndex].first.size() );
     if ( ! menuItems[itemIndex].second ) {
         wattron ( m_Win, ON_PAIR );
         menuItems[itemIndex].second = true;
@@ -109,43 +105,6 @@ int CMenu::handleNavigation ( const size_t & menuSize ) {
         return 1;
     return 0;
 }
-
-void CMenu::printSettings ( vector<pair<string,bool>> & menuItems ) {
-    for ( size_t i = 0; i < menuItems.size(); i++ ) {
-        if ( i == m_Highlight && ! menuItems[i].second && (i == 0 || i == 1) )
-            wattron ( m_Win, OFF_SELECTED_PAIR );
-        else if ( i == m_Highlight && menuItems[i].second && (i == 0 || i == 1) )
-            wattron ( m_Win, ON_SELECTED_PAIR );
-        else if ( (i == 0 || i == 1) && ! menuItems[i].second )
-            wattron ( m_Win, OFF_PAIR );
-        else if ( (i == 0 || i == 1) && menuItems[i].second )
-            wattron ( m_Win, ON_PAIR );
-        if ( i == m_Highlight && i != 0 && i != 1 )
-            wattron ( m_Win, A_REVERSE );
-        
-        mvwprintw ( m_Win, i+1, 2, "%s", menuItems[i].first.c_str() );
-        if ( i == 2 )
-            wprintw ( m_Win, " %ld", m_Settings.getMaxDeckSize() );
-        wattroff ( m_Win, OFF_PAIR );
-        wattroff ( m_Win, OFF_PAIR );
-        wattroff ( m_Win, ON_SELECTED_PAIR );
-        wattroff ( m_Win, OFF_SELECTED_PAIR );
-        wattroff ( m_Win, A_REVERSE );
-    }
-}
-
-bool CMenu::handleSettingsMovement (  vector<pair<string,bool>> & menuItems ) {
-    while ( 1 ) {
-        // draw menu and highlight currently selected
-        printSettings ( menuItems );
-        int res = handleNavigation ( menuItems.size() );
-        if ( res == 1 )
-            break;
-        else if ( res == -1 )
-            return false;
-    }
-    return true;
-}
 int CMenu::readNumber ( const size_t & yCoord, const size_t & xCoord, const size_t & n ) {
     curs_set ( 1 );
     echo();
@@ -164,7 +123,6 @@ int CMenu::readNumber ( const size_t & yCoord, const size_t & xCoord, const size
     delete [] buff;
     return x;
 }
-
 bool CMenu::isValidDeckSize ( int & number ) {
     if ( number <= 0 ) {
         printError ( "Must be a number" );
@@ -173,6 +131,47 @@ bool CMenu::isValidDeckSize ( int & number ) {
     else if ( ( size_t ) number < handSize ) {
         printError ( "Must be bigger or equal to hand size" );
         return false;
+    }
+    return true;
+}
+void CMenu::clearSpaces ( const size_t & y, const size_t & x, const size_t & nSpaces ) {
+    string str;
+    for ( size_t i = 0; i < nSpaces; i++ )
+        str += " ";
+    mvwprintw ( m_Win, y, x, "%s", str.c_str() ); 
+}
+// -----------------------------------------------------------------------------------------------------
+void CMenu::printSettings ( vector<pair<string,bool>> & menuItems ) {
+    for ( size_t i = 0; i < menuItems.size(); i++ ) {
+        if ( i == m_Highlight && ! menuItems[i].second && (i == 0 || i == 1) )
+            wattron ( m_Win, OFF_SELECTED_PAIR );
+        else if ( i == m_Highlight && menuItems[i].second && (i == 0 || i == 1) )
+            wattron ( m_Win, ON_SELECTED_PAIR );
+        else if ( (i == 0 || i == 1) && ! menuItems[i].second )
+            wattron ( m_Win, OFF_PAIR );
+        else if ( (i == 0 || i == 1) && menuItems[i].second )
+            wattron ( m_Win, ON_PAIR );
+        if ( i == m_Highlight && i != 0 && i != 1 )
+            wattron ( m_Win, A_REVERSE );
+        
+        mvwprintw ( m_Win, i+2, getmaxx(m_Win)/2 - ( menuItems[i].first.size() / 2) - 1 , "%s", menuItems[i].first.c_str() );
+        if ( i == 2 )
+            wprintw ( m_Win, " %ld", m_Settings.getMaxDeckSize() );
+        wattroff ( m_Win, OFF_PAIR );
+        wattroff ( m_Win, OFF_PAIR );
+        wattroff ( m_Win, ON_SELECTED_PAIR );
+        wattroff ( m_Win, OFF_SELECTED_PAIR );
+        wattroff ( m_Win, A_REVERSE );
+    }
+}
+bool CMenu::handleSettingsMovement (  vector<pair<string,bool>> & menuItems ) {
+    while ( 1 ) {
+        printSettings ( menuItems );
+        int res = handleNavigation ( menuItems.size() );
+        if ( res == 1 )
+            break;
+        else if ( res == -1 )
+            return false;
     }
     return true;
 }
@@ -205,32 +204,7 @@ bool CMenu::handleSettings ( void ) {
     }
     return true;
 }
-
-bool CMenu::handleMenuMovement ( vector<string> & menuItems ) {
-    while ( 1 ) {
-        // draw menu and highlight currently selected
-        for ( size_t i = 0; i < menuItems.size(); i++ ) {
-            if ( i == m_Highlight )
-                wattron ( m_Win, A_REVERSE );
-            mvwprintw ( m_Win, i+1, 2, "%s", menuItems[i].c_str() );
-            wattroff ( m_Win, A_REVERSE );
-        }
-        int res = handleNavigation ( menuItems.size() );
-        if ( res == 1 )
-            break;
-        else if ( res == -1 )
-            return false;
-    }
-    return true;
-}
-
-void CMenu::clearSpaces ( const size_t & y, const size_t & x, const size_t & nSpaces ) {
-    string str;
-    for ( size_t i = 0; i < nSpaces; i++ )
-        str += " ";
-    mvwprintw ( m_Win, y, x, "%s", str.c_str() ); 
-}
-
+// -----------------------------------------------------------------------------------------------------
 void CMenu::printCharacters ( vector<shared_ptr<CCharacter>> & characters ) {
     for ( size_t i = 0; i < characters.size(); i++ ) {
         if ( i == m_Highlight )
@@ -239,7 +213,6 @@ void CMenu::printCharacters ( vector<shared_ptr<CCharacter>> & characters ) {
         wattroff ( m_Win, A_REVERSE );
     }
 }
-
 bool CMenu::chooseCharacterMovement ( vector<shared_ptr<CCharacter>> & characters ) {
     while ( 1 ) {
         printCharacters ( characters );
@@ -250,6 +223,13 @@ bool CMenu::chooseCharacterMovement ( vector<shared_ptr<CCharacter>> & character
             return false;
     }
     return true;
+}
+shared_ptr<CCharacter> CMenu::chooseCharacter ( vector<shared_ptr<CCharacter>> & characters, const char * menuHeader ) {
+    m_Highlight = 0;
+    drawMenu ( menuHeader );
+    if ( ! chooseCharacterMovement ( characters ) )
+        return nullptr;
+    return characters[m_Highlight];
 }
 
 string CMenu::chooseNameMenu ( const char * menuHeader ) {
@@ -264,15 +244,7 @@ string CMenu::chooseNameMenu ( const char * menuHeader ) {
     }
     return str;
 }
-
-shared_ptr<CCharacter> CMenu::chooseCharacter ( vector<shared_ptr<CCharacter>> & characters, const char * menuHeader ) {
-    m_Highlight = 0;
-    drawMenu ( menuHeader );
-    if ( ! chooseCharacterMovement ( characters ) )
-        return nullptr;
-    return characters[m_Highlight];
-}
-
+// -----------------------------------------------------------------------------------------------------
 void CMenu::printDecks ( vector<CDeck> & decks ) {
     for ( size_t i = 0; i < decks.size(); i++ ) {
         if ( i == m_Highlight )
@@ -306,7 +278,7 @@ CDeck CMenu::chooseDeckMenu ( vector<CDeck> & decks ) {
     }
     return decks[m_Highlight];
 }
-
+// -----------------------------------------------------------------------------------------------------
 shared_ptr<CPlayer> CMenu::createPlayerMenu ( map<string,shared_ptr<CCharacter>> & loadedCharacters, vector<CDeck> & decks, const char * menuHeader ) {
     string p_name = chooseNameMenu ( menuHeader );
     string header = p_name + "'s character:";
@@ -342,13 +314,13 @@ bool CMenu::loadNecessities ( map<string,shared_ptr<CCharacter>> & characters, m
 bool CMenu::loadingScreen ( map<string,shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
     drawMenu ( "Loading screen" );
     if ( loadNecessities ( characters, cards, decks ) ) {
-        mvwprintw ( m_Win, m_Lines/2-1, m_Cols/2 - strlen("Loading successful.")/2, "Loading successful." );
-        mvwprintw ( m_Win, m_Lines/2, m_Cols/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
+        mvwprintw ( m_Win, m_Height/2-1, m_Width/2 - strlen("Loading successful.")/2, "Loading successful." );
+        mvwprintw ( m_Win, m_Height/2, m_Width/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
         wgetch ( m_Win );
         return true;
     }
-    mvwprintw ( m_Win, m_Lines/2-1, m_Cols/2 - strlen("Error while loading necessities.")/2, "Error while loading necessities." );
-    mvwprintw ( m_Win, m_Lines/2, m_Cols/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
+    mvwprintw ( m_Win, m_Height/2-1, m_Width/2 - strlen("Error while loading necessities.")/2, "Error while loading necessities." );
+    mvwprintw ( m_Win, m_Height/2, m_Width/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
     wgetch ( m_Win );
     return false;
 }
@@ -409,10 +381,11 @@ bool CMenu::loadMenuMovement ( vector<fs::directory_entry> & saves ) {
     }
     return true;
 }
+
 int CMenu::handleLoadGameMenu ( CGameStateManager & gsm ) {
+    vector<fs::directory_entry> saves = loadSaves ( defaultSaveLocation );
     m_Highlight = 0;
     drawMenu ( "Choose a save:" );
-    vector<fs::directory_entry> saves = loadSaves ( defaultSaveLocation );
     if ( ! loadMenuMovement ( saves ) )
         return -1;
     CConfigParser parser;
@@ -423,6 +396,26 @@ int CMenu::handleLoadGameMenu ( CGameStateManager & gsm ) {
         return 0;
     }
     return 1;
+}
+// -----------------------------------------------------------------------------------------------------
+void CMenu::printMainMenu ( vector<string> & menuItems ) {
+    for ( size_t i = 0; i < menuItems.size(); i++ ) {
+        if ( i == m_Highlight )
+            wattron ( m_Win, A_REVERSE );
+        mvwprintw ( m_Win, i+2, (getmaxx(m_Win) / 2) - (menuItems[i].size()/2), "%s", menuItems[i].c_str() );
+        wattroff ( m_Win, A_REVERSE );
+    }
+}
+bool CMenu::handleMenuMovement ( vector<string> & menuItems ) {
+    while ( 1 ) {
+        printMainMenu ( menuItems );
+        int res = handleNavigation ( menuItems.size() );
+        if ( res == 1 )
+            break;
+        else if ( res == -1 )
+            return false;
+    }
+    return true;
 }
 
 int CMenu::handleMainMenu ( CGameStateManager & gsm ) {

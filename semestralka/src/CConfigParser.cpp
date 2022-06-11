@@ -411,7 +411,6 @@ bool CConfigParser::constructPlayer ( shared_ptr<CPlayer> & player, const string
         m_LogStream << playerName << "'s characters mismatch." << endl;
         return false;
     }
-
     if ( loadedDecks[1].size() != handSize ) {
         m_LogStream << playerName << "'s hand must contain " << handSize << " cards." << endl;
         return false;

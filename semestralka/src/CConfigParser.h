@@ -36,7 +36,8 @@ class CConfigParser {
      * @param dirName name of directory containing character definitions, search in program main directory by default
      * @return loaded characters on success, empty vector on failing to access directory
      */
-    map<string,shared_ptr<CCharacter>> loadCharacters ( const string & dirName );    map<string,shared_ptr<CCard>> loadCards ( const string & dirName );
+    map<string,shared_ptr<CCharacter>> loadCharacters ( const string & dirName );    
+    map<string,shared_ptr<CCard>> loadCards ( const string & dirName );
     vector<CDeck> loadDecks ( const string & dirName, map<string,shared_ptr<CCard>> & cardDefinitions );
     /**
      * @brief Load a savegame from file
