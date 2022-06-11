@@ -29,7 +29,9 @@ zip: $(USERNAME).zip
 test: rm_main test_compile
 	@./$(USERNAME)
 
-# removes main so it recompiles with the correct #define
+# removes main so it recompiles with the correct
+# define (for testing and normal run), not ideal I know:(
+	
 rm_main:
 	@rm -f build/main.o
 

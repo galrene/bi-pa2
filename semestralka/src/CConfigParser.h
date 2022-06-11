@@ -57,10 +57,10 @@ class CConfigParser {
      */
     bool loadPlayers ( shared_ptr <CPlayer> & p1, shared_ptr<CPlayer> & p2, const fs::path & savePath, bool isTwoPlayerGame );
     /**
-     * @brief Set the current working directory
+     * @brief Set the current working directory.
      * 
      * @param location path which to set
-     * @return true = exist, false = doesn't exist or isn't a directory
+     * @return true = exists, false = doesn't exist or isn't a directory
      */
     bool setPath ( const fs::path & location );
   private:

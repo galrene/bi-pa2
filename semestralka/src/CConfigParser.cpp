@@ -21,6 +21,12 @@ bool CConfigParser::enterDirectory ( const string & dirName ) {
         m_LogStream << tmpPath << " isn't a directory" << endl;
         return false;
     }
+    fs::perms p = status ( tmpPath ).permissions();
+    if ( ( p & fs::perms::owner_read ) == fs::perms::none ||
+         ( p & fs::perms::owner_write ) == fs::perms::none ) {
+        m_LogStream << "The owner doesn't have the correct permissions to write and read " << tmpPath << endl;
+        return false;
+    }
     m_Path = tmpPath;
     return true;
 }
