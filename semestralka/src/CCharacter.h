@@ -48,6 +48,7 @@ class CCharacter {
     int getMana ( void ) const  { return m_Mana; }
     string getHeader ( void ) const { return m_Name + "_" + m_Class; }
     string getName ( void ) const { return m_Name; }
+    string getClass ( void ) const { return m_Class; }
   protected:
     string m_Name;
     string m_Class;

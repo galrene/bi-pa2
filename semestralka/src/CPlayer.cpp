@@ -12,7 +12,7 @@ CPlayer::~CPlayer ( void ) {
   delwin ( m_StatsWin );
 }
 void CPlayer::renderName ( WINDOW * win, int yCoord, int xCoord ) const {
-  string name = m_Name + "'s " + m_PlayedCharacter.getName();
+  string name = m_Name + "'s " + m_PlayedCharacter.getName() + " the " + m_PlayedCharacter.getClass();
   mvwprintw ( win, yCoord, xCoord - name.size()/2, "%s", name.c_str() );
 }
 void CPlayer::renderPlayer ( void ) const {
