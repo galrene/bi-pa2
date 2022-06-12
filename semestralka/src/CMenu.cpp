@@ -16,10 +16,10 @@ CMenu::~CMenu ( void ) {
     delwin ( m_Win );
     endwin();
 }
-void CMenu::printError ( const char * errorMessage ) {
+void CMenu::printError ( const string & errorMessage) {
     move (0,0);
     clrtoeol ();
-    printw ( "ERROR: %s", errorMessage );
+    printw ( "ERROR: %s", errorMessage.c_str() );
     refresh();
 }
 void CMenu::drawMenu ( const string & menuHeader  ) {
@@ -385,12 +385,15 @@ bool CMenu::loadMenuMovement ( vector<fs::directory_entry> & saves ) {
 int CMenu::handleLoadGameMenu ( CGameStateManager & gsm ) {
     vector<fs::directory_entry> saves = loadSaves ( defaultSaveLocation );
     m_Highlight = 0;
+    if ( saves.empty() ) {
+        printError ( "No potential saves found in the configured savefile directory " + defaultSaveLocation.generic_string() );
+        return 0;
+    }
     drawMenu ( "Choose a save:" );
     if ( ! loadMenuMovement ( saves ) )
         return -1;
     CConfigParser parser;
-    fs::path saveGamePath = defaultSaveLocation;
-    saveGamePath /= saves[m_Highlight];
+    fs::path saveGamePath = defaultSaveLocation / saves[m_Highlight] ;
     if ( ! parser.loadSave ( gsm, saveGamePath ) ) {
         printError ( "Unable to load game from save." );
         return 0;

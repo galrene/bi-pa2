@@ -42,5 +42,5 @@ void CDeck::printData ( ostream & os ) {
 
 void CDeck::saveDefinitions ( fs::path & cardDefinitionDir ) const {
     CSaver s;
-    s.saveCards ( m_Content, cardDefinitionDir );
+    s.saveCards ( m_CardDefinitons, cardDefinitionDir );
 }

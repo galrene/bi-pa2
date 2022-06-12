@@ -31,32 +31,32 @@ int main ( void ) {
  * 
  */
 int main ( void ) {
-    CConfigParser parser ( fs::current_path() / "tests", fs::current_path() / "tests" );
+    CConfigParser parser ( fs::current_path() / "examples" / "tests", fs::current_path() / "examples" / "tests" );
     map<string,shared_ptr<CCard>> brokenCards = parser.loadCards ( "broken_cards" );
     assert ( brokenCards.empty() == true );
     
     // number of directories/files in the correct_cards directory
-    size_t entryCnt = std::distance(fs::directory_iterator(fs::current_path() / "tests" / "correct_cards"), fs::directory_iterator{});
-    parser.setPath ( fs::current_path() / "tests" );
+    size_t entryCnt = std::distance(fs::directory_iterator(fs::current_path() / "examples" / "tests" / "correct_cards"), fs::directory_iterator{});
+    parser.setPath ( fs::current_path() / "examples" / "tests" );
     map<string,shared_ptr<CCard>> correctCards = parser.loadCards ( "correct_cards" );
     assert ( correctCards.size() == entryCnt );
     
     CGameStateManager gsm;
-    parser.setPath ( fs::current_path() / "tests" / "broken_saves" );
-    for ( const auto & entry : fs::directory_iterator ( fs::current_path() / "tests" / "broken_saves" ) )
+    parser.setPath ( fs::current_path() / "examples" / "tests" / "broken_saves" );
+    for ( const auto & entry : fs::directory_iterator ( fs::current_path() / "examples" / "tests" / "broken_saves" ) )
         assert ( parser.loadSave ( gsm, entry.path() ) == false );
     
-    parser.setPath ( fs::current_path() / "tests" / "correct_saves" );
-    for ( const auto & entry : fs::directory_iterator ( fs::current_path() / "tests" / "correct_saves" ) )
+    parser.setPath ( fs::current_path() / "examples" / "tests" / "correct_saves" );
+    for ( const auto & entry : fs::directory_iterator ( fs::current_path() / "examples" / "tests" / "correct_saves" ) )
         assert ( parser.loadSave ( gsm, entry.path() ) == true );
     
-    parser.setPath ( fs::current_path() / "tests" );
+    parser.setPath ( fs::current_path() / "examples" / "tests" );
     map<string,shared_ptr<CCharacter>> brokenCharacters = parser.loadCharacters ( "broken_characters" );
     assert ( brokenCharacters.empty() == true );
 
     // number of directories/files in the correct_characters directory
-    entryCnt = std::distance(fs::directory_iterator(fs::current_path() / "tests" / "correct_characters"), fs::directory_iterator{});
-    parser.setPath ( fs::current_path() / "tests" );
+    entryCnt = std::distance(fs::directory_iterator(fs::current_path() / "examples" / "tests" / "correct_characters"), fs::directory_iterator{});
+    parser.setPath ( fs::current_path() / "examples" / "tests" );
     map<string,shared_ptr<CCharacter>> correctCharacters = parser.loadCharacters ( "correct_characters" );
     assert ( correctCharacters.size() == entryCnt );
 

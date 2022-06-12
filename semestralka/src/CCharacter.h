@@ -12,7 +12,6 @@ class CCharacter {
   public:
     CCharacter ( const string & name, const string & charClass, int hp, int mana, int strength, int defense );
     CCharacter ( map <string,string> & data );
-    
     /**
      * @brief Applies an effect of a card.
      * 

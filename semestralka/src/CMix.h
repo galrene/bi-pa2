@@ -1,6 +1,8 @@
 #pragma once
 #include "CCard.h"
-
+/**
+ * @brief Card combining dealing damage and healing.
+ */
 class CMix : public CCard {
   public:
     CMix ( const string & name, const string & type, int cost, int heal, int dmg );

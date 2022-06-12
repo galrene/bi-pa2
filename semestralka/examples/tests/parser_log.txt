@@ -1,0 +1,33 @@
+A key value pair in "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/multiple_values_in_line.ini" is invalid
+A key value pair in "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/random_garbage.ini" is invalid
+Unidentified card type "parky"
+Failed to set all of the required card attributes
+stoi
+Bad character that should be an integer or an invalid attibute name in "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/string_in_place_of_int.ini"
+Failed to set all of the required card attributes
+Failed to set all of the required card attributes
+No [card] section found in/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/broken_header.ini
+Failed to load files: 
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/multiple_values_in_line.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/random_garbage.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/unknown_attribute_value.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/string_in_place_of_int.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/unknown_attribute_key.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/missing_required_attribute.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_cards/broken_header.ini
+No cards loaded.
+Necessary player files not found in  "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_saves/save_game_Pista-TERMINATOR_missing_loaded_character/P1_Pista"
+Card Osasdnik in deck "deck.ini" is undefined.
+Failed to set all of the required settings
+Anicka's hand must contain 6 cards.
+Failed to set all of the required character attributes
+Failed to set all of the required character attributes
+Failed to set all of the required character attributes
+A key value pair in "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_characters/missing_attribute.ini" is invalid
+Missing header in "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_characters/empty_file.ini"
+Failed to load files: 
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_characters/negative_attribute.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_characters/empty_character.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_characters/missing_attribute.ini
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/examples/tests/broken_characters/empty_file.ini
+No characters loaded.

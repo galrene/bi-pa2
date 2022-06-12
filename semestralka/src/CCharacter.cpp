@@ -53,7 +53,7 @@ void CCharacter::renderStats ( WINDOW * win ) const {
   wattroff ( win, COLOR_PAIR ( 2 ) );
 }
 void CCharacter::applyEffect ( const CEffect & eff ) {
-  // here should be a calculation of actual effects based on stats
+  // here could be a calculation of effects based on stats
   m_HP += eff.m_HPDiff;
   m_Mana += eff.m_ManaDiff;
   m_Strength += eff.m_StrengthDiff;

@@ -55,8 +55,14 @@ class CDeck {
     void saveDefinitions ( fs::path & cardDefinitionDir ) const;
     /**
      * @brief Set the data from which the deck was created
+     * @param data key value pairs
      */
     void setData ( map<string,string> & data ) { m_Data = data; }
+    /**
+     * @brief Set the card definitions of the cards the deck was built from.
+     * @param definition cards and their names
+     */
+    void setDefinition ( map<string,shared_ptr<CCard>> & definition ) { m_CardDefinitons = definition; }
     /**
      * @brief Send key value pairs of card and it's amount m_Data into stream
      */
@@ -87,5 +93,10 @@ class CDeck {
      * @brief Data from which the deck was built, useful for quick dumping deck definitions inside a file and building a deck from data as key value pairs.
      */
     map<string,string> m_Data;
+    /**
+     * @brief Original loaded card definitions for a consistent complete definition of the deck.
+     * (for consistent saving)
+     */
+    map<string,shared_ptr<CCard>> m_CardDefinitons;
     string m_Name;
 };

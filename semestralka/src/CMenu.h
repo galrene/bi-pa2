@@ -157,7 +157,7 @@ class CMenu {
      * 
      * @param errorMessage message to print
      */
-    void printError ( const char * errorMessage );
+    void printError ( const string & errorMessage );
     /**
      * @brief Load everything necessary for creating a game.
      */

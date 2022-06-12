@@ -232,21 +232,25 @@ bool CConfigParser::loadCardFromIni ( const fs::directory_entry & entry, map<str
 }
 
 bool CConfigParser::isDeckValid ( const fs::directory_entry & entry, CDeck & deck, map<string,shared_ptr<CCard>> & cardDefinitions ) {
-    for ( const auto & cardAndCount : m_LoadedData ) {
-        if ( cardDefinitions.count ( cardAndCount.first ) == 0 ) {
-            m_LogStream << "Card " << cardAndCount.first << " in deck " << entry.path().filename() << " is undefined." << endl;
+    map<string,shared_ptr<CCard>> tmp_DeckDefinition;
+    for ( const auto & [ loadedCard, loadedCnt ] : m_LoadedData ) {
+        if ( cardDefinitions.count ( loadedCard ) == 0 ) {
+            m_LogStream << "Card " << loadedCard << " in deck " << entry.path().filename() << " is undefined." << endl;
             return false;
         }
-        shared_ptr<CCard> card = cardDefinitions[cardAndCount.first];
-        for ( const auto & digit : cardAndCount.second )
+        shared_ptr<CCard> card = cardDefinitions[loadedCard];
+        for ( const auto & digit : loadedCnt )
             if ( ! isdigit ( digit ) ) {
-                m_LogStream << "Card count of " << cardAndCount.first << " must be a positive intiger, not \"" << cardAndCount.second << "\"" << endl;
+                m_LogStream << "Card count of " << loadedCard << " must be a positive intiger, not \"" << loadedCnt << "\"" << endl;
                 return false;
             }
-        size_t count = stoi(cardAndCount.second);
-        for ( size_t i = 0; i < count; i++ )
+        size_t count = stoi(loadedCnt);
+        for ( size_t i = 0; i < count; i++ ) {
             deck.addCard ( card );
+            tmp_DeckDefinition[card->getName()] = card;
+        }
     }
+    deck.setDefinition ( tmp_DeckDefinition ); // pass the deck the card defintions it was created from
     deck.setData ( m_LoadedData ); // pass the deck it's card count info
     return true;
 }

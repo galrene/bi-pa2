@@ -7,7 +7,9 @@
 #include "CEffect.h"
 using namespace std;
 
-
+/**
+ * @brief Card base class.
+ */
 class CCard {
   public:
     /**
@@ -60,7 +62,8 @@ class CCard {
     /**
      * @brief Compare cards using their names
      */
-    bool operator == ( CCard & rhs ) const { return rhs.m_Name == m_Name; } ;
+    bool operator == ( const CCard & rhs ) const { return rhs.m_Name == m_Name; } ;
+    bool operator < ( const CCard & rhs ) const { return m_Name < rhs.getName(); }
     virtual string getHeader ( void ) const { return m_Name + "_" + m_Type; }
     virtual string getName ( void ) const { return m_Name; };
     int getManaCost ( void ) const { return m_Cost; }

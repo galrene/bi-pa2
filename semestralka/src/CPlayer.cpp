@@ -78,7 +78,7 @@ bool CPlayer::save ( fs::path & playerDir ) {
   m_PlayedCharacter.dumpInfo ( ofs_played );
   m_LoadedCharacter.dumpInfo ( ofs_loaded );
   fs::path deckSaveDir = playerDir /= "card_definitions";
-  m_Deck.saveDefinitions ( deckSaveDir );
+  m_Deck.saveDefinitions ( deckSaveDir ); // savujem karty ktore su v decku ale pokial vsetky karty urciteho typu su v ruke tak o nich nie je informacia v decku
   m_Deck.printData ( ofs_deckInfo );
   m_Hand.printHand ( ofs_handInfo );
   return true;

@@ -6,7 +6,6 @@
 #include "ncurses.h"
 
 using namespace std;
-
 class CGameStateManager {
   public:
     CGameStateManager ( void ) = default;

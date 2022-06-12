@@ -8,6 +8,8 @@ ISSUES: {
 }
 
 TODO {
-    CPassive poriešiť na CMix keď už nič lepšie nenapadne
     Náznak aplikovania efektov na základe atribútov
+    
+    preverit ci nemam niekde == na shared_ptr,
+    kde actually chcem == na dereferencoavne values
 }

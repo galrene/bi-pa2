@@ -26,7 +26,7 @@ bool CSaver::createDirectory ( fs::path & dirPath ) const {
     return true;
 }
 
-bool CSaver::saveCards ( const deque<shared_ptr<CCard>> & cards, fs::path & dirPath ) const {
+bool CSaver::saveCards ( const map<string,shared_ptr<CCard>> & cards, fs::path & dirPath ) const {
     try {
         if ( ! createDirectory ( dirPath ) )
             return false;
@@ -35,8 +35,8 @@ bool CSaver::saveCards ( const deque<shared_ptr<CCard>> & cards, fs::path & dirP
         cerr << e.what() << '\n';
         return false;
     }
-    for ( const auto & x : cards ) {
-        string fileName = x->getHeader();
+    for ( const auto & [ cardName, cardDefinition ] : cards ) {
+        string fileName = cardDefinition->getHeader();
         fileName += ".ini";
         dirPath.append ( fileName );
         ofstream ofs ( dirPath );
@@ -45,7 +45,7 @@ bool CSaver::saveCards ( const deque<shared_ptr<CCard>> & cards, fs::path & dirP
             dirPath = dirPath.parent_path();
             continue;
         }
-        x->dumpInfo ( ofs );
+        cardDefinition->dumpInfo ( ofs );
         dirPath = dirPath.parent_path();
     }
     return true;
