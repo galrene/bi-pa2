@@ -7,7 +7,7 @@ class CMix : public CCard {
   public:
     CMix ( const string & name, const string & type, int cost, int heal, int dmg );
     CMix ( map <string,string> & data );
-
+    virtual ~CMix ( void ) = default;
     virtual pair<CEffect,CEffect> getEffects ( void ) const override;
     virtual void dumpInfo ( ostream & os ) const override;
     virtual bool buildCard ( void ) override;

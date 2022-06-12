@@ -5,7 +5,7 @@ class CBot : public CPlayer {
   public:
     CBot ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck );
     CBot ( const string & name, const CCharacter & defaultCharacter, const CCharacter & currentCharacter, const CDeck & deck, const CDeck & hand );
-    
+    virtual ~CBot ( void ) = default;
     virtual int readAction ( void ) override;
     virtual int readReceiver ( void ) const override;
     /**

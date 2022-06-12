@@ -8,7 +8,7 @@ class CSpecial : public CCard {
   public:
     CSpecial ( const string & name, const string & type, int cost, int strDiff, int DefDiff, int manaDiff );
     CSpecial ( map <string,string> & data );
-
+    virtual ~CSpecial ( void ) = default;
     virtual pair<CEffect,CEffect> getEffects ( void ) const override;
     virtual void dumpInfo ( ostream & os ) const override;
     virtual bool buildCard ( void ) override;

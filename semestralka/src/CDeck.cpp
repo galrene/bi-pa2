@@ -21,11 +21,9 @@ shared_ptr<CCard> CDeck::drawCardAt ( size_t i ) {
 void CDeck::shuffleCards ( void ) {
     random_shuffle ( m_Content.begin(), m_Content.end() );
 }
-
 void CDeck::renderCard ( WINDOW * win, size_t & i ) const {
     m_Content[i]->render ( win );
 }
-
 void CDeck::printHand ( ostream & os ) {
     map<string,int> hand;
     for ( const auto & card : m_Content )
@@ -39,7 +37,6 @@ void CDeck::printData ( ostream & os ) {
     for ( const auto & [ def, cnt ] : m_Data )
         os << def << " = " << cnt << endl;
 }
-
 void CDeck::saveDefinitions ( fs::path & cardDefinitionDir ) const {
     CSaver s;
     s.saveCards ( m_CardDefinitons, cardDefinitionDir );
