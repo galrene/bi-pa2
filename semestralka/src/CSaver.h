@@ -9,7 +9,6 @@
 
 using namespace std;
 namespace fs = filesystem;
-
 class CSaver {
   public:
     CSaver (void ) = default;

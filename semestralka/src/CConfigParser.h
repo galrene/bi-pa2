@@ -6,18 +6,15 @@
 #include <algorithm>
 #include <string>
 #include <filesystem>
-
 #include "CCharacter.h"
 #include "Constants.h"
 #include "CDeck.h"
 #include "CGameStateManager.h"
-
 #include "CAttack.h"
 #include "CDefense.h"
 #include "CSpecial.h"
-#include "CPassive.h"
+#include "CMix.h"
 #include "CSaver.h"
-
 #include "CHuman.h"
 #include "CBot.h"
 

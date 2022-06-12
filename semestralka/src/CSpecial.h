@@ -1,6 +1,9 @@
 #pragma once
 #include "CCard.h"
-
+/**
+ * @brief A card for altering character attributes.
+ * 
+ */
 class CSpecial : public CCard {
   public:
     CSpecial ( const string & name, const string & type, int cost, int strDiff, int DefDiff, int manaDiff );

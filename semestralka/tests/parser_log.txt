@@ -22,9 +22,11 @@ Failed to set all of the required settings
 Anicka's hand must contain 6 cards.
 Failed to set all of the required character attributes
 Failed to set all of the required character attributes
+Failed to set all of the required character attributes
 A key value pair in "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/tests/broken_characters/missing_attribute.ini" is invalid
 Missing header in "/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/tests/broken_characters/empty_file.ini"
 Failed to load files: 
+	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/tests/broken_characters/negative_attribute.ini
 	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/tests/broken_characters/empty_character.ini
 	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/tests/broken_characters/missing_attribute.ini
 	/home/galrene/SKOLA_LS/PA2/PA2_repo/semestralka/tests/broken_characters/empty_file.ini

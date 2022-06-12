@@ -180,11 +180,11 @@ bool CConfigParser::constructCard ( const fs::directory_entry & entry, map<strin
             return false;
         loadedCards[ m_LoadedData["name"] ] = make_shared<CDefense> ( def );
     }
-    else if ( m_LoadedData["type"] == "passive" ) {
-        CPassive pass ( m_LoadedData );
+    else if ( m_LoadedData["type"] == "mix" ) {
+        CMix pass ( m_LoadedData );
         if ( ! pass.buildCard() )
             return false;
-        loadedCards[ m_LoadedData["name"] ] = make_shared<CPassive> ( pass );
+        loadedCards[ m_LoadedData["name"] ] = make_shared<CMix> ( pass );
     }
     else if ( m_LoadedData["type"] == "special" ) {
         CSpecial spec ( m_LoadedData );

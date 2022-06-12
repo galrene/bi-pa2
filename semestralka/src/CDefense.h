@@ -1,5 +1,9 @@
 #pragma once
 #include "CCard.h"
+/**
+ * @brief A defense card for healing.
+ * 
+ */
 class CDefense : public CCard {
   public:
     CDefense ( const string & name, const string & type, int cost, int heal );

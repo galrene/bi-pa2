@@ -4,15 +4,10 @@ sila utoku sa bude pocitat ako ( karta DMG + strength - Opponent defense )
 
 
 ISSUES: {
-    necheckujem nezapornost hodnot pri atributoch postav and stuff, should I?
-
     Terminator sa selfharmuje special kartami, zostane mu ich vela v ruke
 }
 
 TODO {
-    Okomentovať classy
-    Dopísať komentáre v parseri a menu
-    
     CPassive poriešiť na CMix keď už nič lepšie nenapadne
     Náznak aplikovania efektov na základe atribútov
 }

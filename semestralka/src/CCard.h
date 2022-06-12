@@ -11,11 +11,11 @@ using namespace std;
 class CCard {
   public:
     /**
-     * @brief Construct a new CCard object.
+     * @brief Construct a new card.
      * 
-     * @param name 
-     * @param type 
-     * @param cost 
+     * @param name card name
+     * @param type card type
+     * @param cost mana cost
      */
     CCard ( const string & name, const string & type, int cost );
     /**

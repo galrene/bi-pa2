@@ -50,14 +50,11 @@ int CBot::readAction ( void ) {
         }
         // no damage cards found
         res = getMostHealCard ( playableCards );
-        if ( res != -1 ) { // heal card found
-            m_UseOnEnemy = false;
-            return playableCards[res].second + '0';
+        if ( res == -1 ) { // no healing cards found
+            // so play a random one on the enemy 
+            m_UseOnEnemy = true;
+            return (random() % playableCards.size()) + '0';
         }
-        // no healing cards found
-        // so play a random one idk
-        m_UseOnEnemy = true;
-        return (random() % playableCards.size()) + '0';
     }
     res = getMostHealCard ( playableCards );
     if ( res != -1 ) { // heal card found

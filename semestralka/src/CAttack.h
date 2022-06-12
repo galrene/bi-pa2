@@ -1,5 +1,9 @@
 #pragma once
 #include "CCard.h"
+/**
+ * @brief Attack card for dealing damage.
+ * 
+ */
 class CAttack : public CCard {
   public:
     CAttack ( const string & name, const string & type, int cost, int dmg );

@@ -94,7 +94,7 @@ class CPlayer {
     /**
      * @brief Read player input.
      * 
-     * @return int input
+     * @return int read input
      */
     virtual int readAction ( void ) = 0;
     /**
