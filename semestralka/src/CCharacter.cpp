@@ -20,7 +20,7 @@ bool CCharacter::buildCharacter ( void ) {
   m_Mana = stoi(m_DataSource["mana"]);
   m_Strength = stoi(m_DataSource["strength"]);
   m_Defense = stoi(m_DataSource["defense"]);
-  if ( m_HP < 0 || m_Mana < 0 || m_Strength < 0 || m_Defense < 0 )
+  if ( m_HP < 0 || m_Mana < 0 )
     return false;
   return true;
 }
