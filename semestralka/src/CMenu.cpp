@@ -49,7 +49,7 @@ bool CMenu::initCurses ( void ) {
     return true;
 }
 void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & menuItems ) {
-    clearSpaces ( 1+itemIndex, 2, menuItems[itemIndex].first.size() );
+    clearSpaces ( 2+itemIndex, (getmaxx(m_Win)/2) - ( menuItems[itemIndex].first.size() / 2) -1, menuItems[itemIndex].first.size() );
     if ( ! menuItems[itemIndex].second ) {
         wattron ( m_Win, ON_PAIR );
         menuItems[itemIndex].second = true;
@@ -58,7 +58,7 @@ void CMenu::toggleColor ( const size_t & itemIndex, vector<pair<string,bool>> & 
         wattron ( m_Win, OFF_PAIR );
         menuItems[itemIndex].second = false;
     }
-    mvwprintw ( m_Win , 1+itemIndex, 2, "%s", menuItems[itemIndex].first.c_str() );
+    mvwprintw ( m_Win , 2+itemIndex, (getmaxx(m_Win)/2) - ( menuItems[itemIndex].first.size() / 2)-1, "%s", menuItems[itemIndex].first.c_str() );
     wattroff ( m_Win, ON_PAIR );
     wattroff ( m_Win, OFF_PAIR );
     wrefresh(m_Win);
@@ -154,7 +154,7 @@ void CMenu::printSettings ( vector<pair<string,bool>> & menuItems ) {
         if ( i == m_Highlight && i != 0 && i != 1 )
             wattron ( m_Win, A_REVERSE );
         
-        mvwprintw ( m_Win, i+2, getmaxx(m_Win)/2 - ( menuItems[i].first.size() / 2) - 1 , "%s", menuItems[i].first.c_str() );
+        mvwprintw ( m_Win, i+2, (getmaxx(m_Win)/2) - ( menuItems[i].first.size() / 2) - 1 , "%s", menuItems[i].first.c_str() );
         if ( i == 2 )
             wprintw ( m_Win, " %ld", m_Settings.getMaxDeckSize() );
         wattroff ( m_Win, OFF_PAIR );
@@ -162,6 +162,7 @@ void CMenu::printSettings ( vector<pair<string,bool>> & menuItems ) {
         wattroff ( m_Win, ON_SELECTED_PAIR );
         wattroff ( m_Win, OFF_SELECTED_PAIR );
         wattroff ( m_Win, A_REVERSE );
+        wrefresh ( m_Win );
     }
 }
 bool CMenu::handleSettingsMovement (  vector<pair<string,bool>> & menuItems ) {
@@ -194,8 +195,8 @@ bool CMenu::handleSettings ( void ) {
             m_Settings.toggleCheeky();
         }
         if ( m_Highlight == 2 ) {
-            clearSpaces ( 3, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
-            int num = readNumber ( 3, 3 + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
+            clearSpaces ( 4, (getmaxx(m_Win)/2) - ( menuItems[2].first.size() / 2) + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
+            int num = readNumber ( 4, (getmaxx(m_Win)/2) - ( menuItems[2].first.size() / 2) + menuItems[m_Highlight].first.size(), defaultInputLengthDeckSize );
             if ( isValidDeckSize ( num ) )
                 m_Settings.setMaxDeckSize ( num );
             drawMenu ( "Settings" );
@@ -264,7 +265,6 @@ bool CMenu::chooseDeckMovement ( vector<CDeck> & decks ) {
     }
     return true;
 }
-// ? please rework the return value
 CDeck CMenu::chooseDeckMenu ( vector<CDeck> & decks ) {
     m_Highlight = 0;
     drawMenu ( "Choose a deck:" );
@@ -314,13 +314,13 @@ bool CMenu::loadNecessities ( map<string,shared_ptr<CCharacter>> & characters, m
 bool CMenu::loadingScreen ( map<string,shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks ) {
     drawMenu ( "Loading screen" );
     if ( loadNecessities ( characters, cards, decks ) ) {
-        mvwprintw ( m_Win, m_Height/2-1, m_Width/2 - strlen("Loading successful.")/2, "Loading successful." );
-        mvwprintw ( m_Win, m_Height/2, m_Width/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
+        mvwprintw ( m_Win, m_Height/2-1, (m_Width/2) - 9, "Loading successful." );
+        mvwprintw ( m_Win, m_Height/2, (m_Width/2) - 13, "Press any key to continue." );
         wgetch ( m_Win );
         return true;
     }
-    mvwprintw ( m_Win, m_Height/2-1, m_Width/2 - strlen("Error while loading necessities.")/2, "Error while loading necessities." );
-    mvwprintw ( m_Win, m_Height/2, m_Width/2 - strlen("Press any key to continue.")/2, "Press any key to continue." );
+    mvwprintw ( m_Win, m_Height/2-1, (m_Width/2) - 16, "Error while loading necessities." );
+    mvwprintw ( m_Win, m_Height/2, m_Width/2 - 13, "Press any key to continue." );
     wgetch ( m_Win );
     return false;
 }

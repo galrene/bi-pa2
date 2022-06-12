@@ -1,11 +1,8 @@
 #pragma once
-#ifndef CMenu_H
-#define CMenu_H
 #include <ncurses.h>
 #include <iostream>
 #include <vector>
 #include <functional>
-#include "string.h"
 
 #include "CGameSettings.h"
 #include "CGameStateManager.h"
@@ -21,45 +18,84 @@ class CMenu {
     CMenu ( void );
     ~CMenu ( void );   
     /**
-     * @brief Render menu box and header
+     * @brief Render a menu box and header.
      * 
      * @param menuHeader header in the top middle of the window
      */
     void drawMenu ( const string & menuHeader );
     /**
-     * @brief 
+     * @brief Control the settings menu.
      * 
-     * @return true 
-     * @return false 
+     * @return true = pressed return button, false = CTRL-D
      */
     bool handleSettings ( void );
     /**
-    * @return 1 = createdGame, 2 = loadedGame. -1 == quit
-    */
+     * @brief Control the main menu.
+     * 
+     * @return 1 = createdGame, 2 = loadedGame. -1 == quit
+     */
     int handleMainMenu ( CGameStateManager & gsm );
     /**
-    * @return -1 = requested exit, 1 = successfuly created a game, 0 = game creation failure
-    */
+     * @brief Control the create game menus.
+     * 
+     * @return -1 = requested exit, 1 = successfuly created a game, 0 = game creation failure
+     */
     int handleCreateMenu ( CGameStateManager & gsm );
     /**
-    * @return -1 on requested exit
-    */
+     * @brief Control the menu for loading a game from a savefile.
+     * 
+     * @return 0 = couldn't load from savefile, 1 = successfully loaded a game, -1 = requested exit
+     */
     int handleLoadGameMenu ( CGameStateManager & gsm );
+  protected:
+    /**
+     * @brief Control the menu for choosing a deck.
+     * 
+     * @param decks decks to choose from
+     * @return CDeck chosen deck, deck with empty string as name if quit requested
+     */
     CDeck chooseDeckMenu ( vector<CDeck> & decks );
+    /**
+     * @brief Read a player name from the user.
+     * 
+     * @param menuHeader menu title
+     * @return string mhosen name
+     */
     string chooseNameMenu ( const char * menuHeader );
+    /**
+     * @brief Control the menu for choosing a character.
+     * 
+     * @param characters Characters to choose from.
+     * @param menuHeader menu title
+     * @return shared_ptr<CCharacter> chosen character
+     */
     shared_ptr<CCharacter> chooseCharacter ( vector<shared_ptr<CCharacter>> & characters,
                                              const char * menuHeader );
+    /**
+     * @brief Control the menu for creating a player.
+     * 
+     * @param loadedCharacters characters to choose from
+     * @param decks decks to choose from
+     * @param menuHeader menu title
+     * @return shared_ptr<CPlayer> created player, nullptr = exit requested
+     */
     shared_ptr<CPlayer> createPlayerMenu ( map<string,shared_ptr<CCharacter>> & loadedCharacters,
                                            vector<CDeck> & decks, const char * menuHeader );
+    /**
+     * @brief Communicate the state of loading the necessities for creating players.
+     * 
+     * @param characters where to load characters
+     * @param cards where to load cards 
+     * @param decks where to load decks 
+     * @return true = loading success, false = a necessity wasn't loaded
+     */
     bool loadingScreen ( map<string,shared_ptr<CCharacter>> & characters,
                          map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks );
-    
-  protected:
     /**
     * @brief Read user input for menu navigation.
     * 
     * @param menuSize number of menu items to navigate through
-    * @return 1 on enter, 0 on normal navigation or random button, -1 on CTRL-D, 2 on return one menu back request
+    * @return 1 = Enter, 0 = normal navigation or random button, -1 = CTRL-D
     */
     int  handleNavigation ( const size_t & menuSize );
     bool handleMenuMovement ( vector<string> & menuItems );
@@ -126,6 +162,12 @@ class CMenu {
      * @brief Load everything necessary for creating a game.
      */
     bool loadNecessities ( map<string,shared_ptr<CCharacter>> & characters, map<string,shared_ptr<CCard>> & cards, vector<CDeck> & decks );
+    /**
+     * @brief Load directory entries with the save_game prefix.
+     * 
+     * @param savePath Path where to look.
+     * @return vector<fs::directory_entry> loaded entries 
+     */
     vector<fs::directory_entry> loadSaves ( fs::path savePath );
 
     int m_XMax, m_YMax;
@@ -134,4 +176,3 @@ class CMenu {
     size_t m_Highlight = 0;
     CGameSettings m_Settings;
 };
-#endif

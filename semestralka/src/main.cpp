@@ -27,7 +27,7 @@ int main ( void ) {
 
 #ifdef TEST
 /**
- * @brief Main used for testing purpouses
+ * @brief Main used for testing purposes
  * 
  */
 int main ( void ) {

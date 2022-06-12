@@ -3,36 +3,16 @@ ConfigParser berie aj 1b ako 1 pri intovych atributoch
 sila utoku sa bude pocitat ako ( karta DMG + strength - Opponent defense )
 
 
-IDEAS:    
-    Handlovanie settings môžem dať do settings clasy etc.
-    
-TODO  {
-    Z kazeho menu nech sa 'Q'ckom alebo 'ESC' hmm vies vratit back to main menu
-
-    CPassive asi prerobit na nejake extra damage karty ktore ti zoberu zo zivota or some
-    lebo damage over time cez nejaky bleed by bol celkom hassle.
-
-    vypocet damage and stuff zo statov
-    rozdelit nacitanie hraca na viacero funkcii
-    
-}
-
 ISSUES: {
-    necheckujem nezapornost hodnot pri atributoch postav and stuff
-    vela opakovaneho kodu v CMenu a CConfigParser
-
-    ! sprav character ako shared ptr i guess a potom v CPlayer::save odober make_shared
+    necheckujem nezapornost hodnot pri atributoch postav and stuff, should I?
 
     Terminator sa selfharmuje special kartami, zostane mu ich vela v ruke
 }
 
-realny todo:
-
-Testy
-
-CPassive poriešiť na CMix keď už nič lepšie nenapadne
-
-Náznak aplikovania efektov na základe atribútov
-
-Okomentovať classy
-Dopísať komentáre v parseri a menu
+TODO {
+    Okomentovať classy
+    Dopísať komentáre v parseri a menu
+    
+    CPassive poriešiť na CMix keď už nič lepšie nenapadne
+    Náznak aplikovania efektov na základe atribútov
+}

@@ -25,7 +25,7 @@ bool CConfigParser::enterDirectory ( const string & dirName ) {
     if ( ( p & fs::perms::owner_read ) == fs::perms::none ||
          ( p & fs::perms::owner_exec ) == fs::perms::none ||
          ( p & fs::perms::owner_write ) == fs::perms::none ) {
-        m_LogStream << "The owner doesn't have the correct permissions to write and read " << tmpPath << endl;
+        m_LogStream << "The owner doesn't have the correct permissions to write, read and execute " << tmpPath << endl;
         return false;
     }
     m_Path = tmpPath;
@@ -116,8 +116,7 @@ string CConfigParser::readIni ( const fs::path & iniPath ) {
     return header;
 }
 
-bool CConfigParser::constructCharacter ( const fs::directory_entry & entry,
-                                         map<string,shared_ptr<CCharacter>> & loadedCharacters ) {
+bool CConfigParser::constructCharacter ( map<string,shared_ptr<CCharacter>> & loadedCharacters ) {
     CCharacter character ( m_LoadedData );
     if ( loadedCharacters.count ( m_LoadedData["name"] ) != 0 ) {
         m_LogStream << "Character with name \"" << m_LoadedData["name"] << "\" already exists" << endl;
@@ -144,7 +143,7 @@ bool CConfigParser::loadCharacterFromIni ( const fs::directory_entry & entry, ma
         return false;
     }
     try {
-        if ( ! constructCharacter ( entry, loadedCharacters ) ) {
+        if ( ! constructCharacter ( loadedCharacters ) ) {
             m_LogStream << "Failed to set all of the required character attributes" << endl;
             m_LoadedData.clear();
             return false;
@@ -458,7 +457,7 @@ bool CConfigParser::loadSave ( CGameStateManager & gsm, const fs::path & savePat
     if ( ! enterDirectory ( savePath.filename() ) )
         return false;
     CGameSettings settings;
-    fs::path settingsPath = savePath; settingsPath /= defaultSettingsFileName;
+    fs::path settingsPath = savePath; settingsPath /= "settings.ini";
     if ( ! fs::directory_entry ( settingsPath ).exists() ) {
         m_Path = savePath.parent_path();
         return false;

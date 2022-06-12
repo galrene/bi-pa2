@@ -190,7 +190,7 @@ bool CGameStateManager::savePlayers ( fs::path & saveDir ) {
   return true;
 }
 bool CGameStateManager::saveSettings ( fs::path & saveDir ) {
-  ofstream ofs ( saveDir.generic_string() + "/" + defaultSettingsFileName );
+  ofstream ofs ( saveDir.generic_string() + "/" + "settings.ini" );
   if ( ! ofs.good() )
     return false;
   m_Settings.setFirstOnTurn ( m_OnTurn == m_Player1 ? true : false );
