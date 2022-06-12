@@ -21,13 +21,6 @@ bool CConfigParser::enterDirectory ( const string & dirName ) {
         m_LogStream << tmpPath << " isn't a directory" << endl;
         return false;
     }
-    fs::perms p = status ( tmpPath ).permissions();
-    if ( ( p & fs::perms::owner_read ) == fs::perms::none ||
-         ( p & fs::perms::owner_exec ) == fs::perms::none ||
-         ( p & fs::perms::owner_write ) == fs::perms::none ) {
-        m_LogStream << "The owner doesn't have the correct permissions to write, read and execute " << tmpPath << endl;
-        return false;
-    }
     m_Path = tmpPath;
     return true;
 }
@@ -81,8 +74,10 @@ bool CConfigParser::readKeyValue ( const string & line, string & key, string & v
     return true;
 }
 string CConfigParser::readIni ( const fs::path & iniPath ) {
-    ifstream ifs ( iniPath.generic_string(), ios::binary );
+    ifstream ifs ( iniPath.generic_string() );
     stringstream buffer;
+    if ( ! ifs.good() )
+        return "";
     // inserts file content into stringstream
     buffer << ifs.rdbuf();
     
