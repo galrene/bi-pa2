@@ -245,6 +245,10 @@ bool CConfigParser::isDeckValid ( const fs::directory_entry & entry, CDeck & dec
             tmp_DeckDefinition[card->getName()] = card;
         }
     }
+    if ( deck.size() < handSize ) {
+        m_LogStream << "Deck has " << deck.size() << " cards, must be at least " << handSize << " (configured hand size)" << endl;
+        return false;
+    }
     deck.setDefinition ( tmp_DeckDefinition ); // pass the deck the card defintions it was created from
     deck.setData ( m_LoadedData ); // pass the deck it's card count info
     return true;
